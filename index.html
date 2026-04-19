@@ -729,36 +729,36 @@
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
   // ── EMAIL SIGNUP ──
-  async function handleSignup(e, source) {
+  function handleSignup(e, source) {
     e.preventDefault();
-    const emailEl = document.getElementById(source + '-email');
-    const email = emailEl.value.trim();
+    var emailEl = document.getElementById(source + '-email');
+    var email = emailEl.value.trim();
     if (!email) return;
 
-    const btn = e.target.querySelector('button');
+    var btn = e.target.querySelector('button');
     btn.textContent = 'Opening app...';
-    btn.disabled = true;
     btn.style.background = 'linear-gradient(135deg,#6B9E7A,#4a7a5a)';
     btn.style.animation = 'none';
     emailEl.disabled = true;
 
-    // Save email via Formspree — sign up free at formspree.io and replace YOUR_FORM_ID
-    try {
-      await fetch('https://formspree.io/f/mvzdqpnz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, source: source, date: new Date().toISOString() })
-      });
-    } catch(err) { console.log('Signup:', email); }
+    // Send to Formspree in background
+    fetch('https://formspree.io/f/mvzdqpnz', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, source: source })
+    }).catch(function() {});
 
-    // Redirect to app after short delay
+    // Show CTA success message
     if (source === 'cta') {
-      document.getElementById('cta-success').style.display = 'block';
+      var msg = document.getElementById('cta-success');
+      if (msg) { msg.style.display = 'block'; }
       e.target.style.display = 'none';
     }
+
+    // Redirect to app
     setTimeout(function() {
-      window.location.href = 'https://her-nest.vercel.app';
-    }, 1500);
+      window.open('https://her-nest.vercel.app', '_blank');
+    }, 1200);
   }
 
   // ── STAGGER ANIMATIONS ──

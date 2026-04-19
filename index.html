@@ -729,29 +729,36 @@
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
   // ── EMAIL SIGNUP ──
-  const signups = [];
-  function handleSignup(e, source) {
+  async function handleSignup(e, source) {
     e.preventDefault();
-    const emailEl = document.getElementById(`${source}-email`);
+    const emailEl = document.getElementById(source + '-email');
     const email = emailEl.value.trim();
     if (!email) return;
 
-    // Save to list
-    signups.push({ email, source, date: new Date().toISOString() });
-    console.log('Signups:', signups);
+    const btn = e.target.querySelector('button');
+    btn.textContent = 'Opening app...';
+    btn.disabled = true;
+    btn.style.background = 'linear-gradient(135deg,#6B9E7A,#4a7a5a)';
+    btn.style.animation = 'none';
+    emailEl.disabled = true;
 
-    // Show success
-    if (source === 'hero') {
-      emailEl.value = '';
-      emailEl.placeholder = '✓ You\'re on the list! 💛';
-      emailEl.style.color = '#C8E0CE';
-      emailEl.disabled = true;
-      e.target.querySelector('button').textContent = '✓ Joined!';
-      e.target.querySelector('button').style.background = 'linear-gradient(135deg,#6B9E7A,#4a7a5a)';
-    } else {
+    // Save email via Formspree — sign up free at formspree.io and replace YOUR_FORM_ID
+    try {
+      await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, source: source, date: new Date().toISOString() })
+      });
+    } catch(err) { console.log('Signup:', email); }
+
+    // Redirect to app after short delay
+    if (source === 'cta') {
       document.getElementById('cta-success').style.display = 'block';
       e.target.style.display = 'none';
     }
+    setTimeout(function() {
+      window.location.href = 'https://her-nest.vercel.app';
+    }, 1500);
   }
 
   // ── STAGGER ANIMATIONS ──

@@ -103,7 +103,6 @@ const Ic={
   Trash:   p=><svg width={p.s||18} height={p.s||18} viewBox="0 0 24 24" fill="none"><polyline points="3,6 5,6 21,6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M10 11v6M14 11v6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Run:     p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><circle cx="13" cy="4" r="2" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/><path d="M7 22l2-6 3 3 4-8" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M14 9l2-3 3 1" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Pin:     p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/><circle cx="12" cy="9" r="2.5" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/></svg>,
-  Arrow:   p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><polyline points="9,18 15,12 9,6" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
 // ─── SHARED COMPONENTS ───────────────────────────────────────────
@@ -552,7 +551,7 @@ function BudgetScreen({uid}){
     if(!uid)return;
     loadData(uid,"budget").then(d=>{
       if(d?.expenses) setExpenses(d.expenses);
-      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:Ic[c.ICname]||Ic.Bag})));
+      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:eval(`Ic.${c.ICname||"Bag"}`)||Ic.Bag})));
       if(d?.savingsGoal) setSavingsGoal(d.savingsGoal);
     }).catch(()=>{});
   },[uid]);
@@ -1349,7 +1348,7 @@ function NoraScreen({onTasks,profile}){
   const send=async()=>{
     if(!inp.trim()||loading)return;
     const msg=inp.trim();setInp("");setLoading(true);
-    const profileCtx=profile?`User profile: name ${profile.name||"her"}, role ${profile.role||"mum"}, kids: ${profile.kids?.map(k=>`${k.name} (${k.age})`).join(",")||"none listed"}, trip goal: ${profile.tripGoal||"none"}, priorities: ${profile.priorities?.join(",")||"family"}, challenge: ${profile.challenge||"mental load"}.`:"";
+    const profileCtx=profile?`User profile: name ${profile.name||"her"}, role ${profile.role||"mum"}, kids: ${profile.kids?.map(k=>`${k.name} (${k.age})`).join(",")||"none listed"}, partner: ${profile.partner||"none"}, parents: ${profile.parents?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, in-laws: ${profile.inlaws?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, trip goal: ${profile.tripGoal||"none"}, priorities: ${profile.priorities?.join(",")||"family"}, challenge: ${profile.challenge||"mental load"}.`:"";
     const sys=`You are Nora, a warm, intelligent AI Mental Load Manager inside HerNest. ${profileCtx}
 You know this mum personally. Use her name, reference her kids by name, mention her real goals.
 Respond with 2-3 warm, specific, empathetic sentences that show you KNOW her. Then output:
@@ -1418,7 +1417,7 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
 // ═══════════════════════════════════════════════════════════════════
 // HOME SCREEN
 // ═══════════════════════════════════════════════════════════════════
-function HomeScreen({go,aiTasks,profile}){
+function HomeScreen({go,aiTasks,profile,streak=1}){
   const [water,setWater]=useState(()=>{try{return parseInt(sessionStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
   const [mood,setMood]=useState(null);
   const hour=new Date().getHours();
@@ -1446,9 +1445,15 @@ function HomeScreen({go,aiTasks,profile}){
             <h1 style={{fontFamily:FD,fontStyle:"italic",fontSize:30,color:"#fff",margin:"0 0 4px",fontWeight:300}}>{greet},</h1>
             <h1 style={{fontFamily:FD,fontSize:30,color:T.gold,margin:"0 0 6px",fontWeight:700,fontStyle:"normal"}}>{firstName} ✨</h1>
           </div>
-          <div style={{textAlign:"center",background:"rgba(255,255,255,.08)",borderRadius:16,padding:"10px 14px",border:"1px solid rgba(255,255,255,.08)"}}>
-            <div style={{fontFamily:FD,fontSize:24,fontWeight:700,color:"#fff"}}>{water}</div>
-            <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>glasses</div>
+          <div style={{display:"flex",gap:8}}>
+            <div style={{textAlign:"center",background:"rgba(255,255,255,.08)",borderRadius:16,padding:"10px 12px",border:"1px solid rgba(255,255,255,.08)"}}>
+              <div style={{fontFamily:FD,fontSize:22,fontWeight:700,color:"#fff"}}>{water}</div>
+              <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>water</div>
+            </div>
+            <div style={{textAlign:"center",background:"rgba(196,154,60,.15)",borderRadius:16,padding:"10px 12px",border:`1px solid rgba(196,154,60,.25)`}}>
+              <div style={{fontFamily:FD,fontSize:22,fontWeight:700,color:T.gold}}>{streak}🔥</div>
+              <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>streak</div>
+            </div>
           </div>
         </div>
         {/* Quick action row */}
@@ -1597,14 +1602,40 @@ function Step1({data,onChange,onNext}){
 
 function Step2({data,onChange,onNext,onBack}){
   const [kn,setKn]=useState(""); const [ka,setKa]=useState("");
+  const [pn,setPn]=useState(""); const [pr,setPr]=useState("Mum");
   const addKid=()=>{if(!kn.trim())return;onChange("kids",[...(data.kids||[]),{name:kn,age:ka}]);setKn("");setKa("");};
+  const addPerson=(field,name,role)=>{if(!name.trim())return;onChange(field,[...(data[field]||[]),{name,role}]);};
+  const PARENT_ROLES=["Mum","Dad"];
+  const INLAW_ROLES=["Mother-in-law","Father-in-law"];
   return(<div style={{animation:"slideRight .4s ease both"}}>
-    <div style={{textAlign:"center",marginBottom:28}}><div style={{display:"flex",justifyContent:"center",marginBottom:12}}><Ic.People s={44} c={T.esp} w={1.2}/></div><h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:T.esp,margin:"0 0 6px"}}>Your family</h2><p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:0}}>Tell Nora about the people you love most</p></div>
+    <div style={{textAlign:"center",marginBottom:24}}><div style={{display:"flex",justifyContent:"center",marginBottom:12}}><Ic.People s={44} c={T.esp} w={1.2}/></div><h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:T.esp,margin:"0 0 6px"}}>Your family</h2><p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:0}}>Tell Nora about the people you love most</p></div>
+    
     <FInput label="Partner's name (optional)" placeholder="e.g. James" value={data.partner||""} onChange={e=>onChange("partner",e.target.value)}/>
-    <div style={{marginBottom:18}}><label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Your children</label>
+    
+    <div style={{marginBottom:16}}><label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Your children</label>
       {(data.kids||[]).map((k,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8}}><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp,flex:1}}>{k.name}{k.age?`, ${k.age}`:""}</span><button onClick={()=>onChange("kids",(data.kids||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button></div>)}
       <div style={{display:"flex",gap:8}}><input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:2,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/><input placeholder="Age" value={ka} onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/><button onClick={addKid} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button></div>
     </div>
+
+    <div style={{marginBottom:16}}><label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Your parents</label>
+      {(data.parents||[]).map((p,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.goldP,borderRadius:12,padding:"10px 14px",marginBottom:8}}><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp,flex:1}}>{p.name}<span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span></span><button onClick={()=>onChange("parents",(data.parents||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button></div>)}
+      <div style={{display:"flex",gap:8,marginBottom:6}}>
+        {PARENT_ROLES.map(r=><button key={r} onClick={()=>setPr(r)} style={{flex:1,padding:"6px",borderRadius:10,border:`1.5px solid ${pr===r?T.gold:T.linen}`,background:pr===r?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:pr===r?T.esp:T.bark,cursor:"pointer"}}>{r}</button>)}
+      </div>
+      <div style={{display:"flex",gap:8}}><input placeholder="Name" value={pn} onChange={e=>setPn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/><button onClick={()=>{addPerson("parents",pn,pr);setPn("");}} style={{background:T.gold,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button></div>
+    </div>
+
+    <div style={{marginBottom:16}}><label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>In-laws (optional)</label>
+      {(data.inlaws||[]).map((p,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.lavP,borderRadius:12,padding:"10px 14px",marginBottom:8}}><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp,flex:1}}>{p.name}<span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span></span><button onClick={()=>onChange("inlaws",(data.inlaws||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button></div>)}
+      <div style={{display:"flex",gap:8}}>
+        <select onChange={e=>setPr(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+          {INLAW_ROLES.map(r=><option key={r}>{r}</option>)}
+        </select>
+        <input placeholder="Name" value={pn} onChange={e=>setPn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+        <button onClick={()=>{addPerson("inlaws",pn,pr);setPn("");}} style={{background:T.lav,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+      </div>
+    </div>
+
     <div style={{display:"flex",gap:10}}><button onClick={onBack} style={{flex:1,padding:"14px",borderRadius:16,fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",background:"transparent",color:T.esp,border:`1.5px solid ${T.linen}`}}>← Back</button><button onClick={onNext} className="lift" style={{flex:2,padding:"14px",borderRadius:16,fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",background:`linear-gradient(135deg,${T.esp},#4a2e18)`,color:"#fff",border:"none"}}>Continue →</button></div>
   </div>);}
 
@@ -1703,7 +1734,9 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       <Card ch={<div>
         <H2 t="Family"/>
         <FInput label="Partner's name" placeholder="e.g. James" value={local.partner||""} onChange={e=>upd("partner",e.target.value)}/>
-        <div style={{marginBottom:14}}>
+        
+        {/* Children */}
+        <div style={{marginBottom:16}}>
           <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Children</label>
           {(local.kids||[]).map((k,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
@@ -1715,6 +1748,42 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:2,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
             <input placeholder="Age" value={ka} onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
             <button onClick={addKid} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+          </div>
+        </div>
+
+        {/* Parents */}
+        <div style={{marginBottom:16}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Your Parents</label>
+          {(local.parents||[]).map((p,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.goldP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
+              <div style={{flex:1}}><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span><span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span></div>
+              <button onClick={()=>upd("parents",(local.parents||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
+            </div>
+          ))}
+          <div style={{display:"flex",gap:8,marginBottom:8}}>
+            {["Mum","Dad"].map(r=><button key={r} onClick={()=>setKa(r)} style={{flex:1,padding:"6px",borderRadius:10,border:`1.5px solid ${ka===r?T.gold:T.linen}`,background:ka===r?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:ka===r?T.esp:T.bark,cursor:"pointer"}}>{r}</button>)}
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <button onClick={()=>{if(!kn.trim())return;upd("parents",[...(local.parents||[]),{name:kn,role:ka||"Mum"}]);setKn("");setKa("");}} style={{background:T.gold,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+          </div>
+        </div>
+
+        {/* In-laws */}
+        <div style={{marginBottom:6}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>In-Laws</label>
+          {(local.inlaws||[]).map((p,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.lavP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
+              <div style={{flex:1}}><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span><span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span></div>
+              <button onClick={()=>upd("inlaws",(local.inlaws||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
+            </div>
+          ))}
+          <div style={{display:"flex",gap:8}}>
+            <select onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+              {["Mother-in-law","Father-in-law","Sister-in-law","Brother-in-law"].map(r=><option key={r}>{r}</option>)}
+            </select>
+            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <button onClick={()=>{if(!kn.trim())return;upd("inlaws",[...(local.inlaws||[]),{name:kn,role:ka||"Mother-in-law"}]);setKn("");setKa("");}} style={{background:T.lav,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
       </div>}/>
@@ -1848,6 +1917,26 @@ function NotificationCard(){
   );
 }
 
+
+// ─── OFFLINE BANNER ──────────────────────────────────────────────
+function OfflineBanner(){
+  const [offline,setOffline]=useState(!navigator.onLine);
+  useEffect(()=>{
+    const on=()=>setOffline(false);
+    const off=()=>setOffline(true);
+    window.addEventListener("online",on);
+    window.addEventListener("offline",off);
+    return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};
+  },[]);
+  if(!offline)return null;
+  return(
+    <div style={{background:`linear-gradient(135deg,${T.blush},#a85040)`,padding:"8px 16px",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      <span style={{fontFamily:FB,fontSize:12,color:"#fff",fontWeight:600}}>You're offline — app still works, AI features need connection</span>
+    </div>
+  );
+}
+
 // ─── SHARE BUTTON ────────────────────────────────────────────────
 function ShareButton(){
   const [copied,setCopied]=useState(false);
@@ -1891,11 +1980,26 @@ const TABS=[
 // ═══════════════════════════════════════════════════════════════════
 export default function HerNest(){
   const [screen,setScreen]=useState("splash");
-  const [profile,setProfile]=useState({avatar:"👩",name:"",city:"",role:"",partner:"",kids:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
+  const [profile,setProfile]=useState({avatar:"👩",name:"",city:"",role:"",partner:"",kids:[],parents:[],inlaws:[],siblings:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
   const [tab,setTab]=useState("home");
   const [aiTasks,setAiTasks]=useState([]);
   const [user,setUser]=useState(null);
   const [authChecked,setAuthChecked]=useState(false);
+  const [streak,setStreak]=useState(()=>{
+    try{
+      const s=JSON.parse(localStorage.getItem("hn_streak")||"{}");
+      const today=new Date().toDateString();
+      const yesterday=new Date(Date.now()-86400000).toDateString();
+      if(s.lastDate===today) return s.count||1;
+      if(s.lastDate===yesterday){
+        const newCount=(s.count||0)+1;
+        localStorage.setItem("hn_streak",JSON.stringify({count:newCount,lastDate:today}));
+        return newCount;
+      }
+      localStorage.setItem("hn_streak",JSON.stringify({count:1,lastDate:today}));
+      return 1;
+    }catch(e){return 1;}
+  });
   const upd=(k,v)=>setProfile(p=>({...p,[k]:v}));
   const handleAI=p=>{if(p?.tasks)setAiTasks(prev=>[...prev,...p.tasks]);};
 
@@ -1918,21 +2022,46 @@ export default function HerNest(){
     }
   };
 
+  // Register service worker for offline support
+  useEffect(()=>{
+    if("serviceWorker" in navigator){
+      navigator.serviceWorker.register("/sw.js").catch(()=>{});
+    }
+  },[]);
+
   // Watch auth state
   useEffect(()=>{
-    const unsub=onAuthStateChanged(auth,(u)=>{
-      setUser(u||null);
+    // Safety timeout — never get stuck on blank screen
+    const timeout=setTimeout(()=>setAuthChecked(true),5000);
+    const unsub=onAuthStateChanged(auth,async(u)=>{
+      clearTimeout(timeout);
       if(u){
-        loadProfile(u.uid).then(saved=>{
-          if(saved&&saved.name){setProfile(saved);setScreen("app");}
-          else{if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));setScreen("step1");}
-        }).catch(()=>{setScreen("step1");});
+        setUser(u);
+        try{
+          const saved=await Promise.race([
+            loadProfile(u.uid),
+            new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),4000))
+          ]);
+          if(saved&&saved.name){
+            setProfile(saved);
+            setScreen("app");
+          } else {
+            if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
+            setScreen("step1");
+          }
+        }catch(e){
+          // Firestore timed out — just go to onboarding
+          console.log("Profile load timed out, continuing",e);
+          if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
+          setScreen("step1");
+        }
       } else {
+        setUser(null);
         setScreen("login");
       }
       setAuthChecked(true);
     });
-    return()=>unsub();
+    return()=>{ unsub(); clearTimeout(timeout); };
   },[]);
 
   // Auto-save profile on change
@@ -1942,7 +2071,7 @@ export default function HerNest(){
 
   const reset=async()=>{
     try{await signOut(auth);}catch(e){}
-    setProfile({avatar:"👩",name:"",city:"",role:"",partner:"",kids:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
+    setProfile({avatar:"👩",name:"",city:"",role:"",partner:"",kids:[],parents:[],inlaws:[],siblings:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
     setTab("home");setAiTasks([]);setUser(null);setScreen("login");
   };
 
@@ -2007,22 +2136,22 @@ export default function HerNest(){
     if(user?.uid) saveProfile(user.uid, updated);
   };
 
-  const getScreen=(t)=>{
-    if(t==="home")     return <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile}/>;
-    if(t==="brief")    return <BriefingScreen profile={profile}/>;
-    if(t==="nora")     return <NoraScreen onTasks={handleAI} profile={profile}/>;
-    if(t==="plan")     return <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>;
-    if(t==="trips")    return <TripsScreen uid={user?.uid}/>;
-    if(t==="budget")   return <BudgetScreen uid={user?.uid}/>;
-    if(t==="style")    return <StyleScreen/>;
-    if(t==="circle")   return <CircleScreen profile={profile}/>;
-    if(t==="wellness") return <WellnessScreen profile={profile}/>;
-    if(t==="profile")  return <ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>;
-    return <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile}/>;
+  const screens={
+    home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak}/>,
+    brief:   <BriefingScreen profile={profile}/>,
+    nora:    <NoraScreen onTasks={handleAI} profile={profile}/>,
+    plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>,
+    trips:   <TripsScreen uid={user?.uid}/>,
+    budget:  <BudgetScreen uid={user?.uid}/>,
+    style:   <StyleScreen/>,
+    circle:  <CircleScreen profile={profile}/>,
+    wellness:<WellnessScreen profile={profile}/>,
+    profile: <ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>,
   };
 
   return(
     <div style={{fontFamily:FB,background:T.cream,minHeight:"100vh",maxWidth:430,margin:"0 auto",boxShadow:"0 0 80px rgba(0,0,0,.3)"}}>
+      <OfflineBanner/>
       <div style={{padding:"12px 20px 10px",display:"flex",justifyContent:"space-between",alignItems:"center",background:T.cream,position:"sticky",top:0,zIndex:50,borderBottom:`1px solid ${T.linen}`}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <Ic.Home s={18} c={T.gold} w={1.6}/>
@@ -2036,7 +2165,7 @@ export default function HerNest(){
         </div>
       </div>
       <div key={tab} style={{padding:"14px 16px 110px",overflowY:"auto",maxHeight:"calc(100vh - 112px)"}} className="tab-content">
-        {getScreen(tab)}
+        {screens[tab]}
       </div>
       <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(250,246,239,.97)",backdropFilter:"blur(20px)",borderTop:`1px solid ${T.linen}`,display:"flex",overflowX:"auto",padding:"8px 4px 16px",scrollbarWidth:"none",zIndex:100}}>
         {TABS.map(t=>{

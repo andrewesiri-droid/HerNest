@@ -1917,26 +1917,13 @@ export default function HerNest(){
     }
   };
 
-  // Watch auth state
+  // Watch auth state — only set user, never change screen
   useEffect(()=>{
-    const timeout=setTimeout(()=>setAuthChecked(true),5000);
-    const unsub=onAuthStateChanged(auth,async(u)=>{
-      clearTimeout(timeout);
-      if(u){
-        setUser(u);
-        try{
-          const saved=await Promise.race([loadProfile(u.uid),new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),4000))]);
-          if(saved&&saved.name){setProfile(saved);setScreen("app");}
-          else{if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));setScreen("step1");}
-        }catch(e){
-          if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
-          setScreen("step1");
-        }
-      } else {
-        setUser(null);setScreen("login");
-      }
+    const unsub=onAuthStateChanged(auth,(u)=>{
+      setUser(u||null);
       setAuthChecked(true);
     });
+    const timeout=setTimeout(()=>setAuthChecked(true),5000);
     return()=>{ unsub(); clearTimeout(timeout); };
   },[]);
 

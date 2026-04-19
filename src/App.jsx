@@ -1917,13 +1917,22 @@ export default function HerNest(){
     }
   };
 
-  // Watch auth state — only set user, never change screen
+  // Watch auth state
   useEffect(()=>{
+    const timeout=setTimeout(()=>setAuthChecked(true),5000);
     const unsub=onAuthStateChanged(auth,(u)=>{
+      clearTimeout(timeout);
       setUser(u||null);
+      if(u){
+        loadProfile(u.uid).then(saved=>{
+          if(saved&&saved.name){
+            setProfile(saved);
+            setScreen("app");
+          }
+        }).catch(()=>{});
+      }
       setAuthChecked(true);
     });
-    const timeout=setTimeout(()=>setAuthChecked(true),5000);
     return()=>{ unsub(); clearTimeout(timeout); };
   },[]);
 

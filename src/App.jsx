@@ -317,7 +317,7 @@ function PlanScreen({aiTasks,profile,uid}){
 // 2. TRIP PLANNER — fully interactive with AI
 // ═══════════════════════════════════════════════════════════════════
 function TripsScreen({uid}){
-  const [trips,setTrips]=useState([{id:1,dest:"Bali, Indonesia",flag:"🇮🇩",days:47,travellers:4,budget:6400,spent:2100,status:"Planning",checklist:[{item:"Flights",done:true},{item:"Villa booked",done:true},{item:"Activities planned",done:false},{item:"Travel insurance",done:false},{item:"Kids vaccinations",done:false}],packing:{Mum:["Swimwear","Sunscreen SPF50","Linen dresses","Sandals"],Kids:["Rashvests","Sunhats","Snorkels","Water shoes"],Everyone:["Passports","Power adapters","First aid kit","Reusable bags"]}}]);
+  const [trips,setTrips]=useState([]);
   const [activeTrip,setActiveTrip]=useState(0);
   const [tab,setTab]=useState("overview");
 
@@ -343,6 +343,26 @@ function TripsScreen({uid}){
   const [newDest,setNewDest]=useState("");
 
   const trip=trips[activeTrip]||trips[0];
+  if(!trips.length) return(
+    <div style={{animation:"fadeUp .45s ease both"}}>
+      <div style={{background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",borderRadius:22,padding:"28px 24px",marginBottom:14,textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>✈️</div>
+        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"0 0 8px",fontWeight:400}}>No trips yet</h2>
+        <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.5)",margin:"0 0 20px",lineHeight:1.6}}>Where does your family dream of going? Add your first trip and Nora will help you plan every detail.</p>
+        <button onClick={()=>setShowNewTrip(true)} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,color:"#fff",border:"none",borderRadius:14,padding:"13px 24px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:8}}>
+          <Ic.Plus s={18} c="#fff" w={2}/> Add Your First Trip
+        </button>
+      </div>
+      {showNewTrip&&<div style={{background:"#fff",borderRadius:18,padding:"16px",border:`1.5px solid ${T.gold}`,animation:"pop .2s ease both"}}>
+        <p style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp,margin:"0 0 12px"}}>Where to?</p>
+        <input value={newDest} onChange={e=>setNewDest(e.target.value)} placeholder="e.g. Bali, Indonesia" style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp,marginBottom:10}}/>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={()=>setShowNewTrip(false)} style={{flex:1,background:T.sand,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Cancel</button>
+          <button onClick={addTrip} style={{flex:2,background:T.esp,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>Add Trip</button>
+        </div>
+      </div>}
+    </div>
+  );
 
   const toggleCheck=i=>setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,checklist:t.checklist.map((c,ci)=>ci===i?{...c,done:!c.done}:c)}:t));
   const addCheck=()=>{if(!newItem.trim())return;setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,checklist:[...t.checklist,{item:newItem,done:false}]}:t));setNewItem("");};
@@ -528,13 +548,8 @@ function BudgetScreen({uid}){
   const [editVal,setEditVal]=useState("");
   const [showAddExp,setShowAddExp]=useState(false);
   const [newExp,setNewExp]=useState({cat:"Groceries",amount:"",note:""});
-  const DEFAULT_EXP=[
-    {id:1,cat:"Groceries",amount:45,note:"Weekly shop",date:"Today"},
-    {id:2,cat:"Dining",amount:68,note:"Family dinner",date:"Yesterday"},
-    {id:3,cat:"Kids",amount:120,note:"Swimming lessons",date:"Mon"},
-  ];
   const [expenses,setExpenses]=useState(()=>{
-    try{const s=sessionStorage.getItem("hn_expenses");return s?JSON.parse(s):DEFAULT_EXP;}catch(e){return DEFAULT_EXP;}
+    try{const s=sessionStorage.getItem("hn_expenses");return s?JSON.parse(s):[];}catch(e){return [];}
   });
 
   // Save expenses to session on change
@@ -647,6 +662,12 @@ function BudgetScreen({uid}){
           </div>
         )}
         <H2 t="Recent Expenses"/>
+        {expenses.length===0&&<div style={{textAlign:"center",padding:"28px 20px",background:T.sand,borderRadius:16,marginBottom:12}}>
+          <div style={{fontSize:36,marginBottom:10}}>💳</div>
+          <p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.esp,margin:"0 0 6px"}}>No expenses logged yet</p>
+          <p style={{fontFamily:FB,fontSize:12,color:T.bark,margin:"0 0 14px",lineHeight:1.5}}>Start tracking your spending and Nora will give you CFO-level insights</p>
+          <button onClick={()=>setShowAddExp(true)} style={{background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"10px 20px",fontFamily:FB,fontSize:12,fontWeight:700,cursor:"pointer"}}>+ Log First Expense</button>
+        </div>}
         {expenses.map((e,i)=>(
           <div key={e.id} style={{display:"flex",alignItems:"center",gap:12,background:"#fff",borderRadius:14,padding:"12px 14px",marginBottom:8,border:`1px solid ${T.linen}`}}>
             <Tile ic={categories.find(c=>c.lb===e.cat)?.IC||Ic.Budget} c={categories.find(c=>c.lb===e.cat)?.c||T.bark} bg={(categories.find(c=>c.lb===e.cat)?.c||T.bark)+"18"} s={16} ts={34} r={10}/>
@@ -880,11 +901,21 @@ function CircleScreen({profile}){
 
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
-      <div style={{background:"linear-gradient(135deg,#0e2028,#1a3a2e)",borderRadius:22,padding:"20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-20,right:-20,width:100,height:100,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
+      <div style={{background:"linear-gradient(135deg,#0e1428,#1a2a4e)",borderRadius:22,padding:"22px 20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",background:"rgba(100,160,255,.05)"}}/>
+        <div style={{position:"absolute",bottom:-30,left:-30,width:120,height:120,borderRadius:"50%",background:"rgba(196,154,60,.04)"}}/>
         <AIBadge t="AI Community"/>
-        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"8px 0 4px",fontWeight:400}}>The Circle</h2>
-        <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.45)",margin:0}}>Because mums lift each other up</p>
+        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:"#fff",margin:"10px 0 6px",fontWeight:400}}>The Circle</h2>
+        <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.45)",margin:"0 0 14px"}}>Because mums lift each other up 💛</p>
+        <div style={{display:"flex",gap:16}}>
+          {[["👩‍👩‍👧","2.4k","Members"],["💬","48","Posts today"],["⭐","4.9","Rating"]].map(([em,v,lb])=>(
+            <div key={lb} style={{textAlign:"center"}}>
+              <div style={{fontSize:18,marginBottom:2}}>{em}</div>
+              <div style={{fontFamily:FD,fontSize:16,fontWeight:700,color:"#fff"}}>{v}</div>
+              <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase"}}>{lb}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* AI Match Card */}

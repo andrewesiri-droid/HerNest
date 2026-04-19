@@ -1951,17 +1951,13 @@ export default function HerNest(){
     setTab("home");setAiTasks([]);setUser(null);setScreen("login");
   };
 
-  const handleLogin=async(userData)=>{
-    if(userData.uid){
-      const saved=await Promise.race([loadProfile(userData.uid),new Promise(r=>setTimeout(()=>r(null),3000))]);
+  const handleLogin=(userData)=>{
+    if(userData.name) setProfile(p=>({...p,name:userData.name}));
+    if(userData.uid) setUser({uid:userData.uid,email:userData.email});
+    setScreen("step1");
+    loadProfile(userData.uid).then(saved=>{
       if(saved&&saved.name){setProfile(saved);setScreen("app");}
-      else{
-        if(userData.name)setProfile(p=>({...p,name:userData.name}));
-        setScreen("step1");
-      }
-    } else {
-      setScreen("step1");
-    }
+    }).catch(()=>{});
   };
 
   if(!authChecked) return(

@@ -117,34 +117,44 @@ function ProgressBar({value,max,color=T.sage}){const pct=Math.min(Math.round((va
 
 // ─── API ─────────────────────────────────────────────────────────
 async function claude(sys,msg,hist=[]){
-  const res=await fetch("https://api.anthropic.com/v1/messages",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
-    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:sys,messages:[...hist,{role:"user",content:msg}]})
-  });
-  const d=await res.json();
-  return d.content?.map(b=>b.text||"").join("")||"";
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:sys,messages:[...hist,{role:"user",content:msg}]})
+    });
+    if(!res.ok) throw new Error(`API error ${res.status}`);
+    const d=await res.json();
+    if(d.error) throw new Error(d.error.message||"API error");
+    return d.content?.map(b=>b.text||"").join("")||"";
+  }catch(e){
+    console.error("Claude API error:",e);
+    throw e;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // 1. PLAN / TASK MANAGER — fully interactive
 // ═══════════════════════════════════════════════════════════════════
-function PlanScreen({aiTasks,profile}){
+function PlanScreen({aiTasks,profile,uid}){
   const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const today=new Date();
   const [selectedDay,setSelectedDay]=useState(today.getDay());
-  const [tasks,setTasks]=useState([
+  const DEFAULT_TASKS=[
     {id:1,text:"CFO board prep deck",done:false,tag:"Work",priority:"high",dueDay:1},
     {id:2,text:"School run — Mia 8:15am",done:false,tag:"Family",priority:"high",dueDay:today.getDay()},
     {id:3,text:"Pilates 6:30am",done:false,tag:"Me",priority:"medium",dueDay:today.getDay()},
     {id:4,text:"Grocery order",done:false,tag:"Home",priority:"medium",dueDay:2},
     {id:5,text:"Book Bali excursions",done:false,tag:"Travel",priority:"low",dueDay:4},
-  ]);
+  ];
+  const [tasks,setTasks]=useState(()=>{
+    try{const s=sessionStorage.getItem("hn_tasks");return s?JSON.parse(s):DEFAULT_TASKS;}catch(e){return DEFAULT_TASKS;}
+  });
   const [inp,setInp]=useState("");
   const [selTag,setSelTag]=useState("Family");
   const [selPri,setSelPri]=useState("medium");
@@ -153,6 +163,20 @@ function PlanScreen({aiTasks,profile}){
   const [meals,setMeals]=useState({Mon:{b:"Greek yoghurt & berries",l:"Salmon quinoa bowl",d:"Chicken stir-fry"},Tue:{b:"Avocado toast & eggs",l:"Caesar salad wrap",d:"Pasta primavera"},Wed:{b:"Overnight oats",l:"Sushi platter",d:"Grilled sea bass"}});
   const [editMeal,setEditMeal]=useState(null);
   const [mealDay,setMealDay]=useState("Mon");
+
+  // Save tasks to session storage whenever they change
+  useEffect(()=>{
+    try{sessionStorage.setItem("hn_tasks",JSON.stringify(tasks));}catch(e){}
+    if(uid) saveData(uid,"tasks",{tasks}).catch(()=>{});
+  },[tasks]);
+
+  // Load tasks from Firebase on mount
+  useEffect(()=>{
+    if(!uid)return;
+    loadData(uid,"tasks").then(d=>{
+      if(d?.tasks?.length) setTasks(d.tasks);
+    }).catch(()=>{});
+  },[uid]);
 
   useEffect(()=>{
     if(aiTasks?.length){
@@ -293,10 +317,23 @@ function PlanScreen({aiTasks,profile}){
 // ═══════════════════════════════════════════════════════════════════
 // 2. TRIP PLANNER — fully interactive with AI
 // ═══════════════════════════════════════════════════════════════════
-function TripsScreen(){
+function TripsScreen({uid}){
   const [trips,setTrips]=useState([{id:1,dest:"Bali, Indonesia",flag:"🇮🇩",days:47,travellers:4,budget:6400,spent:2100,status:"Planning",checklist:[{item:"Flights",done:true},{item:"Villa booked",done:true},{item:"Activities planned",done:false},{item:"Travel insurance",done:false},{item:"Kids vaccinations",done:false}],packing:{Mum:["Swimwear","Sunscreen SPF50","Linen dresses","Sandals"],Kids:["Rashvests","Sunhats","Snorkels","Water shoes"],Everyone:["Passports","Power adapters","First aid kit","Reusable bags"]}}]);
   const [activeTrip,setActiveTrip]=useState(0);
   const [tab,setTab]=useState("overview");
+
+  // Load trips from Firebase
+  useEffect(()=>{
+    if(!uid)return;
+    loadData(uid,"trips").then(d=>{
+      if(d?.trips?.length) setTrips(d.trips);
+    }).catch(()=>{});
+  },[uid]);
+
+  // Save trips to Firebase on change
+  useEffect(()=>{
+    if(uid&&trips.length) saveData(uid,"trips",{trips}).catch(()=>{});
+  },[trips,uid]);
   const [prompt,setPrompt]=useState("");
   const [result,setResult]=useState(null);
   const [loading,setLoading]=useState(false);
@@ -474,7 +511,7 @@ function TripsScreen(){
 // ═══════════════════════════════════════════════════════════════════
 // 3. BUDGET COACH — fully interactive
 // ═══════════════════════════════════════════════════════════════════
-function BudgetScreen(){
+function BudgetScreen({uid}){
   const [categories,setCategories]=useState([
     {lb:"Groceries",spent:620,budget:700,IC:Ic.Bag,c:T.sage,month:"Apr"},
     {lb:"Kids",spent:380,budget:400,IC:Ic.Kids,c:T.sky,month:"Apr"},
@@ -492,11 +529,30 @@ function BudgetScreen(){
   const [editVal,setEditVal]=useState("");
   const [showAddExp,setShowAddExp]=useState(false);
   const [newExp,setNewExp]=useState({cat:"Groceries",amount:"",note:""});
-  const [expenses,setExpenses]=useState([
+  const DEFAULT_EXP=[
     {id:1,cat:"Groceries",amount:45,note:"Weekly shop",date:"Today"},
     {id:2,cat:"Dining",amount:68,note:"Family dinner",date:"Yesterday"},
     {id:3,cat:"Kids",amount:120,note:"Swimming lessons",date:"Mon"},
-  ]);
+  ];
+  const [expenses,setExpenses]=useState(()=>{
+    try{const s=sessionStorage.getItem("hn_expenses");return s?JSON.parse(s):DEFAULT_EXP;}catch(e){return DEFAULT_EXP;}
+  });
+
+  // Save expenses to session on change
+  useEffect(()=>{
+    try{sessionStorage.setItem("hn_expenses",JSON.stringify(expenses));}catch(e){}
+    if(uid) saveData(uid,"budget",{expenses,categories,savingsGoal}).catch(()=>{});
+  },[expenses,uid]);
+
+  // Load budget from Firebase
+  useEffect(()=>{
+    if(!uid)return;
+    loadData(uid,"budget").then(d=>{
+      if(d?.expenses) setExpenses(d.expenses);
+      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:eval(`Ic.${c.ICname||"Bag"}`)||Ic.Bag})));
+      if(d?.savingsGoal) setSavingsGoal(d.savingsGoal);
+    }).catch(()=>{});
+  },[uid]);
 
   const totalBudget=categories.reduce((a,c)=>a+c.budget,0);
   const totalSpent=categories.reduce((a,c)=>a+c.spent,0);
@@ -517,7 +573,7 @@ function BudgetScreen(){
     const h=hist.map(m=>({role:m.role,content:m.content}));
     const ctx=`Budget data: total budget $${totalBudget}, spent $${totalSpent}. Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name} $${savingsGoal.saved}/$${savingsGoal.target}.`;
     try{const raw=await claude(`You are Nora, CFO-level budget coach in HerNest. ${ctx} Answer with empathy and specific advice. 3-4 sentences max.`,msg,h);setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
-    catch(e){setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"I'm here to help with your finances. Try again in a moment."}]);}
+    catch(e){setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"Something went quiet on my end — but your question was a great one. Give me another go in a moment. 💳"}]);}
     setLoading(false);
   };
 
@@ -900,9 +956,14 @@ function CircleScreen({profile}){
 // 6. WELLNESS COACH — fully interactive
 // ═══════════════════════════════════════════════════════════════════
 function WellnessScreen({profile}){
-  const [moods,setMoods]=useState([2,1,2,3,2,4,3]);
-  const [water,setWater]=useState(4);
-  const [sleep,setSleep]=useState(6.5);
+  const [moods,setMoods]=useState(()=>{try{const s=sessionStorage.getItem("hn_moods");return s?JSON.parse(s):[2,1,2,3,2,4,3];}catch(e){return [2,1,2,3,2,4,3];}});
+  const [water,setWater]=useState(()=>{try{return parseInt(sessionStorage.getItem("hn_water")||"4");}catch(e){return 4;}});
+  const [sleep,setSleep]=useState(()=>{try{return parseFloat(sessionStorage.getItem("hn_sleep")||"6.5");}catch(e){return 6.5;}});
+
+  // Save wellness data to session
+  useEffect(()=>{try{sessionStorage.setItem("hn_moods",JSON.stringify(moods));}catch(e){};},[moods]);
+  useEffect(()=>{try{sessionStorage.setItem("hn_water",String(water));}catch(e){};},[water]);
+  useEffect(()=>{try{sessionStorage.setItem("hn_sleep",String(sleep));}catch(e){};},[sleep]);
   const [workouts,setWorkouts]=useState([
     {id:1,lb:"Morning HIIT",mins:25,IC:Ic.Dumbbell,done:true,kcal:280},
     {id:2,lb:"Pilates Core",mins:30,IC:Ic.Leaf,done:false,kcal:180},
@@ -936,7 +997,7 @@ function WellnessScreen({profile}){
     const h=chatHist.map(m=>({role:m.role,content:m.content}));
     const ctx=`Wellness data: mood today ${todayMood}/5, sleep ${sleep}hrs, water ${water}/8 glasses, workouts done ${workouts.filter(w=>w.done).length}/${workouts.length}, kcal burned ${totalKcal}.`;
     try{const raw=await claude(`You are Nora, warm wellness coach in HerNest. ${ctx} Give personalised, empathetic advice. 3-4 sentences max.`,msg,h);setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
-    catch(e){setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"I'm here with you. Try again in a moment."}]);}
+    catch(e){setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"I lost connection for a second. You deserve a proper answer — try again and I'll be here. 🌿"}]);}
     setChatLoad(false);
   };
 
@@ -1228,7 +1289,7 @@ function NoraScreen({onTasks,profile}){
       const display=raw.replace(/<ND>[\s\S]*?<\/ND>/g,"").trim();
       setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:display,parsed}]);
       if(parsed&&onTasks)onTasks(parsed);
-    }catch(e){setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"I'm here with you. Try again in a moment.",parsed:null}]);}
+    }catch(e){setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"I had a quiet moment there — my connection dropped. Your message was heard though. Try again and I'll be right here. 💛",parsed:null}]);}
     setLoading(false);
   };
   return(
@@ -1660,9 +1721,20 @@ export default function HerNest(){
   };
 
   if(!authChecked) return(
-    <div style={{minHeight:"100vh",background:ESPG,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
-      <div style={{width:64,height:64,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",animation:"breathe 2s ease-in-out infinite"}}><Ic.Star s={28} c="#fff" w={1.3}/></div>
-      <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:"rgba(255,255,255,.6)",margin:0}}>Loading HerNest…</p>
+    <div style={{minHeight:"100vh",background:`linear-gradient(145deg,${T.esp},#1a0a04)`,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",position:"relative",overflow:"hidden"}}>
+      <div style={{position:"absolute",top:-100,right:-100,width:400,height:400,borderRadius:"50%",background:"rgba(196,154,60,.05)"}}/>
+      <div style={{position:"absolute",bottom:-100,left:-100,width:350,height:350,borderRadius:"50%",background:"rgba(107,158,122,.04)"}}/>
+      <div style={{animation:"float 3s ease-in-out infinite",marginBottom:28}}>
+        <div style={{width:88,height:88,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 0 50px rgba(196,154,60,.45)`}}>
+          <Ic.Star s={40} c="#fff" w={1.2}/>
+        </div>
+      </div>
+      <h1 style={{fontFamily:FD,fontStyle:"italic",fontSize:44,color:"#fff",margin:"0 0 6px",fontWeight:400,animation:"fadeUp .6s ease both"}}>Her<strong style={{fontStyle:"normal",fontWeight:700}}>Nest</strong></h1>
+      <p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.3)",letterSpacing:3,textTransform:"uppercase",margin:"0 0 36px",animation:"fadeUp .6s .1s ease both"}}>Your world in one place</p>
+      <div style={{display:"flex",gap:10,animation:"fadeUp .6s .2s ease both"}}>
+        {[0,1,2].map(i=><div key={i} style={{width:9,height:9,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},${T.sage})`,animation:`dot 1.4s ease-in-out ${i*.25}s infinite`}}/>)}
+      </div>
+      <p style={{position:"absolute",bottom:32,fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.2)",letterSpacing:2,textTransform:"uppercase"}}>Loading your nest…</p>
     </div>
   );
 
@@ -1700,9 +1772,9 @@ export default function HerNest(){
     home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile}/>,
     brief:   <BriefingScreen profile={profile}/>,
     nora:    <NoraScreen onTasks={handleAI} profile={profile}/>,
-    plan:    <PlanScreen aiTasks={aiTasks} profile={profile}/>,
-    trips:   <TripsScreen/>,
-    budget:  <BudgetScreen/>,
+    plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>,
+    trips:   <TripsScreen uid={user?.uid}/>,
+    budget:  <BudgetScreen uid={user?.uid}/>,
     style:   <StyleScreen/>,
     circle:  <CircleScreen profile={profile}/>,
     wellness:<WellnessScreen profile={profile}/>,

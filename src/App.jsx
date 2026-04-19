@@ -1919,7 +1919,7 @@ export default function HerNest(){
 
   // Watch auth state
   useEffect(()=>{
-    const unsub=onAuthStateChanged(auth,async(u)=>{
+    const unsub=onAuthStateChanged(auth,(u)=>{
       if(u){
         setUser(u);
         const saved=await loadProfile(u.uid);

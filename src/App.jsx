@@ -1928,12 +1928,12 @@ export default function HerNest(){
     return()=>{unsub();clearTimeout(timeout);};
   },[]);
 
-  // Load saved profile when user is set
+  // Load saved profile when user is set - only after auth is checked
   useEffect(()=>{
-    if(!user) return;
+    if(!user||!authChecked) return;
     loadProfile(user.uid).then(saved=>{
       if(saved&&saved.name){
-        setProfile(saved);
+        setProfile(p=>({...p,...saved}));
         setScreen("app");
       } else {
         if(user.displayName) setProfile(p=>({...p,name:user.displayName.split(" ")[0]}));
@@ -1943,7 +1943,7 @@ export default function HerNest(){
       if(user.displayName) setProfile(p=>({...p,name:user.displayName.split(" ")[0]}));
       setScreen("step1");
     });
-  },[user]);
+  },[user,authChecked]);
 
   // Auto-save profile on change
   useEffect(()=>{

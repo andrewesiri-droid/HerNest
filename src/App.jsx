@@ -1919,24 +1919,25 @@ export default function HerNest(){
 
   // Watch auth state
   useEffect(()=>{
+    const timeout=setTimeout(()=>setAuthChecked(true),5000);
     const unsub=onAuthStateChanged(auth,async(u)=>{
+      clearTimeout(timeout);
       if(u){
         setUser(u);
-        const saved=await loadProfile(u.uid);
-        if(saved&&saved.name){
-          setProfile(saved);
-          setScreen("app");
-        } else {
+        try{
+          const saved=await Promise.race([loadProfile(u.uid),new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),4000))]);
+          if(saved&&saved.name){setProfile(saved);setScreen("app");}
+          else{if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));setScreen("step1");}
+        }catch(e){
           if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
           setScreen("step1");
         }
       } else {
-        setUser(null);
-        setScreen("login");
+        setUser(null);setScreen("login");
       }
       setAuthChecked(true);
     });
-    return()=>unsub();
+    return()=>{ unsub(); clearTimeout(timeout); };
   },[]);
 
   // Auto-save profile on change

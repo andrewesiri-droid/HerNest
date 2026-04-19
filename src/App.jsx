@@ -148,13 +148,7 @@ function PlanScreen({aiTasks,profile,uid}){
   const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const today=new Date();
   const [selectedDay,setSelectedDay]=useState(today.getDay());
-  const DEFAULT_TASKS=[
-    {id:1,text:"CFO board prep deck",done:false,tag:"Work",priority:"high",dueDay:1},
-    {id:2,text:"School run — Mia 8:15am",done:false,tag:"Family",priority:"high",dueDay:today.getDay()},
-    {id:3,text:"Pilates 6:30am",done:false,tag:"Me",priority:"medium",dueDay:today.getDay()},
-    {id:4,text:"Grocery order",done:false,tag:"Home",priority:"medium",dueDay:2},
-    {id:5,text:"Book Bali excursions",done:false,tag:"Travel",priority:"low",dueDay:4},
-  ];
+  const DEFAULT_TASKS=[];
   const [tasks,setTasks]=useState(()=>{
     try{const s=sessionStorage.getItem("hn_tasks");return s?JSON.parse(s):DEFAULT_TASKS;}catch(e){return DEFAULT_TASKS;}
   });
@@ -263,9 +257,11 @@ function PlanScreen({aiTasks,profile,uid}){
 
       {/* Tasks */}
       {visible.length===0?(
-        <div style={{textAlign:"center",padding:"32px 20px",color:T.taupe}}>
-          <Ic.Plan s={36} c={T.linen} w={1.2}/>
-          <p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.taupe,marginTop:12}}>Nothing planned for this day yet</p>
+        <div style={{textAlign:"center",padding:"32px 20px"}}>
+          <div style={{fontSize:40,marginBottom:12}}>✨</div>
+          <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp,margin:"0 0 8px"}}>Your day is clear</p>
+          <p style={{fontFamily:FB,fontSize:13,color:T.taupe,margin:"0 0 16px",lineHeight:1.6}}>Add a task above or ask Nora to plan your day</p>
+          <button onClick={()=>setShowAdd(true)} style={{background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"10px 20px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer"}}>+ Add your first task</button>
         </div>
       ):visible.map(t=>{
         const tc=tC(t.tag);const TIC=tIC(t.tag);
@@ -1488,15 +1484,27 @@ function HomeScreen({go,aiTasks,profile,streak=1}){
         <Ic.Arrow s={18} c="rgba(255,255,255,.4)" w={1.5}/>
       </div>}
 
-      <H2 t="Your AI Suite" sub="Powered by Nora"/>
+      {/* Featured Nora card */}
+      <div onClick={()=>go("nora")} className="lift" style={{background:AIGRAD,borderRadius:22,padding:"20px",marginBottom:10,cursor:"pointer",position:"relative",overflow:"hidden",boxShadow:"0 6px 28px rgba(0,0,0,.25)"}}>
+        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(196,154,60,.08)"}}/>
+        <div style={{display:"flex",alignItems:"center",gap:14}}>
+          <div style={{width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:`0 0 24px rgba(196,154,60,.5)`,animation:"breathe 3s ease-in-out infinite"}}><Ic.Star s={26} c="#fff" w={1.3}/></div>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}><span style={{fontFamily:FD,fontStyle:"italic",fontSize:22,color:"#fff",fontWeight:400}}>Nora AI</span><AIBadge t="Mental Load"/></div>
+            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.55)",margin:0,lineHeight:1.5}}>Tell me what's on your mind — I'll organise everything for you</p>
+          </div>
+          <Ic.Arrow s={20} c="rgba(255,255,255,.4)" w={1.5}/>
+        </div>
+      </div>
+
+      <H2 t="Your AI Suite" sub="Tap to explore"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-        {FEATS.map(f=>(
-          <div key={f.id} onClick={()=>go(f.id)} className="lift" style={{background:f.bg,borderRadius:20,padding:"18px 16px",cursor:"pointer",position:"relative",overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,.18)"}}>
+        {FEATS.filter(f=>f.id!=="nora").map(f=>(
+          <div key={f.id} onClick={()=>go(f.id)} className="lift" style={{background:f.bg,borderRadius:20,padding:"16px 14px",cursor:"pointer",position:"relative",overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,.18)"}}>
             <div style={{position:"absolute",bottom:-20,right:-20,width:60,height:60,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
-            <div style={{width:40,height:40,borderRadius:13,background:"rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:12,border:"1px solid rgba(255,255,255,.08)"}}><f.IC s={20} c={f.ic} w={1.4}/></div>
-            <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>{f.lb}</div>
-            <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.38)",marginTop:3}}>{f.sub}</div>
-            {f.id==="nora"&&<div style={{position:"absolute",top:12,right:12,width:7,height:7,borderRadius:"50%",background:T.gold,animation:"breathe 2s ease-in-out infinite",boxShadow:`0 0 8px ${T.gold}`}}/>}
+            <div style={{width:38,height:38,borderRadius:12,background:"rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10,border:"1px solid rgba(255,255,255,.08)"}}><f.IC s={18} c={f.ic} w={1.4}/></div>
+            <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>{f.lb}</div>
+            <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.38)",marginTop:2}}>{f.sub}</div>
           </div>
         ))}
       </div>
@@ -1750,12 +1758,15 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         <div style={{marginBottom:16}}>
           <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Children</label>
           {(local.kids||[]).map((k,i)=>(
-            <div key={i} style={{background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8,display:"flex",alignItems:"center",gap:10}}>
-              <div style={{flex:1}}>
-                <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{k.name}{k.age?`, ${k.age}`:""}</span>
-                {k.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.sage,marginTop:2}}>🎂 {k.bday}</div>}
+            <div key={i} style={{background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{flex:1}}>
+                  <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{k.name}{k.age?`, ${k.age}`:""}</span>
+                  {k.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.sage,marginTop:2}}>🎂 {k.bday}</div>}
+                </div>
+                <button onClick={()=>{const n=prompt("Edit name:",k.name);if(n&&n.trim())setLocal(p=>({...p,kids:p.kids.map((c,ci)=>ci===i?{...c,name:n.trim()}:c)}));}} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Edit s={14} c={T.bark} w={1.5}/></button>
+                <button onClick={()=>removeKid(i)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
               </div>
-              <button onClick={()=>removeKid(i)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
           ))}
           <div style={{display:"flex",gap:6,marginBottom:6}}>
@@ -2037,15 +2048,11 @@ function ShareButton(){
 
 const TABS=[
   {id:"home",    lb:"Home",   IC:Ic.Home},
-  {id:"brief",   lb:"Morning",IC:Ic.Sun,  ai:true},
   {id:"nora",    lb:"Nora",   IC:Ic.Star, ai:true},
   {id:"plan",    lb:"Plan",   IC:Ic.Plan},
-  {id:"trips",   lb:"Trips",  IC:Ic.Compass},
-  {id:"budget",  lb:"Budget", IC:Ic.Budget},
-  {id:"style",   lb:"Style",  IC:Ic.Hanger},
-  {id:"circle",  lb:"Circle", IC:Ic.People},
+  {id:"brief",   lb:"Morning",IC:Ic.Sun,  ai:true},
   {id:"wellness",lb:"Thrive", IC:Ic.Leaf},
-  {id:"profile", lb:"Profile",IC:Ic.User},
+  {id:"profile", lb:"Me",     IC:Ic.User},
 ];
 
 // ═══════════════════════════════════════════════════════════════════

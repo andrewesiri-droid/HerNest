@@ -94,6 +94,9 @@ const Ic={
   Mail:    p=><svg width={p.s||20} height={p.s||20} viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2.5" stroke={p.c||T.bark} strokeWidth={p.w||1.5}/><polyline points="2,4 12,13 22,4" stroke={p.c||T.bark} strokeWidth={p.w||1.5} strokeLinejoin="round"/></svg>,
   Lock:    p=><svg width={p.s||20} height={p.s||20} viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2.5" stroke={p.c||T.bark} strokeWidth={p.w||1.5}/><path d="M7 11V7a5 5 0 0110 0v4" stroke={p.c||T.bark} strokeWidth={p.w||1.5} strokeLinecap="round"/><circle cx="12" cy="16" r="1.5" fill={p.c||T.bark}/></svg>,
   Close:   p=><svg width={p.s||16} height={p.s||16} viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke={p.c||T.bark} strokeWidth={p.w||2} strokeLinecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke={p.c||T.bark} strokeWidth={p.w||2} strokeLinecap="round"/></svg>,
+  User:    p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round"/></svg>,
+  LogOut:  p=><svg width={p.s||20} height={p.s||20} viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><polyline points="16,17 21,12 16,7" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round"/></svg>,
+  Save:    p=><svg width={p.s||20} height={p.s||20} viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke={p.c||"#fff"} strokeWidth={p.w||1.5} strokeLinejoin="round"/><polyline points="17,21 17,13 7,13 7,21" stroke={p.c||"#fff"} strokeWidth={p.w||1.5} strokeLinejoin="round"/><polyline points="7,3 7,8 15,8" stroke={p.c||"#fff"} strokeWidth={p.w||1.5} strokeLinejoin="round"/></svg>,
   Edit:    p=><svg width={p.s||18} height={p.s||18} viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke={p.c||T.bark} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke={p.c||T.bark} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Trash:   p=><svg width={p.s||18} height={p.s||18} viewBox="0 0 24 24" fill="none"><polyline points="3,6 5,6 21,6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M10 11v6M14 11v6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Run:     p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><circle cx="13" cy="4" r="2" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/><path d="M7 22l2-6 3 3 4-8" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M14 9l2-3 3 1" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -1473,6 +1476,117 @@ function NoraIntro({profile,onEnter}){
 // ═══════════════════════════════════════════════════════════════════
 // TABS CONFIG
 // ═══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// PROFILE SCREEN
+// ═══════════════════════════════════════════════════════════════════
+function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
+  const [local, setLocal] = useState({...profile});
+  const [saved, setSaved] = useState(false);
+  const [kn, setKn] = useState("");
+  const [ka, setKa] = useState("");
+  const upd = (k,v) => setLocal(p=>({...p,[k]:v}));
+  const addKid = () => { if(!kn.trim())return; setLocal(p=>({...p,kids:[...(p.kids||[]),{name:kn,age:ka}]})); setKn(""); setKa(""); };
+  const removeKid = i => setLocal(p=>({...p,kids:(p.kids||[]).filter((_,idx)=>idx!==i)}));
+  const save = () => { onSave(local); setSaved(true); setTimeout(()=>setSaved(false),2000); };
+
+  const AVATARS = ["👩","👩🏻","👩🏼","👩🏽","👩🏾","👩🏿"];
+  const ROLES = ["Working Mum","Stay-at-Home Mum","Entrepreneur","Executive","Other"];
+  const PRIORITIES = [{id:"family",lb:"Family"},{id:"career",lb:"Career"},{id:"fitness",lb:"Fitness"},{id:"travel",lb:"Travel"},{id:"finances",lb:"Finances"},{id:"selfcare",lb:"Self-care"}];
+  const CHALLENGES = ["Mental load","Work-life balance","Staying fit","Budget management","Finding me-time"];
+  const toggleP = id => { const c=local.priorities||[]; setLocal(p=>({...p,priorities:c.includes(id)?c.filter(x=>x!==id):c.length<3?[...c,id]:c})); };
+
+  return(
+    <div style={{animation:"fadeUp .45s ease both"}}>
+      {/* Hero */}
+      <div style={{background:ESPG,borderRadius:22,padding:"24px 22px",marginBottom:16,position:"relative",overflow:"hidden",textAlign:"center"}}>
+        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.03)"}}/>
+        <div style={{fontSize:56,marginBottom:8}}>{local.avatar||"👩"}</div>
+        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:22,color:"#fff",margin:"0 0 4px",fontWeight:400}}>{local.name||"Your Profile"}</h2>
+        <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:"0 0 12px"}}>{user?.email||""}</p>
+        <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+          {AVATARS.map(a=>(
+            <button key={a} onClick={()=>upd("avatar",a)} style={{fontSize:24,background:local.avatar===a?T.goldP:"rgba(255,255,255,.08)",border:`2px solid ${local.avatar===a?T.gold:"transparent"}`,borderRadius:12,padding:"6px",cursor:"pointer",transition:"all .15s"}}>{a}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Personal details */}
+      <Card ch={<div>
+        <H2 t="Personal Details"/>
+        <FInput label="First name" placeholder="e.g. Sarah" value={local.name||""} onChange={e=>upd("name",e.target.value)}/>
+        <FInput label="City" placeholder="e.g. Melbourne" value={local.city||""} onChange={e=>upd("city",e.target.value)}/>
+        <div style={{marginBottom:14}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Role</label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            {ROLES.map(r=>(
+              <button key={r} onClick={()=>upd("role",r)} style={{padding:"7px 14px",borderRadius:20,border:`1.5px solid ${local.role===r?T.gold:T.linen}`,background:local.role===r?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:local.role===r?T.esp:T.bark,cursor:"pointer",transition:"all .15s"}}>{r}</button>
+            ))}
+          </div>
+        </div>
+      </div>}/>
+
+      {/* Family */}
+      <Card ch={<div>
+        <H2 t="Family"/>
+        <FInput label="Partner's name" placeholder="e.g. James" value={local.partner||""} onChange={e=>upd("partner",e.target.value)}/>
+        <div style={{marginBottom:14}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Children</label>
+          {(local.kids||[]).map((k,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
+              <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp,flex:1}}>{k.name}{k.age?`, ${k.age}`:""}</span>
+              <button onClick={()=>removeKid(i)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
+            </div>
+          ))}
+          <div style={{display:"flex",gap:8}}>
+            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:2,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <input placeholder="Age" value={ka} onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <button onClick={addKid} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+          </div>
+        </div>
+      </div>}/>
+
+      {/* Priorities */}
+      <Card ch={<div>
+        <H2 t="Your Priorities" sub="Pick up to 3"/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          {PRIORITIES.map(p=>{const active=(local.priorities||[]).includes(p.id);return(
+            <button key={p.id} onClick={()=>toggleP(p.id)} style={{padding:"12px 14px",borderRadius:14,cursor:"pointer",textAlign:"left",background:active?T.goldP:"#fff",border:`2px solid ${active?T.gold:T.linen}`,fontFamily:FB,fontSize:13,fontWeight:700,color:active?T.esp:T.bark,transition:"all .15s",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              {p.lb}{active&&<Ic.Check s={14} c={T.gold} w={2.5}/>}
+            </button>
+          );})}
+        </div>
+      </div>}/>
+
+      {/* Goals */}
+      <Card ch={<div>
+        <H2 t="Your Goals"/>
+        <FInput label="Next trip" placeholder="e.g. Bali, Indonesia" value={local.tripGoal||""} onChange={e=>upd("tripGoal",e.target.value)}/>
+        <FInput label="Fitness goal" placeholder="e.g. Work out 4x per week" value={local.fitnessGoal||""} onChange={e=>upd("fitnessGoal",e.target.value)}/>
+        <FInput label="Savings goal" placeholder="e.g. $10,000 vacation fund" value={local.savingsGoal||""} onChange={e=>upd("savingsGoal",e.target.value)}/>
+        <div style={{marginBottom:6}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Biggest challenge</label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            {CHALLENGES.map(c=>(
+              <button key={c} onClick={()=>upd("challenge",c)} style={{padding:"7px 14px",borderRadius:20,border:`1.5px solid ${local.challenge===c?T.gold:T.linen}`,background:local.challenge===c?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:local.challenge===c?T.esp:T.bark,cursor:"pointer",transition:"all .15s"}}>{c}</button>
+            ))}
+          </div>
+        </div>
+      </div>}/>
+
+      {/* Save button */}
+      <button onClick={save} style={{width:"100%",padding:"15px",borderRadius:16,border:"none",cursor:"pointer",background:saved?`linear-gradient(135deg,${T.sage},#4a7a5a)`:`linear-gradient(135deg,${T.esp},#4a2e18)`,color:"#fff",fontFamily:FB,fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:12,transition:"background .3s"}}>
+        {saved?<><Ic.Check s={18} c="#fff" w={2.5}/> Saved!</>:<><Ic.Save s={18} c="#fff" w={1.5}/> Save Changes</>}
+      </button>
+
+      {/* Sign out */}
+      <button onClick={onSignOut} style={{width:"100%",padding:"14px",borderRadius:16,border:`1.5px solid ${T.blushP}`,cursor:"pointer",background:"#fff",color:T.blush,fontFamily:FB,fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:24}}>
+        <Ic.LogOut s={18} c={T.blush} w={1.5}/> Sign Out
+      </button>
+    </div>
+  );
+}
+
 const TABS=[
   {id:"home",    lb:"Home",   IC:Ic.Home},
   {id:"brief",   lb:"Morning",IC:Ic.Sun,  ai:true},
@@ -1483,6 +1597,7 @@ const TABS=[
   {id:"style",   lb:"Style",  IC:Ic.Hanger},
   {id:"circle",  lb:"Circle", IC:Ic.People},
   {id:"wellness",lb:"Thrive", IC:Ic.Leaf},
+  {id:"profile", lb:"Profile",IC:Ic.User},
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1576,6 +1691,11 @@ export default function HerNest(){
   }
   if(screen==="intro") return <NoraIntro profile={profile} onEnter={()=>setScreen("app")}/>;
 
+  const handleSaveProfile = (updated) => {
+    setProfile(updated);
+    if(user?.uid) saveProfile(user.uid, updated);
+  };
+
   const screens={
     home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile}/>,
     brief:   <BriefingScreen profile={profile}/>,
@@ -1586,6 +1706,7 @@ export default function HerNest(){
     style:   <StyleScreen/>,
     circle:  <CircleScreen profile={profile}/>,
     wellness:<WellnessScreen profile={profile}/>,
+    profile: <ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>,
   };
 
   return(
@@ -1597,7 +1718,7 @@ export default function HerNest(){
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           {aiTasks.length>0&&<div style={{background:T.goldP,borderRadius:20,padding:"4px 10px",fontFamily:FB,fontSize:11,color:T.gold,fontWeight:700,display:"flex",alignItems:"center",gap:4}}><Ic.Star s={10} c={T.gold} w={1.4}/>{aiTasks.length}</div>}
-          <button onClick={reset} style={{background:T.sand,border:`1px solid ${T.linen}`,borderRadius:20,padding:"5px 10px",fontFamily:FB,fontSize:10,fontWeight:700,color:T.bark,cursor:"pointer"}}>↺</button>
+          <button onClick={()=>setTab("profile")} style={{width:34,height:34,borderRadius:"50%",background:ESPG,border:`2px solid ${T.linen}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,transition:"all .15s"}}>{profile.avatar||"👩"}</button>
           <Ic.Bell s={22} c={T.esp} w={1.5}/>
         </div>
       </div>

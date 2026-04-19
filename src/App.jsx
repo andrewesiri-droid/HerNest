@@ -2061,16 +2061,13 @@ export default function HerNest(){
     setTab("home");setAiTasks([]);setUser(null);setScreen("login");
   };
 
-  const handleLogin=async(userData)=>{
+  const handleLogin=(userData)=>{
+    if(userData.name) setProfile(p=>({...p,name:userData.name}));
+    setScreen("step1");
     if(userData.uid){
-      const saved=await loadProfile(userData.uid);
-      if(saved&&saved.name){setProfile(saved);setScreen("app");}
-      else{
-        if(userData.name)setProfile(p=>({...p,name:userData.name}));
-        setScreen("step1");
-      }
-    } else {
-      setScreen("step1");
+      loadProfile(userData.uid).then(saved=>{
+        if(saved&&saved.name){setProfile(saved);setScreen("app");}
+      }).catch(()=>{});
     }
   };
 

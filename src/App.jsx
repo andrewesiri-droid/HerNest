@@ -571,8 +571,10 @@ function BudgetScreen({uid}){
     if(!inp.trim()||loading)return;
     const msg=inp.trim();setInp("");setLoading(true);
     const h=hist.map(m=>({role:m.role,content:m.content}));
-    const ctx=`Budget data: total budget $${totalBudget}, spent $${totalSpent}. Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name} $${savingsGoal.saved}/$${savingsGoal.target}.`;
-    try{const raw=await claude(`You are Nora, CFO-level budget coach in HerNest. ${ctx} Answer with empathy and specific advice. 3-4 sentences max.`,msg,h);setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
+    const overBudget=categories.filter(c=>c.spent>c.budget*0.9).map(c=>`${c.lb} (${Math.round((c.spent/c.budget)*100)}%)`).join(", ")||"none";
+    const recentExp=expenses.slice(0,5).map(e=>`${e.cat} $${e.amount}${e.note?` (${e.note})`:""}`).join(", ");
+    const ctx=`Real budget data: total budget $${totalBudget}, spent $${totalSpent} (${Math.round((totalSpent/totalBudget)*100)}%). Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name} $${savingsGoal.saved}/$${savingsGoal.target} (${Math.round((savingsGoal.saved/savingsGoal.target)*100)}%). Near budget limit: ${overBudget}. Recent expenses: ${recentExp}.`;
+    try{const raw=await claude(`You are Nora, CFO-level budget coach in HerNest. You have access to the user's REAL spending data. ${ctx} Be specific, reference her actual numbers, give actionable advice. 3-4 sentences max. Be warm but direct.`,msg,h);setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
     catch(e){setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"Something went quiet on my end — but your question was a great one. Give me another go in a moment. 💳"}]);}
     setLoading(false);
   };
@@ -861,12 +863,66 @@ function CircleScreen({profile}){
   const addPost=()=>{if(!newPost.trim())return;setPosts(p=>[{id:Date.now(),user:profile?.name||"You",av:"👩",msg:newPost,time:"Just now",hearts:0,liked:false,replies:[]},...p]);setNewPost("");setShowPost(false);};
   const addReply=id=>{if(!replyText.trim())return;setPosts(p=>p.map(post=>post.id===id?{...post,replies:[...post.replies,{user:profile?.name||"You",av:"👩",txt:replyText}]}:post));setReplyText("");setReplyTo(null);};
 
+  const [aiMatch,setAiMatch]=useState(null);
+  const [matchLoading,setMatchLoading]=useState(false);
+
+  const findMatch=async()=>{
+    setMatchLoading(true);
+    const sys=`You are Nora, AI community matcher for HerNest. Return ONLY valid JSON: {"match":{"name":"","avatar":"👩🏽","role":"","kids":"","sharedInterests":["","",""],"icebreaker":""},"reason":""}`;
+    const userCtx=`User: ${profile?.name||"Sarah"}, ${profile?.role||"Working Mum"}, kids: ${profile?.kids?.map(k=>k.name).join(",")||"2 kids"}, priorities: ${profile?.priorities?.join(",")||"family,career"}`;
+    try{
+      const raw=await claude(sys,`Find a perfect Circle match for this mum: ${userCtx}. Create a realistic mum profile that shares her interests and life stage.`);
+      setAiMatch(JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,"").trim()));
+    }catch(e){
+      setAiMatch({match:{name:"Priya M",avatar:"👩🏽",role:"Marketing Director",kids:"2 kids aged 5 & 8",sharedInterests:["Working mums","Family travel","Fitness"],icebreaker:"You both have kids the same age and love planning family trips!"},reason:"Priya shares your passion for balancing career and family."});
+    }
+    setMatchLoading(false);
+  };
+
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
-      <div style={{background:"linear-gradient(135deg,#0e2028,#1a3a2e)",borderRadius:22,padding:"20px",marginBottom:14}}>
-        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"0 0 4px",fontWeight:400}}>The Circle</h2>
+      <div style={{background:"linear-gradient(135deg,#0e2028,#1a3a2e)",borderRadius:22,padding:"20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-20,right:-20,width:100,height:100,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
+        <AIBadge t="AI Community"/>
+        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"8px 0 4px",fontWeight:400}}>The Circle</h2>
         <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.45)",margin:0}}>Because mums lift each other up</p>
       </div>
+
+      {/* AI Match Card */}
+      {!aiMatch&&<Card sx={{background:AIGRAD,border:"none",marginBottom:14}} ch={<div>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+          <div style={{width:44,height:44,borderRadius:14,background:"rgba(196,154,60,.2)",display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(196,154,60,.3)"}}><Ic.Star s={22} c={T.gold} w={1.4}/></div>
+          <div><div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Find Your People</div><div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.5)",marginTop:2}}>Nora will match you with mums just like you</div></div>
+        </div>
+        <button onClick={findMatch} disabled={matchLoading} style={{width:"100%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,color:"#fff",border:"none",borderRadius:12,padding:"12px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:matchLoading?.7:1}}>
+          {matchLoading?<><Spinner/>Finding your match…</>:<><Ic.Star s={16} c="#fff" w={1.4}/>Match Me with a Mum</>}
+        </button>
+      </div>}/>}
+
+      {aiMatch&&<Card sx={{marginBottom:14,border:`2px solid ${T.teal}30`,background:`linear-gradient(135deg,${T.tealP},#fff)`}} ch={<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+          <AIBadge t="Your Match"/>
+          <button onClick={()=>setAiMatch(null)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.taupe} w={2}/></button>
+        </div>
+        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12}}>
+          <div style={{fontSize:40}}>{aiMatch.match.avatar}</div>
+          <div>
+            <div style={{fontFamily:FB,fontSize:14,fontWeight:700,color:T.esp}}>{aiMatch.match.name}</div>
+            <div style={{fontFamily:FB,fontSize:12,color:T.bark,marginTop:2}}>{aiMatch.match.role}</div>
+            <div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:1}}>{aiMatch.match.kids}</div>
+          </div>
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
+          {aiMatch.match.sharedInterests?.map((i,idx)=><span key={idx} style={{fontFamily:FB,fontSize:11,color:T.teal,background:T.tealP,borderRadius:20,padding:"3px 10px",border:`1px solid ${T.teal}30`}}>{i}</span>)}
+        </div>
+        <div style={{background:T.goldP,borderRadius:12,padding:"10px 14px",marginBottom:12}}>
+          <p style={{fontFamily:FD,fontStyle:"italic",fontSize:14,color:T.esp,margin:0,lineHeight:1.6}}>"{aiMatch.match.icebreaker}"</p>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={findMatch} style={{flex:1,background:T.sand,border:`1px solid ${T.linen}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,fontWeight:700,color:T.bark,cursor:"pointer"}}>Try Another</button>
+          <button style={{flex:2,background:`linear-gradient(135deg,${T.teal},#2d7a7a)`,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff",cursor:"pointer"}}>Connect 👋</button>
+        </div>
+      </div>}/>}
 
       <div style={{display:"flex",gap:6,marginBottom:14}}>
         {["feed","ask","support"].map(t=><Pill key={t} ch={t.charAt(0).toUpperCase()+t.slice(1)} active={activeTab===t} on={()=>setActiveTab(t)} color={T.teal}/>)}
@@ -995,8 +1051,12 @@ function WellnessScreen({profile}){
     if(!chatInp.trim()||chatLoad)return;
     const msg=chatInp.trim();setChatInp("");setChatLoad(true);
     const h=chatHist.map(m=>({role:m.role,content:m.content}));
-    const ctx=`Wellness data: mood today ${todayMood}/5, sleep ${sleep}hrs, water ${water}/8 glasses, workouts done ${workouts.filter(w=>w.done).length}/${workouts.length}, kcal burned ${totalKcal}.`;
-    try{const raw=await claude(`You are Nora, warm wellness coach in HerNest. ${ctx} Give personalised, empathetic advice. 3-4 sentences max.`,msg,h);setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
+    const avgMood=Math.round(moods.reduce((a,b)=>a+b,0)/moods.length*10)/10;
+    const lowMoodDays=moods.filter(m=>m<=2).length;
+    const doneHabits=habits.filter(h=>h.done).length;
+    const topStreak=habits.reduce((a,h)=>h.streak>a?h.streak:a,0);
+    const ctx=`Real wellness data: mood today ${todayMood}/5, weekly average ${avgMood}/5, low mood days this week: ${lowMoodDays}. Sleep last night: ${sleep}hrs (goal 8hrs, ${sleep>=8?"on track":"below target"}). Water today: ${water}/8 glasses. Workouts completed: ${workouts.filter(w=>w.done).length}/${workouts.length} (${totalKcal} kcal burned, ${doneMins} mins). Daily habits done today: ${doneHabits}/${habits.length}. Longest streak: ${topStreak} days. Active habits: ${habits.map(h=>`${h.lb} (${h.streak}d streak)`).join(", ")}.`;
+    try{const raw=await claude(`You are Nora, warm wellness coach in HerNest. You have the user's REAL wellness data. ${ctx} Be specific and reference her actual numbers. If mood is low (below 3) acknowledge it with empathy first. Give personalised, actionable advice. 3-4 sentences max.`,msg,h);setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
     catch(e){setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"I lost connection for a second. You deserve a proper answer — try again and I'll be here. 🌿"}]);}
     setChatLoad(false);
   };

@@ -551,7 +551,7 @@ function BudgetScreen({uid}){
     if(!uid)return;
     loadData(uid,"budget").then(d=>{
       if(d?.expenses) setExpenses(d.expenses);
-      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:eval(`Ic.${c.ICname||"Bag"}`)||Ic.Bag})));
+      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:Ic[c.ICname]||Ic.Bag})));
       if(d?.savingsGoal) setSavingsGoal(d.savingsGoal);
     }).catch(()=>{});
   },[uid]);
@@ -1919,7 +1919,7 @@ export default function HerNest(){
 
   // Watch auth state
   useEffect(()=>{
-    const unsub=onAuthStateChanged(auth,async(u)=>{
+    const unsub=onAuthStateChanged(auth,(u)=>{
       if(u){
         setUser(u);
         const saved=await loadProfile(u.uid);

@@ -103,6 +103,7 @@ const Ic={
   Trash:   p=><svg width={p.s||18} height={p.s||18} viewBox="0 0 24 24" fill="none"><polyline points="3,6 5,6 21,6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M10 11v6M14 11v6" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke={p.c||T.blush} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Run:     p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><circle cx="13" cy="4" r="2" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/><path d="M7 22l2-6 3 3 4-8" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M14 9l2-3 3 1" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Pin:     p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/><circle cx="12" cy="9" r="2.5" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/></svg>,
+  Arrow:   p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><polyline points="9,18 15,12 9,6" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
 // ─── SHARED COMPONENTS ───────────────────────────────────────────
@@ -551,7 +552,7 @@ function BudgetScreen({uid}){
     if(!uid)return;
     loadData(uid,"budget").then(d=>{
       if(d?.expenses) setExpenses(d.expenses);
-      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:eval(`Ic.${c.ICname||"Bag"}`)||Ic.Bag})));
+      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:Ic[c.ICname]||Ic.Bag})));
       if(d?.savingsGoal) setSavingsGoal(d.savingsGoal);
     }).catch(()=>{});
   },[uid]);
@@ -2040,10 +2041,7 @@ export default function HerNest(){
         loadProfile(u.uid).then(saved=>{
           if(saved&&saved.name){setProfile(saved);setScreen("app");}
           else{if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));setScreen("step1");}
-        }).catch(()=>{
-          if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
-          setScreen("step1");
-        });
+        }).catch(()=>{setScreen("step1");});
       } else {
         setScreen("login");
       }

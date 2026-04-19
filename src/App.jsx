@@ -1640,6 +1640,9 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         {saved?<><Ic.Check s={18} c="#fff" w={2.5}/> Saved!</>:<><Ic.Save s={18} c="#fff" w={1.5}/> Save Changes</>}
       </button>
 
+      {/* Notifications */}
+      <NotificationCard/>
+
       {/* Sign out */}
       <button onClick={onSignOut} style={{width:"100%",padding:"14px",borderRadius:16,border:`1.5px solid ${T.blushP}`,cursor:"pointer",background:"#fff",color:T.blush,fontFamily:FB,fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:24}}>
         <Ic.LogOut s={18} c={T.blush} w={1.5}/> Sign Out
@@ -1648,6 +1651,90 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   );
 }
 
+
+
+// ─── NOTIFICATION CARD ───────────────────────────────────────────
+function NotificationCard(){
+  const [status,setStatus]=useState(()=>{
+    if(!("Notification" in window)) return "unsupported";
+    return Notification.permission;
+  });
+  const [time,setTime]=useState("07:00");
+  const [scheduling,setScheduling]=useState(false);
+  const [scheduled,setScheduled]=useState(false);
+
+  const enable=async()=>{
+    if(!("Notification" in window)){setStatus("unsupported");return;}
+    const perm=await Notification.requestPermission();
+    setStatus(perm);
+    if(perm==="granted"){
+      // Register service worker
+      if("serviceWorker" in navigator){
+        try{await navigator.serviceWorker.register("/sw.js");}catch(e){console.log("SW failed",e);}
+      }
+      // Show welcome notification
+      setTimeout(()=>{
+        new Notification("HerNest ✨",{
+          body:"Morning briefings enabled! Nora will greet you every morning. 💛",
+          icon:"/icon.png",
+          tag:"hernest-welcome"
+        });
+      },500);
+    }
+  };
+
+  const scheduleTest=()=>{
+    if(Notification.permission!=="granted")return;
+    setScheduling(true);
+    setTimeout(()=>{
+      new Notification("Good morning ☀️",{
+        body:"Nora has your daily briefing ready. Tap to see your priorities for today.",
+        icon:"/icon.png",
+        tag:"hernest-briefing"
+      });
+      setScheduling(false);
+      setScheduled(true);
+      setTimeout(()=>setScheduled(false),3000);
+    },2000);
+  };
+
+  if(status==="unsupported") return null;
+
+  return(
+    <Card sx={{background:status==="granted"?T.sageP:T.goldP,border:`1px solid ${status==="granted"?T.sage:T.gold}30`,marginBottom:12}} ch={<div>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+        <div style={{width:40,height:40,borderRadius:12,background:status==="granted"?T.sage:T.gold,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <Ic.Bell s={20} c="#fff" w={1.5}/>
+        </div>
+        <div>
+          <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>Morning Briefing</div>
+          <div style={{fontFamily:FB,fontSize:11,color:T.bark,marginTop:2}}>
+            {status==="granted"?"Notifications enabled ✓":"Get Nora's briefing every morning"}
+          </div>
+        </div>
+      </div>
+
+      {status!=="granted"?(
+        <button onClick={enable} style={{width:"100%",background:T.gold,color:"#fff",border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <Ic.Bell s={16} c="#fff" w={1.5}/> Enable Morning Briefing
+        </button>
+      ):(
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+            <label style={{fontFamily:FB,fontSize:12,color:T.bark,flex:1}}>Briefing time</label>
+            <input type="time" value={time} onChange={e=>setTime(e.target.value)}
+              style={{fontFamily:FB,fontSize:13,padding:"6px 10px",borderRadius:10,border:`1.5px solid ${T.sage}`,background:"#fff",color:T.esp,cursor:"pointer"}}/>
+          </div>
+          <button onClick={scheduleTest} style={{width:"100%",background:scheduled?"#fff":T.sage,color:scheduled?T.sage:"#fff",border:`1.5px solid ${T.sage}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,transition:"all .2s"}}>
+            {scheduling?<><div style={{width:16,height:16,border:"2px solid rgba(255,255,255,.3)",borderTop:"2px solid #fff",borderRadius:"50%",animation:"spin .8s linear infinite"}}/> Sending…</>
+            :scheduled?<><Ic.Check s={14} c={T.sage} w={2.5}/> Sent!</>
+            :<><Ic.Bell s={16} c="#fff" w={1.5}/> Send Test Notification</>}
+          </button>
+        </div>
+      )}
+    </div>}/>
+  );
+}
 
 // ─── SHARE BUTTON ────────────────────────────────────────────────
 function ShareButton(){
@@ -1699,6 +1786,25 @@ export default function HerNest(){
   const [authChecked,setAuthChecked]=useState(false);
   const upd=(k,v)=>setProfile(p=>({...p,[k]:v}));
   const handleAI=p=>{if(p?.tasks)setAiTasks(prev=>[...prev,...p.tasks]);};
+
+  // Request notification permission and schedule daily briefing
+  const [notifEnabled,setNotifEnabled]=useState(false);
+  const requestNotifications=async()=>{
+    if(!("Notification" in window))return;
+    const perm=await Notification.requestPermission();
+    if(perm==="granted"){
+      setNotifEnabled(true);
+      // Register service worker
+      if("serviceWorker" in navigator){
+        try{
+          await navigator.serviceWorker.register("/sw.js");
+          console.log("Service worker registered");
+        }catch(e){console.log("SW registration failed",e);}
+      }
+      // Show confirmation
+      new Notification("HerNest ✨",{body:"Good morning! Nora will brief you every morning at 7am. 💛",icon:"/icon.png"});
+    }
+  };
 
   // Watch auth state
   useEffect(()=>{

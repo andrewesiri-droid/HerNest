@@ -1953,7 +1953,7 @@ export default function HerNest(){
 
   const handleLogin=async(userData)=>{
     if(userData.uid){
-      const saved=await loadProfile(userData.uid);
+      const saved=await loadProfile(userData.uid).catch(()=>null);
       if(saved&&saved.name){setProfile(saved);setScreen("app");}
       else{
         if(userData.name)setProfile(p=>({...p,name:userData.name}));

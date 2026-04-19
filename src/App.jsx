@@ -2033,30 +2033,18 @@ export default function HerNest(){
   useEffect(()=>{
     // Safety timeout — never get stuck on blank screen
     const timeout=setTimeout(()=>setAuthChecked(true),5000);
-    const unsub=onAuthStateChanged(auth,async(u)=>{
+    const unsub=onAuthStateChanged(auth,(u)=>{
       clearTimeout(timeout);
+      setUser(u||null);
       if(u){
-        setUser(u);
-        try{
-          const saved=await Promise.race([
-            loadProfile(u.uid),
-            new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),4000))
-          ]);
-          if(saved&&saved.name){
-            setProfile(saved);
-            setScreen("app");
-          } else {
-            if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
-            setScreen("step1");
-          }
-        }catch(e){
-          // Firestore timed out — just go to onboarding
-          console.log("Profile load timed out, continuing",e);
+        loadProfile(u.uid).then(saved=>{
+          if(saved&&saved.name){setProfile(saved);setScreen("app");}
+          else{if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));setScreen("step1");}
+        }).catch(()=>{
           if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
           setScreen("step1");
-        }
+        });
       } else {
-        setUser(null);
         setScreen("login");
       }
       setAuthChecked(true);

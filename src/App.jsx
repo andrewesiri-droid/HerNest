@@ -1648,6 +1648,32 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   );
 }
 
+
+// ─── SHARE BUTTON ────────────────────────────────────────────────
+function ShareButton(){
+  const [copied,setCopied]=useState(false);
+  const share=async()=>{
+    const url="https://her-nest.vercel.app/landing.html";
+    const msg="Hey! I found this amazing AI app for mums — meet Nora, your personal AI that manages your mental load, plans trips, tracks your budget and keeps you thriving. Try it free 💛 "+url;
+    if(navigator.share){
+      try{await navigator.share({title:"HerNest AI",text:msg,url});}catch(e){}
+    } else {
+      try{await navigator.clipboard.writeText(url);}catch(e){
+        const el=document.createElement("textarea");el.value=url;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el);
+      }
+      setCopied(true);setTimeout(()=>setCopied(false),2000);
+    }
+  };
+  return(
+    <button onClick={share} className="lift" style={{display:"flex",alignItems:"center",gap:6,background:copied?T.sageP:T.goldP,border:`1px solid ${copied?T.sage:T.gold}30`,borderRadius:20,padding:"6px 12px",cursor:"pointer",transition:"all .2s"}}>
+      {copied
+        ?<><Ic.Check s={13} c={T.sage} w={2.5}/><span style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.sage}}>Copied!</span></>
+        :<><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke={T.gold} strokeWidth="1.8"/><circle cx="6" cy="12" r="3" stroke={T.gold} strokeWidth="1.8"/><circle cx="18" cy="19" r="3" stroke={T.gold} strokeWidth="1.8"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke={T.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke={T.gold} strokeWidth="1.8" strokeLinecap="round"/></svg><span style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.gold}}>Share</span></>
+      }
+    </button>
+  );
+}
+
 const TABS=[
   {id:"home",    lb:"Home",   IC:Ic.Home},
   {id:"brief",   lb:"Morning",IC:Ic.Sun,  ai:true},
@@ -1790,6 +1816,7 @@ export default function HerNest(){
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           {aiTasks.length>0&&<div style={{background:T.goldP,borderRadius:20,padding:"4px 10px",fontFamily:FB,fontSize:11,color:T.gold,fontWeight:700,display:"flex",alignItems:"center",gap:4}}><Ic.Star s={10} c={T.gold} w={1.4}/>{aiTasks.length}</div>}
+          <ShareButton/>
           <button onClick={()=>setTab("profile")} style={{width:34,height:34,borderRadius:"50%",background:ESPG,border:`2px solid ${T.linen}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,transition:"all .15s"}}>{profile.avatar||"👩"}</button>
           <Ic.Bell s={22} c={T.esp} w={1.5}/>
         </div>

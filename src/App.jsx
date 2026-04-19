@@ -2006,17 +2006,18 @@ export default function HerNest(){
     if(user?.uid) saveProfile(user.uid, updated);
   };
 
-  const screens={
-    home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile}/>,
-    brief:   <BriefingScreen profile={profile}/>,
-    nora:    <NoraScreen onTasks={handleAI} profile={profile}/>,
-    plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>,
-    trips:   <TripsScreen uid={user?.uid}/>,
-    budget:  <BudgetScreen uid={user?.uid}/>,
-    style:   <StyleScreen/>,
-    circle:  <CircleScreen profile={profile}/>,
-    wellness:<WellnessScreen profile={profile}/>,
-    profile: <ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>,
+  const getScreen=(t)=>{
+    if(t==="home")     return <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile}/>;
+    if(t==="brief")    return <BriefingScreen profile={profile}/>;
+    if(t==="nora")     return <NoraScreen onTasks={handleAI} profile={profile}/>;
+    if(t==="plan")     return <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>;
+    if(t==="trips")    return <TripsScreen uid={user?.uid}/>;
+    if(t==="budget")   return <BudgetScreen uid={user?.uid}/>;
+    if(t==="style")    return <StyleScreen/>;
+    if(t==="circle")   return <CircleScreen profile={profile}/>;
+    if(t==="wellness") return <WellnessScreen profile={profile}/>;
+    if(t==="profile")  return <ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>;
+    return <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile}/>;
   };
 
   return(
@@ -2034,7 +2035,7 @@ export default function HerNest(){
         </div>
       </div>
       <div key={tab} style={{padding:"14px 16px 110px",overflowY:"auto",maxHeight:"calc(100vh - 112px)"}} className="tab-content">
-        {screens[tab]}
+        {getScreen(tab)}
       </div>
       <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(250,246,239,.97)",backdropFilter:"blur(20px)",borderTop:`1px solid ${T.linen}`,display:"flex",overflowX:"auto",padding:"8px 4px 16px",scrollbarWidth:"none",zIndex:100}}>
         {TABS.map(t=>{

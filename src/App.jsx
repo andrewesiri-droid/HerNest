@@ -1743,7 +1743,7 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             <div key={i} style={{background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8,display:"flex",alignItems:"center",gap:10}}>
               <div style={{flex:1}}>
                 <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{k.name}{k.age?`, ${k.age}`:""}</span>
-                {k.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.sage,marginTop:2}}>🎂 {new Date(k.bday).toLocaleDateString("en-AU",{day:"numeric",month:"long"})}</div>}
+                {k.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.sage,marginTop:2}}>🎂 {k.bday}</div>}
               </div>
               <button onClick={()=>removeKid(i)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
@@ -1753,8 +1753,15 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             <input placeholder="Age" value={ka} onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
           </div>
           <div style={{display:"flex",gap:6}}>
-            <input type="date" id="kid-bday" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-            <button onClick={()=>{if(!kn.trim())return;const bd=document.getElementById("kid-bday")?.value||"";setLocal(p=>({...p,kids:[...(p.kids||[]),{name:kn,age:ka,bday:bd}]}));setKn("");setKa("");if(document.getElementById("kid-bday"))document.getElementById("kid-bday").value="";}} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+            <select id="kid-bday-m" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+              <option value="">Month</option>
+              {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].map((m,i)=><option key={i} value={String(i+1).padStart(2,"0")}>{m}</option>)}
+            </select>
+            <select id="kid-bday-d" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+              <option value="">Day</option>
+              {Array.from({length:31},(_,i)=><option key={i+1} value={String(i+1).padStart(2,"0")}>{i+1}</option>)}
+            </select>
+            <button onClick={()=>{if(!kn.trim())return;const m=document.getElementById("kid-bday-m")?.value||"";const d=document.getElementById("kid-bday-d")?.value||"";const bd=m&&d?`${m}/${d}`:"";setLocal(p=>({...p,kids:[...(p.kids||[]),{name:kn,age:ka,bday:bd}]}));setKn("");setKa("");}} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
 
@@ -1766,7 +1773,7 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               <div style={{flex:1}}>
                 <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span>
                 <span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span>
-                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.gold,marginTop:2}}>🎂 {new Date(p.bday).toLocaleDateString("en-AU",{day:"numeric",month:"long"})}</div>}
+                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.gold,marginTop:2}}>🎂 {p.bday}</div>}
               </div>
               <button onClick={()=>upd("parents",(local.parents||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
@@ -1776,8 +1783,15 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           </div>
           <div style={{display:"flex",gap:6,marginBottom:6}}>
             <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-            <input type="date" id="parent-bday" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-            <button onClick={()=>{if(!kn.trim())return;const bd=document.getElementById("parent-bday")?.value||"";upd("parents",[...(local.parents||[]),{name:kn,role:ka||"Mum",bday:bd}]);setKn("");setKa("");if(document.getElementById("parent-bday"))document.getElementById("parent-bday").value="";}} style={{background:T.gold,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+            <select id="par-bday-m" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+            <option value="">Month</option>
+            {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].map((m,i)=><option key={i} value={String(i+1).padStart(2,"0")}>{m}</option>)}
+          </select>
+          <select id="par-bday-d" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+            <option value="">Day</option>
+            {Array.from({length:31},(_,i)=><option key={i+1} value={String(i+1).padStart(2,"0")}>{i+1}</option>)}
+          </select>
+            <button onClick={()=>{if(!kn.trim())return;const m=document.getElementById("par-bday-m")?.value||"";const d=document.getElementById("par-bday-d")?.value||"";const bd=m&&d?`${m}/${d}`:"";upd("parents",[...(local.parents||[]),{name:kn,role:ka||"Mum",bday:bd}]);setKn("");setKa("");}} style={{background:T.gold,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
 
@@ -1789,7 +1803,7 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               <div style={{flex:1}}>
                 <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span>
                 <span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span>
-                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.lav,marginTop:2}}>🎂 {new Date(p.bday).toLocaleDateString("en-AU",{day:"numeric",month:"long"})}</div>}
+                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.lav,marginTop:2}}>🎂 {p.bday}</div>}
               </div>
               <button onClick={()=>upd("inlaws",(local.inlaws||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
@@ -1801,8 +1815,15 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
           </div>
           <div style={{display:"flex",gap:6}}>
-            <input type="date" id="inlaw-bday" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-            <button onClick={()=>{if(!kn.trim())return;const bd=document.getElementById("inlaw-bday")?.value||"";upd("inlaws",[...(local.inlaws||[]),{name:kn,role:ka||"Mother-in-law",bday:bd}]);setKn("");setKa("");if(document.getElementById("inlaw-bday"))document.getElementById("inlaw-bday").value="";}} style={{background:T.lav,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+            <select id="il-bday-m" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+            <option value="">Month</option>
+            {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].map((m,i)=><option key={i} value={String(i+1).padStart(2,"0")}>{m}</option>)}
+          </select>
+          <select id="il-bday-d" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+            <option value="">Day</option>
+            {Array.from({length:31},(_,i)=><option key={i+1} value={String(i+1).padStart(2,"0")}>{i+1}</option>)}
+          </select>
+            <button onClick={()=>{if(!kn.trim())return;const m=document.getElementById("il-bday-m")?.value||"";const d=document.getElementById("il-bday-d")?.value||"";const bd=m&&d?`${m}/${d}`:"";upd("inlaws",[...(local.inlaws||[]),{name:kn,role:ka||"Mother-in-law",bday:bd}]);setKn("");setKa("");}} style={{background:T.lav,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
       </div>}/>
@@ -1859,23 +1880,30 @@ function NotificationCard(){
     if(!("Notification" in window)) return "unsupported";
     return Notification.permission;
   });
-  const [time,setTime]=useState("07:00");
+  const [hour,setHour]=useState(()=>parseInt(localStorage.getItem("hn_brief_hour")||"7"));
+  const [minute,setMinute]=useState(()=>parseInt(localStorage.getItem("hn_brief_min")||"0"));
   const [scheduling,setScheduling]=useState(false);
   const [scheduled,setScheduled]=useState(false);
+  const [timeSaved,setTimeSaved]=useState(false);
+
+  const HOURS=Array.from({length:24},(_,i)=>i);
+  const MINUTES=[0,15,30,45];
+
+  const saveTime=(h,m)=>{
+    setHour(h);setMinute(m);
+    localStorage.setItem("hn_brief_hour",String(h));
+    localStorage.setItem("hn_brief_min",String(m));
+    setTimeSaved(true);setTimeout(()=>setTimeSaved(false),2000);
+  };
 
   const enable=async()=>{
     if(!("Notification" in window)){setStatus("unsupported");return;}
     const perm=await Notification.requestPermission();
     setStatus(perm);
     if(perm==="granted"){
-      // Register service worker
-      if("serviceWorker" in navigator){
-        try{await navigator.serviceWorker.register("/sw.js");}catch(e){console.log("SW failed",e);}
-      }
-      // Show welcome notification
       setTimeout(()=>{
         new Notification("HerNest ✨",{
-          body:"Morning briefings enabled! Nora will greet you every morning. 💛",
+          body:`Morning briefings enabled! Nora will greet you at ${hour}:${String(minute).padStart(2,"0")} every morning. 💛`,
           icon:"/icon.png",
           tag:"hernest-welcome"
         });
@@ -1883,7 +1911,7 @@ function NotificationCard(){
     }
   };
 
-  const scheduleTest=()=>{
+  const sendTest=()=>{
     if(Notification.permission!=="granted")return;
     setScheduling(true);
     setTimeout(()=>{
@@ -1892,40 +1920,56 @@ function NotificationCard(){
         icon:"/icon.png",
         tag:"hernest-briefing"
       });
-      setScheduling(false);
-      setScheduled(true);
+      setScheduling(false);setScheduled(true);
       setTimeout(()=>setScheduled(false),3000);
-    },2000);
+    },1500);
   };
 
   if(status==="unsupported") return null;
 
+  const fmt=`${hour}:${String(minute).padStart(2,"0")} ${hour<12?"AM":"PM"}`;
+
   return(
     <Card sx={{background:status==="granted"?T.sageP:T.goldP,border:`1px solid ${status==="granted"?T.sage:T.gold}30`,marginBottom:12}} ch={<div>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-        <div style={{width:40,height:40,borderRadius:12,background:status==="granted"?T.sage:T.gold,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-          <Ic.Bell s={20} c="#fff" w={1.5}/>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+        <div style={{width:44,height:44,borderRadius:13,background:status==="granted"?T.sage:T.gold,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:`0 4px 12px ${status==="granted"?T.sage:T.gold}55`}}>
+          <Ic.Bell s={22} c="#fff" w={1.5}/>
         </div>
         <div>
-          <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>Morning Briefing</div>
-          <div style={{fontFamily:FB,fontSize:11,color:T.bark,marginTop:2}}>
-            {status==="granted"?"Notifications enabled ✓":"Get Nora's briefing every morning"}
+          <div style={{fontFamily:FB,fontSize:14,fontWeight:700,color:T.esp}}>Morning Briefing</div>
+          <div style={{fontFamily:FB,fontSize:12,color:T.bark,marginTop:2}}>
+            {status==="granted"?`Enabled · ${fmt} daily ✓`:"Get Nora's briefing every morning"}
           </div>
         </div>
       </div>
 
       {status!=="granted"?(
-        <button onClick={enable} style={{width:"100%",background:T.gold,color:"#fff",border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-          <Ic.Bell s={16} c="#fff" w={1.5}/> Enable Morning Briefing
+        <button onClick={enable} style={{width:"100%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,color:"#fff",border:"none",borderRadius:13,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:`0 4px 16px ${T.gold}44`}}>
+          <Ic.Bell s={18} c="#fff" w={1.5}/> Enable Morning Briefing
         </button>
       ):(
         <div>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-            <label style={{fontFamily:FB,fontSize:12,color:T.bark,flex:1}}>Briefing time</label>
-            <input type="time" value={time} onChange={e=>setTime(e.target.value)}
-              style={{fontFamily:FB,fontSize:13,padding:"6px 10px",borderRadius:10,border:`1.5px solid ${T.sage}`,background:"#fff",color:T.esp,cursor:"pointer"}}/>
+          <div style={{background:"rgba(255,255,255,.6)",borderRadius:12,padding:"12px 14px",marginBottom:10}}>
+            <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:10}}>Briefing Time</div>
+            <div style={{display:"flex",gap:8,marginBottom:10}}>
+              <div style={{flex:1}}>
+                <div style={{fontFamily:FB,fontSize:10,color:T.taupe,marginBottom:4}}>Hour</div>
+                <select value={hour} onChange={e=>setHour(parseInt(e.target.value))} style={{width:"100%",fontFamily:FB,fontSize:14,fontWeight:700,padding:"8px 10px",borderRadius:10,border:`1.5px solid ${T.sage}`,background:"#fff",color:T.esp,cursor:"pointer"}}>
+                  {HOURS.map(h=><option key={h} value={h}>{h===0?"12 AM":h<12?`${h} AM`:h===12?"12 PM":`${h-12} PM`}</option>)}
+                </select>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontFamily:FB,fontSize:10,color:T.taupe,marginBottom:4}}>Minute</div>
+                <select value={minute} onChange={e=>setMinute(parseInt(e.target.value))} style={{width:"100%",fontFamily:FB,fontSize:14,fontWeight:700,padding:"8px 10px",borderRadius:10,border:`1.5px solid ${T.sage}`,background:"#fff",color:T.esp,cursor:"pointer"}}>
+                  {MINUTES.map(m=><option key={m} value={m}>{String(m).padStart(2,"0")}</option>)}
+                </select>
+              </div>
+            </div>
+            <button onClick={()=>saveTime(hour,minute)} style={{width:"100%",background:timeSaved?T.sage:T.esp,color:"#fff",border:"none",borderRadius:10,padding:"9px",fontFamily:FB,fontSize:12,fontWeight:700,cursor:"pointer",transition:"background .2s",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+              {timeSaved?<><Ic.Check s={13} c="#fff" w={2.5}/>Saved!</>:<>Save Briefing Time</>}
+            </button>
           </div>
-          <button onClick={scheduleTest} style={{width:"100%",background:scheduled?"#fff":T.sage,color:scheduled?T.sage:"#fff",border:`1.5px solid ${T.sage}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,transition:"all .2s"}}>
+          <button onClick={sendTest} style={{width:"100%",background:scheduled?"#fff":T.sage,color:scheduled?T.sage:"#fff",border:`1.5px solid ${T.sage}`,borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,transition:"all .2s"}}>
             {scheduling?<><div style={{width:16,height:16,border:"2px solid rgba(255,255,255,.3)",borderTop:"2px solid #fff",borderRadius:"50%",animation:"spin .8s linear infinite"}}/> Sending…</>
             :scheduled?<><Ic.Check s={14} c={T.sage} w={2.5}/> Sent!</>
             :<><Ic.Bell s={16} c="#fff" w={1.5}/> Send Test Notification</>}

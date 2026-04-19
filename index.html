@@ -736,12 +736,12 @@
     if (!email) return;
 
     var btn = e.target.querySelector('button');
-    btn.textContent = 'Opening app...';
+    btn.textContent = '✓ Going to app...';
     btn.style.background = 'linear-gradient(135deg,#6B9E7A,#4a7a5a)';
     btn.style.animation = 'none';
     emailEl.disabled = true;
 
-    // Send to Formspree in background
+    // Send to Formspree in background (fire and forget)
     fetch('https://formspree.io/f/mvzdqpnz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -755,10 +755,8 @@
       e.target.style.display = 'none';
     }
 
-    // Redirect to app
-    setTimeout(function() {
-      window.open('https://her-nest.vercel.app', '_blank');
-    }, 1200);
+    // Redirect immediately — no setTimeout so Safari doesn't block it
+    window.location.href = 'https://her-nest.vercel.app';
   }
 
   // ── STAGGER ANIMATIONS ──

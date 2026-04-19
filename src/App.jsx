@@ -46,8 +46,10 @@ gs.textContent = `
   @keyframes dot{0%,80%,100%{transform:scale(0);opacity:0;}40%{transform:scale(1);opacity:1;}}
   @keyframes slideRight{from{opacity:0;transform:translateX(28px);}to{opacity:1;transform:translateX(0);}}
   @keyframes pop{0%{transform:scale(.9);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  @keyframes tabIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
   .lift{transition:transform .18s,box-shadow .18s;}
   .lift:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.12)!important;}
+  .tab-content{animation:tabIn .22s ease both;}
   input:focus,textarea:focus{border-color:#C49A3C!important;outline:none;}
   ::-webkit-scrollbar{width:0;}
   textarea{resize:none;}
@@ -1333,14 +1335,25 @@ function NoraScreen({onTasks,profile}){
   const [msgs,setMsgs]=useState([{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}]);
   const [inp,setInp]=useState(""); const [loading,setLoading]=useState(false);
   const ref=useRef(null);
-  const SUGG=["Mia has a recital Friday, Bali in 47 days, board meeting Monday","I'm exhausted, haven't worked out, groceries are low","Plan my week — work Mon-Fri, kids swimming Wed, date night Sat"];
+  const kidName=profile?.kids?.[0]?.name||"my daughter";
+  const trip=profile?.tripGoal||"our next trip";
+  const SUGG=[
+    `${kidName} has swimming Wednesday, I have a board meeting Monday and we haven't booked ${trip} yet`,
+    `I'm exhausted, haven't worked out in a week, groceries are running low`,
+    `Plan my week — work Mon-Fri, ${kidName}'s activities, need some me-time too`
+  ];
   useEffect(()=>{ref.current?.scrollIntoView({behavior:"smooth"});},[msgs,loading]);
   const tC=t=>t==="Work"?T.sky:t==="Me"?T.blush:t==="Travel"?T.teal:T.sage;
   const tIC=t=>t==="Work"?Ic.Bag:t==="Me"?Ic.Leaf:t==="Travel"?Ic.Suitcase:Ic.Plan;
   const send=async()=>{
     if(!inp.trim()||loading)return;
     const msg=inp.trim();setInp("");setLoading(true);
-    const sys=`You are Nora, warm AI Mental Load Manager. Respond with 2-3 empathetic sentences, then: <ND>{"tasks":[{"text":"","tag":"Work|Family|Me|Home|Travel","priority":"high|medium|low"}],"reminders":[{"text":""}],"insight":""}</ND> Min 2 tasks.`;
+    const profileCtx=profile?`User profile: name ${profile.name||"her"}, role ${profile.role||"mum"}, kids: ${profile.kids?.map(k=>`${k.name} (${k.age})`).join(",")||"none listed"}, trip goal: ${profile.tripGoal||"none"}, priorities: ${profile.priorities?.join(",")||"family"}, challenge: ${profile.challenge||"mental load"}.`:"";
+    const sys=`You are Nora, a warm, intelligent AI Mental Load Manager inside HerNest. ${profileCtx}
+You know this mum personally. Use her name, reference her kids by name, mention her real goals.
+Respond with 2-3 warm, specific, empathetic sentences that show you KNOW her. Then output:
+<ND>{"tasks":[{"text":"","tag":"Work|Family|Me|Home|Travel","priority":"high|medium|low"}],"reminders":[{"text":""}],"insight":"a short, warm, personal observation about what she shared"}</ND>
+Min 3 tasks. Make tasks specific and actionable. The insight should feel like it came from a close friend who truly gets her life.`;
     const hist=msgs.map(m=>({role:m.role,content:m.content}));
     try{
       const raw=await claude(sys,msg,hist);
@@ -1405,21 +1418,59 @@ function NoraScreen({onTasks,profile}){
 // HOME SCREEN
 // ═══════════════════════════════════════════════════════════════════
 function HomeScreen({go,aiTasks,profile}){
-  const [water,setWater]=useState(3);
+  const [water,setWater]=useState(()=>{try{return parseInt(sessionStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
   const [mood,setMood]=useState(null);
   const hour=new Date().getHours();
-  const greet=hour<12?"Good morning":hour<17?"Good afternoon":"Good evening";
-  const moods=[{IC:Ic.Moon,c:T.blush,msg:"Sending you a big hug today."},{IC:Ic.Leaf,c:T.taupe,msg:"One step at a time."},{IC:Ic.Sun,c:T.gold,msg:"Good energy — keep it going!"},{IC:Ic.Flower,c:T.sage,msg:"Love that for you!"},{IC:Ic.Star,c:T.teal,msg:"You are absolutely glowing!"}];
+  const date=new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"});
+  const greet=hour<5?"Still up?"  :hour<12?"Good morning":hour<17?"Good afternoon":hour<21?"Good evening":"Good night";
+  const moods=[{IC:Ic.Moon,c:T.blush,msg:"Sending you a big hug today. 💛"},{IC:Ic.Leaf,c:T.taupe,msg:"One step at a time, lovely."},{IC:Ic.Sun,c:T.gold,msg:"Good energy — keep it going!"},{IC:Ic.Flower,c:T.sage,msg:"Love that energy for you!"},{IC:Ic.Star,c:T.teal,msg:"You are absolutely glowing!"}];
   const FEATS=[{id:"brief",lb:"Daily Briefing",sub:"Morning intelligence",bg:"linear-gradient(135deg,#2d1a00,#5a3a10)",IC:Ic.Sun,ic:"#F0E2B8"},{id:"nora",lb:"Nora AI",sub:"Mental load manager",bg:AIGRAD,IC:Ic.Star,ic:"#C49A3C"},{id:"trips",lb:"Trip Planner",sub:"Full itinerary builder",bg:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",IC:Ic.Compass,ic:"#C8E0CE"},{id:"budget",lb:"Budget Coach",sub:"CFO-level insights",bg:"linear-gradient(135deg,#1a1400,#3a2e00)",IC:Ic.Budget,ic:"#F0E2B8"},{id:"style",lb:"Style Stylist",sub:"AI outfit curator",bg:"linear-gradient(135deg,#2d1428,#4a1a3a)",IC:Ic.Hanger,ic:"#F2D4CA"},{id:"circle",lb:"Circle AI",sub:"Find your people",bg:"linear-gradient(135deg,#0e2028,#1a3a2e)",IC:Ic.People,ic:"#C4DCEA"},{id:"wellness",lb:"Wellness",sub:"Adapted for you",bg:"linear-gradient(135deg,#0e2218,#1a4a2e)",IC:Ic.Leaf,ic:"#C8E0CE"}];
+
+  useEffect(()=>{try{sessionStorage.setItem("hn_hw",String(water));}catch(e){};},[water]);
+
+  // Dynamic quick stats
+  const tasksDone=aiTasks?.filter?.(t=>t.done)?.length||0;
+  const tripGoal=profile?.tripGoal;
+  const firstName=profile?.name?.split(" ")[0]||"lovely";
+
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
-      <div style={{background:ESPG,borderRadius:24,padding:"24px 22px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-30,right:-30,width:130,height:130,borderRadius:"50%",background:"rgba(255,255,255,.03)"}}/>
-        <p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.35)",letterSpacing:3,textTransform:"uppercase",margin:0}}>{greet}</p>
-        <h1 style={{fontFamily:FD,fontStyle:"italic",fontSize:32,color:"#fff",margin:"4px 0 2px",fontWeight:400}}>{profile?.name?`${profile.name}'s `:"Her"}<strong style={{fontStyle:"normal",fontWeight:700}}>Nest</strong><span style={{fontSize:11,color:T.gold,fontFamily:FB,fontStyle:"normal",fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginLeft:10}}>AI</span></h1>
-        <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.35)",margin:0}}>Your world in one place</p>
-        <div style={{marginTop:14,borderLeft:`3px solid ${T.gold}`,paddingLeft:14}}><p style={{fontFamily:FD,fontStyle:"italic",fontSize:13,color:"rgba(255,255,255,.7)",margin:0,lineHeight:1.65}}>"7 AI features. One beautiful app. Built for you."</p></div>
+      {/* Personal hero */}
+      <div style={{background:ESPG,borderRadius:24,padding:"22px 22px 18px",marginBottom:12,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",background:"rgba(196,154,60,.06)"}}/>
+        <div style={{position:"absolute",bottom:-30,left:-30,width:100,height:100,borderRadius:"50%",background:"rgba(107,158,122,.04)"}}/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div>
+            <p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.3)",letterSpacing:2,textTransform:"uppercase",margin:"0 0 4px"}}>{date}</p>
+            <h1 style={{fontFamily:FD,fontStyle:"italic",fontSize:30,color:"#fff",margin:"0 0 4px",fontWeight:300}}>{greet},</h1>
+            <h1 style={{fontFamily:FD,fontSize:30,color:T.gold,margin:"0 0 6px",fontWeight:700,fontStyle:"normal"}}>{firstName} ✨</h1>
+          </div>
+          <div style={{textAlign:"center",background:"rgba(255,255,255,.08)",borderRadius:16,padding:"10px 14px",border:"1px solid rgba(255,255,255,.08)"}}>
+            <div style={{fontFamily:FD,fontSize:24,fontWeight:700,color:"#fff"}}>{water}</div>
+            <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>glasses</div>
+          </div>
+        </div>
+        {/* Quick action row */}
+        <div style={{display:"flex",gap:8,marginTop:14}}>
+          {[{lb:"Brief me",ic:"☀️",id:"brief",c:T.goldP},{lb:"Talk to Nora",ic:"✨",id:"nora",c:T.lavP},{lb:"My Plan",ic:"📋",id:"plan",c:T.sageP}].map(q=>(
+            <button key={q.id} onClick={()=>go(q.id)} style={{flex:1,background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:"8px 6px",cursor:"pointer",textAlign:"center",transition:"all .15s"}}>
+              <div style={{fontSize:16,marginBottom:3}}>{q.ic}</div>
+              <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:600}}>{q.lb}</div>
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Trip countdown if set */}
+      {tripGoal&&<div onClick={()=>go("trips")} style={{background:`linear-gradient(135deg,#0e2a1e,#1a5a3a)`,borderRadius:16,padding:"14px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12,border:"1px solid rgba(107,158,122,.2)"}}>
+        <Tile ic={Ic.Compass} c="#C8E0CE" bg="rgba(107,158,122,.2)" s={20} ts={44} r={13}/>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Next Adventure</div>
+          <div style={{fontFamily:FD,fontStyle:"italic",fontSize:17,color:"#fff",fontWeight:400}}>{tripGoal}</div>
+        </div>
+        <Ic.Arrow s={18} c="rgba(255,255,255,.4)" w={1.5}/>
+      </div>}
+
       <H2 t="Your AI Suite" sub="Powered by Nora"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
         {FEATS.map(f=>(
@@ -1987,7 +2038,7 @@ export default function HerNest(){
           <Ic.Bell s={22} c={T.esp} w={1.5}/>
         </div>
       </div>
-      <div style={{padding:"14px 16px 110px",overflowY:"auto",maxHeight:"calc(100vh - 112px)"}}>
+      <div key={tab} style={{padding:"14px 16px 110px",overflowY:"auto",maxHeight:"calc(100vh - 112px)"}} className="tab-content">
         {screens[tab]}
       </div>
       <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(250,246,239,.97)",backdropFilter:"blur(20px)",borderTop:`1px solid ${T.linen}`,display:"flex",overflowX:"auto",padding:"8px 4px 16px",scrollbarWidth:"none",zIndex:100}}>

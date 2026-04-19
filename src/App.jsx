@@ -1740,15 +1740,21 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         <div style={{marginBottom:16}}>
           <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Children</label>
           {(local.kids||[]).map((k,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
-              <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp,flex:1}}>{k.name}{k.age?`, ${k.age}`:""}</span>
+            <div key={i} style={{background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8,display:"flex",alignItems:"center",gap:10}}>
+              <div style={{flex:1}}>
+                <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{k.name}{k.age?`, ${k.age}`:""}</span>
+                {k.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.sage,marginTop:2}}>🎂 {new Date(k.bday).toLocaleDateString("en-AU",{day:"numeric",month:"long"})}</div>}
+              </div>
               <button onClick={()=>removeKid(i)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
           ))}
-          <div style={{display:"flex",gap:8}}>
-            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:2,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-            <input placeholder="Age" value={ka} onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-            <button onClick={addKid} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+          <div style={{display:"flex",gap:6,marginBottom:6}}>
+            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:2,fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <input placeholder="Age" value={ka} onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+          </div>
+          <div style={{display:"flex",gap:6}}>
+            <input type="date" id="kid-bday" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <button onClick={()=>{if(!kn.trim())return;const bd=document.getElementById("kid-bday")?.value||"";setLocal(p=>({...p,kids:[...(p.kids||[]),{name:kn,age:ka,bday:bd}]}));setKn("");setKa("");if(document.getElementById("kid-bday"))document.getElementById("kid-bday").value="";}} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
 
@@ -1757,16 +1763,21 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>Your Parents</label>
           {(local.parents||[]).map((p,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.goldP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
-              <div style={{flex:1}}><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span><span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span></div>
+              <div style={{flex:1}}>
+                <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span>
+                <span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span>
+                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.gold,marginTop:2}}>🎂 {new Date(p.bday).toLocaleDateString("en-AU",{day:"numeric",month:"long"})}</div>}
+              </div>
               <button onClick={()=>upd("parents",(local.parents||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
           ))}
           <div style={{display:"flex",gap:8,marginBottom:8}}>
             {["Mum","Dad"].map(r=><button key={r} onClick={()=>setKa(r)} style={{flex:1,padding:"6px",borderRadius:10,border:`1.5px solid ${ka===r?T.gold:T.linen}`,background:ka===r?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:ka===r?T.esp:T.bark,cursor:"pointer"}}>{r}</button>)}
           </div>
-          <div style={{display:"flex",gap:8}}>
-            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-            <button onClick={()=>{if(!kn.trim())return;upd("parents",[...(local.parents||[]),{name:kn,role:ka||"Mum"}]);setKn("");setKa("");}} style={{background:T.gold,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+          <div style={{display:"flex",gap:6,marginBottom:6}}>
+            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <input type="date" id="parent-bday" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <button onClick={()=>{if(!kn.trim())return;const bd=document.getElementById("parent-bday")?.value||"";upd("parents",[...(local.parents||[]),{name:kn,role:ka||"Mum",bday:bd}]);setKn("");setKa("");if(document.getElementById("parent-bday"))document.getElementById("parent-bday").value="";}} style={{background:T.gold,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
 
@@ -1775,16 +1786,23 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:10}}>In-Laws</label>
           {(local.inlaws||[]).map((p,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.lavP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
-              <div style={{flex:1}}><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span><span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span></div>
+              <div style={{flex:1}}>
+                <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span>
+                <span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span>
+                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.lav,marginTop:2}}>🎂 {new Date(p.bday).toLocaleDateString("en-AU",{day:"numeric",month:"long"})}</div>}
+              </div>
               <button onClick={()=>upd("inlaws",(local.inlaws||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
           ))}
-          <div style={{display:"flex",gap:8}}>
-            <select onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+          <div style={{display:"flex",gap:6,marginBottom:6}}>
+            <select onChange={e=>setKa(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
               {["Mother-in-law","Father-in-law","Sister-in-law","Brother-in-law"].map(r=><option key={r}>{r}</option>)}
             </select>
-            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-            <button onClick={()=>{if(!kn.trim())return;upd("inlaws",[...(local.inlaws||[]),{name:kn,role:ka||"Mother-in-law"}]);setKn("");setKa("");}} style={{background:T.lav,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+            <input placeholder="Name" value={kn} onChange={e=>setKn(e.target.value)} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+          </div>
+          <div style={{display:"flex",gap:6}}>
+            <input type="date" id="inlaw-bday" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+            <button onClick={()=>{if(!kn.trim())return;const bd=document.getElementById("inlaw-bday")?.value||"";upd("inlaws",[...(local.inlaws||[]),{name:kn,role:ka||"Mother-in-law",bday:bd}]);setKn("");setKa("");if(document.getElementById("inlaw-bday"))document.getElementById("inlaw-bday").value="";}} style={{background:T.lav,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
       </div>}/>

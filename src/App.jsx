@@ -1917,27 +1917,33 @@ export default function HerNest(){
     }
   };
 
-  // Watch auth state
+  // Watch auth state - only track user, never set screen
   useEffect(()=>{
     const timeout=setTimeout(()=>setAuthChecked(true),5000);
     const unsub=onAuthStateChanged(auth,(u)=>{
       clearTimeout(timeout);
       setUser(u||null);
-      if(u){
-        loadProfile(u.uid).then(saved=>{
-          if(saved&&saved.name){setProfile(saved);setScreen("app");}
-          else{if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));setScreen("step1");}
-        }).catch(()=>{
-          if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
-          setScreen("step1");
-        });
-      } else {
-        setScreen("login");
-      }
       setAuthChecked(true);
     });
     return()=>{unsub();clearTimeout(timeout);};
   },[]);
+
+  // Load saved profile when user is set
+  useEffect(()=>{
+    if(!user) return;
+    loadProfile(user.uid).then(saved=>{
+      if(saved&&saved.name){
+        setProfile(saved);
+        setScreen("app");
+      } else {
+        if(user.displayName) setProfile(p=>({...p,name:user.displayName.split(" ")[0]}));
+        setScreen("step1");
+      }
+    }).catch(()=>{
+      if(user.displayName) setProfile(p=>({...p,name:user.displayName.split(" ")[0]}));
+      setScreen("step1");
+    });
+  },[user]);
 
   // Auto-save profile on change
   useEffect(()=>{

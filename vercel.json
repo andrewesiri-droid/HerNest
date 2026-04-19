@@ -1,7 +1,6 @@
 {
-  "routes": [
-    { "src": "/landing", "dest": "/landing.html" },
-    { "src": "/landing.html", "dest": "/landing.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/landing", "destination": "/landing.html" },
+    { "source": "/((?!landing).*)", "destination": "/index.html" }
   ]
 }

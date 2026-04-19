@@ -1468,6 +1468,16 @@ function HomeScreen({go,aiTasks,profile,streak=1}){
         </div>
       </div>
 
+      {/* Notification prompt if not enabled */}
+      {typeof Notification!=="undefined"&&Notification.permission==="default"&&<div onClick={()=>go("profile")} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"13px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12,boxShadow:`0 4px 16px ${T.gold}44`}}>
+        <div style={{width:38,height:38,borderRadius:11,background:"rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Ic.Bell s={20} c="#fff" w={1.5}/></div>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Enable Morning Briefing</div>
+          <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.75)",marginTop:2}}>Get Nora's daily brief at 7am ☀️</div>
+        </div>
+        <Ic.Arrow s={18} c="rgba(255,255,255,.7)" w={1.5}/>
+      </div>}
+
       {/* Trip countdown if set */}
       {tripGoal&&<div onClick={()=>go("trips")} style={{background:`linear-gradient(135deg,#0e2a1e,#1a5a3a)`,borderRadius:16,padding:"14px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12,border:"1px solid rgba(107,158,122,.2)"}}>
         <Tile ic={Ic.Compass} c="#C8E0CE" bg="rgba(107,158,122,.2)" s={20} ts={44} r={13}/>

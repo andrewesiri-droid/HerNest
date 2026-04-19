@@ -551,7 +551,7 @@ function BudgetScreen({uid}){
     if(!uid)return;
     loadData(uid,"budget").then(d=>{
       if(d?.expenses) setExpenses(d.expenses);
-      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:Ic[c.ICname]||Ic.Bag})));
+      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:eval(`Ic.${c.ICname||"Bag"}`)||Ic.Bag})));
       if(d?.savingsGoal) setSavingsGoal(d.savingsGoal);
     }).catch(()=>{});
   },[uid]);
@@ -1917,33 +1917,27 @@ export default function HerNest(){
     }
   };
 
-  // Watch auth state - only track user, never set screen
+  // Watch auth state
   useEffect(()=>{
-    const timeout=setTimeout(()=>setAuthChecked(true),5000);
-    const unsub=onAuthStateChanged(auth,(u)=>{
-      clearTimeout(timeout);
-      setUser(u||null);
+    const unsub=onAuthStateChanged(auth,async(u)=>{
+      if(u){
+        setUser(u);
+        const saved=await loadProfile(u.uid);
+        if(saved&&saved.name){
+          setProfile(saved);
+          setScreen("app");
+        } else {
+          if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
+          setScreen("step1");
+        }
+      } else {
+        setUser(null);
+        setScreen("login");
+      }
       setAuthChecked(true);
     });
-    return()=>{unsub();clearTimeout(timeout);};
+    return()=>unsub();
   },[]);
-
-  // Load saved profile when user is set - only after auth is checked
-  useEffect(()=>{
-    if(!user||!authChecked) return;
-    loadProfile(user.uid).then(saved=>{
-      if(saved&&saved.name){
-        setProfile(p=>({...p,...saved}));
-        setScreen("app");
-      } else {
-        if(user.displayName) setProfile(p=>({...p,name:user.displayName.split(" ")[0]}));
-        setScreen("step1");
-      }
-    }).catch(()=>{
-      if(user.displayName) setProfile(p=>({...p,name:user.displayName.split(" ")[0]}));
-      setScreen("step1");
-    });
-  },[user,authChecked]);
 
   // Auto-save profile on change
   useEffect(()=>{

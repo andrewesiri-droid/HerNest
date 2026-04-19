@@ -1469,7 +1469,7 @@ function HomeScreen({go,aiTasks,profile,streak=1}){
       </div>
 
       {/* Notification prompt if not enabled */}
-      {typeof Notification!=="undefined"&&Notification.permission==="default"&&<div onClick={()=>go("profile")} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"13px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12,boxShadow:`0 4px 16px ${T.gold}44`}}>
+      {typeof Notification!=="undefined"&&Notification.permission!=="granted"&&<div onClick={()=>go("profile")} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"13px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12,boxShadow:`0 4px 16px ${T.gold}44`}}>
         <div style={{width:38,height:38,borderRadius:11,background:"rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Ic.Bell s={20} c="#fff" w={1.5}/></div>
         <div style={{flex:1}}>
           <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Enable Morning Briefing</div>

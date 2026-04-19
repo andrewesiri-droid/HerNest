@@ -1953,11 +1953,7 @@ export default function HerNest(){
 
   const handleLogin=(userData)=>{
     if(userData.name) setProfile(p=>({...p,name:userData.name}));
-    if(userData.uid) setUser({uid:userData.uid,email:userData.email});
     setScreen("step1");
-    loadProfile(userData.uid).then(saved=>{
-      if(saved&&saved.name){setProfile(saved);setScreen("app");}
-    }).catch(()=>{});
   };
 
   if(!authChecked) return(

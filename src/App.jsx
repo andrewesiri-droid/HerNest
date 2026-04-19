@@ -1941,6 +1941,13 @@ export default function HerNest(){
     if(user?.uid&&profile.name) saveProfile(user.uid,profile);
   },[profile,user]);
 
+  // Auto-save profile whenever it changes and user is logged in
+  useEffect(()=>{
+    if(user?.uid && profile.name){
+      saveProfile(user.uid, profile).catch(()=>{});
+    }
+  },[profile, user]);
+
   const reset=async()=>{
     try{await signOut(auth);}catch(e){}
     setProfile({avatar:"👩",name:"",city:"",role:"",partner:"",kids:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
@@ -1993,7 +2000,10 @@ export default function HerNest(){
       </div>
     );
   }
-  if(screen==="intro") return <NoraIntro profile={profile} onEnter={()=>setScreen("app")}/>;
+  if(screen==="intro") return <NoraIntro profile={profile} onEnter={()=>{
+    setScreen("app");
+    if(user?.uid) saveProfile(user.uid, profile).catch(()=>{});
+  }}/>;
 
   const handleSaveProfile = (updated) => {
     setProfile(updated);

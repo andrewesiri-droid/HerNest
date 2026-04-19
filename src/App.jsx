@@ -551,7 +551,7 @@ function BudgetScreen({uid}){
     if(!uid)return;
     loadData(uid,"budget").then(d=>{
       if(d?.expenses) setExpenses(d.expenses);
-      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:Ic[c.ICname]||Ic.Bag})));
+      if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:eval(`Ic.${c.ICname||"Bag"}`)||Ic.Bag})));
       if(d?.savingsGoal) setSavingsGoal(d.savingsGoal);
     }).catch(()=>{});
   },[uid]);
@@ -1919,21 +1919,24 @@ export default function HerNest(){
 
   // Watch auth state
   useEffect(()=>{
-    const timeout=setTimeout(()=>setAuthChecked(true),5000);
-    const unsub=onAuthStateChanged(auth,(u)=>{
-      clearTimeout(timeout);
-      setUser(u||null);
+    const unsub=onAuthStateChanged(auth,async(u)=>{
       if(u){
-        loadProfile(u.uid).then(saved=>{
-          if(saved&&saved.name){
-            setProfile(saved);
-            setScreen("app");
-          }
-        }).catch(()=>{});
+        setUser(u);
+        const saved=await loadProfile(u.uid);
+        if(saved&&saved.name){
+          setProfile(saved);
+          setScreen("app");
+        } else {
+          if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
+          setScreen("step1");
+        }
+      } else {
+        setUser(null);
+        setScreen("login");
       }
       setAuthChecked(true);
     });
-    return()=>{ unsub(); clearTimeout(timeout); };
+    return()=>unsub();
   },[]);
 
   // Auto-save profile on change
@@ -1941,22 +1944,23 @@ export default function HerNest(){
     if(user?.uid&&profile.name) saveProfile(user.uid,profile);
   },[profile,user]);
 
-  // Auto-save profile whenever it changes and user is logged in
-  useEffect(()=>{
-    if(user?.uid && profile.name){
-      saveProfile(user.uid, profile).catch(()=>{});
-    }
-  },[profile, user]);
-
   const reset=async()=>{
     try{await signOut(auth);}catch(e){}
     setProfile({avatar:"👩",name:"",city:"",role:"",partner:"",kids:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
     setTab("home");setAiTasks([]);setUser(null);setScreen("login");
   };
 
-  const handleLogin=(userData)=>{
-    if(userData.name) setProfile(p=>({...p,name:userData.name}));
-    setScreen("step1");
+  const handleLogin=async(userData)=>{
+    if(userData.uid){
+      const saved=await loadProfile(userData.uid);
+      if(saved&&saved.name){setProfile(saved);setScreen("app");}
+      else{
+        if(userData.name)setProfile(p=>({...p,name:userData.name}));
+        setScreen("step1");
+      }
+    } else {
+      setScreen("step1");
+    }
   };
 
   if(!authChecked) return(
@@ -2000,10 +2004,7 @@ export default function HerNest(){
       </div>
     );
   }
-  if(screen==="intro") return <NoraIntro profile={profile} onEnter={()=>{
-    setScreen("app");
-    if(user?.uid) saveProfile(user.uid, profile).catch(()=>{});
-  }}/>;
+  if(screen==="intro") return <NoraIntro profile={profile} onEnter={()=>setScreen("app")}/>;
 
   const handleSaveProfile = (updated) => {
     setProfile(updated);

@@ -344,203 +344,159 @@ function PlanScreen({aiTasks,profile,uid}){
 function TripsScreen({uid,profile}){
   const [trips,setTrips]=useState([]);
   const [activeTrip,setActiveTrip]=useState(0);
-  const [tab,setTab]=useState("overview");
+  const [showNewTrip,setShowNewTrip]=useState(false);
+  const [editMode,setEditMode]=useState(false);
+  const [planning,setPlanning]=useState(false);
+  const [planData,setPlanData]=useState({});
 
-  // Load trips from Firebase
+  // New trip form state
+  const [newDest,setNewDest]=useState("");
+  const [newDate,setNewDate]=useState("");
+  const [newNights,setNewNights]=useState("");
+  const [newBudget,setNewBudget]=useState("");
+  const [newStatus,setNewStatus]=useState("Planning");
+  const [newTravellers,setNewTravellers]=useState(2);
+
+  // Load/save Firebase
   useEffect(()=>{
     if(!uid)return;
-    loadData(uid,"trips").then(d=>{
-      if(d?.trips?.length) setTrips(d.trips);
-    }).catch(()=>{});
+    loadData(uid,"trips").then(d=>{if(d?.trips?.length){setTrips(d.trips);if(d.planData)setPlanData(d.planData);}}).catch(()=>{});
   },[uid]);
-
-  // Save trips to Firebase on change
   useEffect(()=>{
-    if(uid&&trips.length) saveData(uid,"trips",{trips}).catch(()=>{});
-  },[trips,uid]);
-  const [prompt,setPrompt]=useState("");
-  const [result,setResult]=useState(null);
-  const [loading,setLoading]=useState(false);
-  const [newItem,setNewItem]=useState("");
-  const [packPerson,setPackPerson]=useState("Mum");
-  const [newPack,setNewPack]=useState("");
-  const [showNewTrip,setShowNewTrip]=useState(false);
-  const [newDest,setNewDest]=useState("");
-  const [newTravellers,setNewTravellers]=useState(2);
-  const [newBudget,setNewBudget]=useState(5000);
-  const [newDate,setNewDate]=useState("");
-  const [newNights,setNewNights]=useState(7);
-  const [newStatus,setNewStatus]=useState("Dreaming");
-  const [editMode,setEditMode]=useState(false);
+    if(uid&&trips.length)saveData(uid,"trips",{trips,planData}).catch(()=>{});
+  },[trips,planData,uid]);
 
-  const [familyFilter,setFamilyFilter]=useState(true);
-  const [ageFilter,setAgeFilter]=useState("all");
+  const trip=trips[activeTrip];
+  const updateTrip=(f,v)=>setTrips(p=>p.map((t,i)=>i===activeTrip?{...t,[f]:v}:t));
+  const deleteTrip=()=>{if(trips.length<=1){setTrips([]);setActiveTrip(0);}else{setTrips(p=>p.filter((_,i)=>i!==activeTrip));setActiveTrip(0);}};
 
-  const trip=trips[activeTrip]||trips[0];
-  const budgetPct=Math.round(((trip?.spent||0)/(trip?.budget||1))*100);
+  const addTrip=async()=>{
+    if(!newDest.trim())return;
+    const who=[profile?.name?.split(" ")[0]||"Me",...(profile?.partner?[profile.partner]:[]),...(profile?.kids||[]).map(k=>k.name)];
+    const t={id:Date.now(),dest:newDest,flag:"🌍",nights:parseInt(newNights)||7,travellers:newTravellers,budget:parseInt(newBudget)||5000,spent:0,status:newStatus,departDate:newDate,whosComing:who.slice(0,newTravellers),checklist:[{item:"Book flights",done:false},{item:"Book accommodation",done:false},{item:"Travel insurance",done:false},{item:"Visas and passports",done:false},{item:"Kids vaccinations check",done:false}],packing:{Mum:[],Kids:[],Everyone:[]}};
+    const newIdx=trips.length;
+    setTrips(p=>[...p,t]);
+    setActiveTrip(newIdx);
+    setShowNewTrip(false);
+    setNewDest("");setNewDate("");setNewNights("");setNewBudget("");setNewStatus("Planning");
+    // Auto-plan immediately
+    await planTrip(t);
+  };
+
+  const planTrip=async(t)=>{
+    const tripData=t||trip;
+    if(!tripData)return;
+    setPlanning(true);
+    const who=(tripData.whosComing||[]).join(", ")||`${tripData.travellers||2} travellers`;
+    const kids=(profile?.kids||[]);
+    const kidsCtx=kids.length?`Kids: ${kids.map(k=>`${k.name} (${k.age||"?"})`).join(", ")}.`:"";
+    const sys=`You are Nora, expert family travel concierge. Return ONLY valid JSON:
+{"overview":"2 sentence exciting trip summary","familyTip":"one practical family travel tip","highlights":["","",""],"days":[{"day":1,"title":"","plan":"full day description in 2 sentences","highlight":"best moment of the day","kidsFriendly":"best activity for kids"}],"packing":{"Mum":["","","","",""],"Kids":["","","","",""],"Everyone":["","","",""]},"checklist":["","","","","",""],"budget":[{"cat":"","amount":"","tip":""}],"bookingTips":"one sentence on best way to book this trip"}`;
+    const prompt=`Plan a ${tripData.nights||7} night trip to ${tripData.dest} for ${who}. ${kidsCtx} Total budget: $${tripData.budget||5000}. Departure: ${tripData.departDate||"soon"}. Make it family-friendly, practical and exciting. Include specific local recommendations.`;
+    try{
+      const raw=await claude(sys,prompt);
+      const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
+      setPlanData(p=>({...p,[tripData.id]:data}));
+    }catch(e){
+      setPlanData(p=>({...p,[tripData.id]:{overview:`An incredible ${tripData.nights||7}-night adventure to ${tripData.dest} awaits! Get ready for memories that will last a lifetime.`,familyTip:"Book accommodation with a kitchen to save on meals and give kids a home base.",highlights:["Explore local markets","Family beach days","Cultural experiences"],days:[{day:1,title:"Arrival & Explore",plan:"Arrive and settle into your accommodation. Take a gentle walk to get your bearings and find a great local restaurant for dinner.",highlight:"First sunset in a new place",kidsFriendly:"Let kids pick dinner from a local menu"},{day:2,title:"Adventure Day",plan:"Full day exploring the main attractions. Start early to beat the crowds and take a midday break for naps or swimming.",highlight:"Main attraction visit",kidsFriendly:"Look for playgrounds near major sites"}],packing:{Mum:["Swimwear","Sunscreen SPF50","Linen dresses","Comfortable walking shoes","Power bank"],Kids:["Rashvests","Sunhats","Snacks","Favourite toy","Sandals"],Everyone:["Passports","Travel insurance docs","First aid kit","Reusable water bottles"]},checklist:["Book flights","Book accommodation","Purchase travel insurance","Check visa requirements","See doctor for vaccinations","Download offline maps"],budget:[{cat:"Flights",amount:`$${Math.round((tripData.budget||5000)*0.35).toLocaleString()}`,tip:"Book 3+ months ahead for best prices"},{cat:"Accommodation",amount:`$${Math.round((tripData.budget||5000)*0.3).toLocaleString()}`,tip:"Look for family rooms or apartments"},{cat:"Food & Dining",amount:`$${Math.round((tripData.budget||5000)*0.2).toLocaleString()}`,tip:"Mix local restaurants with self-catering"},{cat:"Activities",amount:`$${Math.round((tripData.budget||5000)*0.15).toLocaleString()}`,tip:"Book popular attractions in advance"}],bookingTips:"Use Skyscanner for flights and Booking.com for family-friendly accommodation with free cancellation."}}));
+    }
+    setPlanning(false);
+  };
+
+  const plan=planData[trip?.id];
   const checkDone=(trip?.checklist||[]).filter(c=>c.done).length;
+  const budgetPct=Math.round(((trip?.spent||0)/(trip?.budget||5000))*100);
+  const familyMembers=[
+    {name:profile?.name?.split(" ")[0]||"Me",emoji:"👩"},
+    ...(profile?.partner?[{name:profile.partner,emoji:"👨"}]:[]),
+    ...(profile?.kids||[]).map(k=>({name:k.name,emoji:"👧"})),
+    ...(profile?.parents||[]).map(p=>({name:p.name,emoji:"👴"})),
+  ];
+
   if(!trips.length) return(
     <div style={{animation:"fadeUp .45s ease both"}}>
       <div style={{background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",borderRadius:22,padding:"28px 24px",marginBottom:14,textAlign:"center"}}>
         <div style={{fontSize:48,marginBottom:12}}>✈️</div>
-        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"0 0 8px",fontWeight:400}}>No trips yet</h2>
-        <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.5)",margin:"0 0 20px",lineHeight:1.6}}>Where does your family dream of going? Add your first trip and Nora will help you plan every detail.</p>
+        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"0 0 8px",fontWeight:400}}>Where to next?</h2>
+        <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.5)",margin:"0 0 20px",lineHeight:1.6}}>Add your first trip and Nora will plan every detail — itinerary, packing list, budget and more.</p>
         <button onClick={()=>setShowNewTrip(true)} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,color:"#fff",border:"none",borderRadius:14,padding:"13px 24px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:8}}>
-          <Ic.Plus s={18} c="#fff" w={2}/> Add Your First Trip
+          <Ic.Plus s={18} c="#fff" w={2}/>Add Your First Trip
         </button>
       </div>
-{showNewTrip&&<div style={{background:"#fff",borderRadius:18,padding:"18px",border:`1.5px solid ${T.gold}`,animation:"pop .2s ease both",marginBottom:14}}>
-        <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp,margin:"0 0 16px"}}>Plan a new trip ✈️</p>
-        <div style={{marginBottom:12}}>
-          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Destination</label>
-          <input value={newDest} onChange={e=>setNewDest(e.target.value)} placeholder="e.g. Bali, Indonesia" style={{width:"100%",fontFamily:FB,fontSize:14,padding:"11px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp}}/>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-          <div>
-            <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Depart date</label>
-            <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp,background:"#fff"}}/>
-          </div>
-          <div>
-            <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Nights</label>
-            <input type="number" value={newNights} onChange={e=>setNewNights(parseInt(e.target.value)||7)} min={1} max={60} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp}}/>
-          </div>
-        </div>
-        <div style={{marginBottom:12}}>
-          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Travellers</label>
-          <div style={{display:"flex",gap:6}}>
-            {[1,2,3,4,5,6].map(n=><button key={n} onClick={()=>setNewTravellers(n)} style={{flex:1,padding:"8px 0",borderRadius:10,border:`1.5px solid ${newTravellers===n?T.teal:T.linen}`,background:newTravellers===n?T.tealP:"#fff",fontFamily:FD,fontSize:15,fontWeight:700,color:newTravellers===n?T.teal:T.bark,cursor:"pointer"}}>{n}</button>)}
-          </div>
-        </div>
-        <div style={{marginBottom:12}}>
-          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Total budget</label>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {[1000,2000,3000,5000,8000,10000,15000,20000].map(b=><button key={b} onClick={()=>setNewBudget(b)} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${newBudget===b?T.gold:T.linen}`,background:newBudget===b?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:newBudget===b?T.esp:T.bark,cursor:"pointer"}}>${b>=1000?b/1000+"k":b}</button>)}
-          </div>
-        </div>
-        <div style={{marginBottom:16}}>
-          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Status</label>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {["Dreaming","Planning","Booked","Completed"].map(s=><button key={s} onClick={()=>setNewStatus(s)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${newStatus===s?T.gold:T.linen}`,background:newStatus===s?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:newStatus===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>)}
-          </div>
-        </div>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>setShowNewTrip(false)} style={{flex:1,background:T.sand,border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Cancel</button>
-          <button onClick={addTrip} disabled={!newDest.trim()} style={{flex:2,background:newDest.trim()?`linear-gradient(135deg,${T.esp},#4a2e18)`:T.linen,border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,color:newDest.trim()?"#fff":T.taupe,cursor:"pointer"}}>Add Trip ✈️</button>
-        </div>
-      </div>}
+      {showNewTrip&&<NewTripForm profile={profile} familyMembers={familyMembers} onAdd={addTrip} onCancel={()=>setShowNewTrip(false)} newDest={newDest} setNewDest={setNewDest} newDate={newDate} setNewDate={setNewDate} newNights={newNights} setNewNights={setNewNights} newBudget={newBudget} setNewBudget={setNewBudget} newStatus={newStatus} setNewStatus={setNewStatus} newTravellers={newTravellers} setNewTravellers={setNewTravellers}/>}
     </div>
   );
-
-  const toggleCheck=i=>setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,checklist:t.checklist.map((c,ci)=>ci===i?{...c,done:!c.done}:c)}:t));
-  const addCheck=()=>{if(!newItem.trim())return;setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,checklist:[...t.checklist,{item:newItem,done:false}]}:t));setNewItem("");};
-  const addPack=()=>{if(!newPack.trim())return;setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,packing:{...t.packing,[packPerson]:[...(t.packing[packPerson]||[]),newPack]}}:t));setNewPack("");};
-  const addTrip=()=>{
-    if(!newDest.trim())return;
-    const t={id:Date.now(),dest:newDest,flag:"🌍",nights:newNights,travellers:newTravellers,budget:newBudget,spent:0,status:newStatus,departDate:newDate,checklist:[{item:"Book flights",done:false},{item:"Book accommodation",done:false},{item:"Travel insurance",done:false},{item:"Visas and passports",done:false},{item:"Vaccinations check",done:false}],packing:{Mum:[],Kids:[],Everyone:[]}};
-    setTrips(p=>[...p,t]);setActiveTrip(trips.length);setShowNewTrip(false);
-    setNewDest("");setNewTravellers(2);setNewBudget(5000);setNewDate("");setNewNights(7);setNewStatus("Dreaming");
-  };
-  const updateTrip=(f,v)=>setTrips(p=>p.map((t,i)=>i===activeTrip?{...t,[f]:v}:t));
-  const deleteTrip=()=>{if(trips.length<=1){setTrips([]);setActiveTrip(0);}else{setTrips(p=>p.filter((_,i)=>i!==activeTrip));setActiveTrip(0);}};
-
-  const plan=async(overridePrompt)=>{
-    const p=overridePrompt||prompt;
-    if(!p.trim())return;setLoading(true);setResult(null);
-    const familyCtx=familyFilter?`This is a FAMILY trip. Plan must be completely family and child-friendly. Include: nap-friendly schedules, kid meal options, stroller accessibility, family room recommendations, age-appropriate activities. Avoid: late nights, adult-only venues, long uncomfortable journeys without breaks.`:"";
-    const ageCtx=ageFilter!=="all"?`Children age group: ${ageFilter}. Tailor all activities specifically for this age.`:"";
-    const sys=`Expert family travel concierge. ${familyCtx} ${ageCtx} Return ONLY valid JSON:{"destination":"","overview":"","familyTip":"","days":[{"day":1,"title":"","morning":"","afternoon":"","evening":"","tip":"","kidsActivity":""}],"budget":[{"cat":"","amount":""}],"bookFirst":["","",""],"bookingLinks":[{"name":"","url":"","type":"flights|hotels|activities"}]}`;
-    try{const raw=await claude(sys,p);setResult(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
-    catch(e){setResult({error:true});}
-    setLoading(false);
-  };
-
-
 
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
       {/* Trip selector */}
-      <div style={{display:"flex",gap:8,overflowX:"auto",marginBottom:14}}>
+      <div style={{display:"flex",gap:8,overflowX:"auto",marginBottom:12,paddingBottom:4}}>
         {trips.map((t,i)=>(
-          <button key={t.id} onClick={()=>setActiveTrip(i)} style={{flexShrink:0,padding:"8px 16px",borderRadius:20,border:`1.5px solid ${activeTrip===i?T.teal:T.linen}`,background:activeTrip===i?T.tealP:"#fff",fontFamily:FB,fontSize:12,color:activeTrip===i?T.teal:T.bark,cursor:"pointer"}}>
+          <button key={t.id} onClick={()=>{setActiveTrip(i);setEditMode(false);}} style={{flexShrink:0,background:activeTrip===i?"linear-gradient(135deg,#0e2a1e,#1a5a3a)":"#fff",border:`1.5px solid ${activeTrip===i?"transparent":T.linen}`,borderRadius:12,padding:"8px 14px",fontFamily:FB,fontSize:12,fontWeight:700,color:activeTrip===i?"#fff":T.bark,cursor:"pointer"}}>
             {t.flag} {t.dest.split(",")[0]}
           </button>
         ))}
-        <button onClick={()=>setShowNewTrip(true)} style={{flexShrink:0,padding:"8px 14px",borderRadius:20,border:`1px dashed ${T.linen}`,background:"transparent",fontFamily:FB,fontSize:12,color:T.taupe,cursor:"pointer"}}>+ Trip</button>
+        <button onClick={()=>setShowNewTrip(true)} style={{flexShrink:0,background:T.sand,border:`1.5px dashed ${T.linen}`,borderRadius:12,padding:"8px 14px",fontFamily:FB,fontSize:12,color:T.taupe,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+          <Ic.Plus s={14} c={T.taupe} w={2}/>New
+        </button>
       </div>
 
-      {showNewTrip&&(
-        <div style={{background:"#fff",borderRadius:18,padding:"16px",marginBottom:14,border:`1.5px solid ${T.gold}`,animation:"pop .2s ease both"}}>
-          <p style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp,margin:"0 0 12px"}}>New Trip</p>
-          <input value={newDest} onChange={e=>setNewDest(e.target.value)} placeholder="e.g. Tokyo, Japan" style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp,marginBottom:10}}/>
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={()=>setShowNewTrip(false)} style={{flex:1,background:T.sand,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Cancel</button>
-            <button onClick={addTrip} style={{flex:2,background:T.esp,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>Add Trip</button>
-          </div>
-        </div>
-      )}
+      {showNewTrip&&<NewTripForm profile={profile} familyMembers={familyMembers} onAdd={addTrip} onCancel={()=>setShowNewTrip(false)} newDest={newDest} setNewDest={setNewDest} newDate={newDate} setNewDate={setNewDate} newNights={newNights} setNewNights={setNewNights} newBudget={newBudget} setNewBudget={setNewBudget} newStatus={newStatus} setNewStatus={setNewStatus} newTravellers={newTravellers} setNewTravellers={setNewTravellers}/>}
 
-      {/* Hero card */}
+      {/* Trip hero */}
       <div style={{background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",borderRadius:22,padding:"20px",marginBottom:14,color:"#fff"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-          <div>
-            <span style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",letterSpacing:2,textTransform:"uppercase"}}>{trip.status}</span>
-            <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"4px 0 2px",fontWeight:400}}>{trip.dest}</h2>
-            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.5)",margin:0}}>{trip.travellers} traveller{trip.travellers!==1?"s":""} · {trip.nights||trip.days||"?"} nights{trip.departDate?` · ${new Date(trip.departDate).toLocaleDateString("en-AU",{day:"numeric",month:"short"})}`:""}</p>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+              <span style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.4)",letterSpacing:2,textTransform:"uppercase"}}>{trip.status}</span>
+              {trip.departDate&&<span style={{fontFamily:FB,fontSize:10,color:T.gold}}>· {new Date(trip.departDate).toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"})}</span>}
+            </div>
+            <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:"#fff",margin:"0 0 4px",fontWeight:400}}>{trip.dest}</h2>
+            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.5)",margin:0}}>
+              {(trip.whosComing||[]).join(" · ")||`${trip.travellers} travellers`} · {trip.nights} nights
+            </p>
           </div>
-          <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+          <div style={{display:"flex",gap:8}}>
             <div style={{textAlign:"center",background:"rgba(255,255,255,.1)",borderRadius:14,padding:"10px 12px"}}>
-              <div style={{fontFamily:FD,fontSize:24,fontWeight:700,color:T.gold}}>{trip.nights||trip.days||"?"}</div>
+              <div style={{fontFamily:FD,fontSize:22,fontWeight:700,color:T.gold}}>{trip.nights}</div>
               <div style={{fontFamily:FB,fontSize:8,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase"}}>nights</div>
             </div>
-            <button onClick={()=>setEditMode(!editMode)} style={{width:36,height:36,borderRadius:10,background:editMode?"rgba(196,154,60,.2)":"rgba(255,255,255,.1)",border:`1px solid ${editMode?"rgba(196,154,60,.4)":"rgba(255,255,255,.15)"}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginTop:2}}>
+            <button onClick={()=>setEditMode(!editMode)} style={{width:40,height:40,borderRadius:12,background:editMode?"rgba(196,154,60,.2)":"rgba(255,255,255,.1)",border:`1px solid ${editMode?"rgba(196,154,60,.4)":"rgba(255,255,255,.15)"}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
               <Ic.Edit s={16} c={editMode?T.gold:"rgba(255,255,255,.7)"} w={1.5}/>
             </button>
           </div>
         </div>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-          <span style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)"}}>Budget used</span>
-          <span style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>${trip.spent.toLocaleString()} / ${trip.budget.toLocaleString()}</span>
-        </div>
-        <div style={{background:"rgba(255,255,255,.15)",borderRadius:10,height:6}}>
-          <div style={{background:T.gold,borderRadius:10,height:6,width:`${budgetPct}%`,transition:"width .5s"}}/>
-        </div>
-        <div style={{marginTop:10,fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.5)"}}>Checklist: {checkDone}/{trip.checklist.length} items done</div>
 
-        {/* Inline editor */}
-        {editMode&&<div style={{background:"rgba(255,255,255,.08)",borderRadius:14,padding:"14px",marginTop:12,border:"1px solid rgba(255,255,255,.1)"}}>
+        {/* Edit panel */}
+        {editMode&&<div style={{background:"rgba(255,255,255,.08)",borderRadius:14,padding:"14px",marginBottom:12,border:"1px solid rgba(255,255,255,.1)"}}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Destination</label>
-              <input value={trip.dest} onChange={e=>updateTrip("dest",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+              <input value={trip.dest} onChange={e=>updateTrip("dest",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"9px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
             </div>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Depart date</label>
-              <input type="date" value={trip.departDate||""} onChange={e=>updateTrip("departDate",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+              <input type="date" value={trip.departDate||""} onChange={e=>updateTrip("departDate",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
             </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Nights</label>
-              <input type="text" inputMode="numeric" defaultValue={trip.nights||7} onBlur={e=>updateTrip("nights",parseInt(e.target.value)||1)} placeholder="e.g. 7" style={{width:"100%",fontFamily:FB,fontSize:15,fontWeight:700,padding:"10px 12px",borderRadius:9,border:"2px solid rgba(255,255,255,.3)",background:"rgba(255,255,255,.12)",color:"#fff"}}/>
+              <input type="text" inputMode="numeric" defaultValue={trip.nights||7} onBlur={e=>updateTrip("nights",parseInt(e.target.value)||7)} placeholder="e.g. 7" style={{width:"100%",fontFamily:FB,fontSize:14,fontWeight:700,padding:"9px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
             </div>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Budget ($)</label>
-              <input type="text" inputMode="numeric" defaultValue={trip.budget||5000} onBlur={e=>updateTrip("budget",parseInt(e.target.value)||0)} placeholder="e.g. 5000" style={{width:"100%",fontFamily:FB,fontSize:15,fontWeight:700,padding:"10px 12px",borderRadius:9,border:"2px solid rgba(255,255,255,.3)",background:"rgba(255,255,255,.12)",color:"#fff"}}/>
+              <input type="text" inputMode="numeric" defaultValue={trip.budget||5000} onBlur={e=>updateTrip("budget",parseInt(e.target.value)||5000)} placeholder="e.g. 5000" style={{width:"100%",fontFamily:FB,fontSize:14,fontWeight:700,padding:"9px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
             </div>
           </div>
           <div style={{marginBottom:10}}>
             <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:6}}>Who is coming</label>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-              {[
-                {name:profile?.name?.split(" ")[0]||"Me",emoji:"👩"},
-                ...(profile?.partner?[{name:profile.partner,emoji:"👨"}]:[]),
-                ...(profile?.kids||[]).map(k=>({name:k.name,emoji:"👧"})),
-                ...(profile?.parents||[]).map(p=>({name:p.name,emoji:"👴"})),
-              ].map((person,i)=>{
-                const coming=(trip.whosComing||[profile?.name?.split(" ")[0]||"Me"]).includes(person.name);
+              {familyMembers.map((person,i)=>{
+                const coming=(trip.whosComing||[]).includes(person.name);
                 return(
                   <button key={i} onClick={()=>{
-                    const current=trip.whosComing||[profile?.name?.split(" ")[0]||"Me"];
+                    const current=trip.whosComing||[];
                     const updated=coming?current.filter(n=>n!==person.name):[...current,person.name];
                     updateTrip("whosComing",updated);
                     updateTrip("travellers",Math.max(1,updated.length));
@@ -552,203 +508,201 @@ function TripsScreen({uid,profile}){
                 );
               })}
             </div>
-            <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.35)",marginTop:6}}>{trip.travellers||1} traveller{(trip.travellers||1)!==1?"s":""} going</div>
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
             {["Dreaming","Planning","Booked","Completed"].map(s=><button key={s} onClick={()=>updateTrip("status",s)} style={{padding:"4px 12px",borderRadius:20,border:`1px solid ${trip.status===s?"rgba(196,154,60,.8)":"rgba(255,255,255,.2)"}`,background:trip.status===s?"rgba(196,154,60,.2)":"transparent",fontFamily:FB,fontSize:11,color:trip.status===s?T.gold:"rgba(255,255,255,.5)",cursor:"pointer"}}>{s}</button>)}
           </div>
-          <button onClick={()=>{if(window.confirm("Delete this trip?"))deleteTrip();}} style={{background:"rgba(212,130,106,.15)",border:"1px solid rgba(212,130,106,.3)",borderRadius:10,padding:"6px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.blush,cursor:"pointer"}}>Delete trip</button>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>{setEditMode(false);planTrip();}} style={{flex:2,background:`linear-gradient(135deg,${T.gold},#8B6914)`,border:"none",borderRadius:10,padding:"10px",fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff",cursor:"pointer"}}>✨ Re-plan with Nora</button>
+            <button onClick={()=>{if(window.confirm("Delete this trip?"))deleteTrip();}} style={{flex:1,background:"rgba(212,130,106,.15)",border:"1px solid rgba(212,130,106,.3)",borderRadius:10,padding:"10px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.blush,cursor:"pointer"}}>Delete</button>
+          </div>
         </div>}
+
+        {/* Budget bar */}
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+          <span style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)"}}>Budget used</span>
+          <span style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>${(trip.spent||0).toLocaleString()} / ${(trip.budget||5000).toLocaleString()}</span>
+        </div>
+        <div style={{background:"rgba(255,255,255,.15)",borderRadius:10,height:6}}>
+          <div style={{background:T.gold,borderRadius:10,height:6,width:`${Math.min(budgetPct,100)}%`,transition:"width .5s"}}/>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:16}}>
-        {["overview","checklist","packing","ai planner"].map(t=><Pill key={t} ch={t.charAt(0).toUpperCase()+t.slice(1)} active={tab===t} on={()=>{
-        setTab(t);
-        if(t==="ai planner"&&!prompt.trim()&&trip){
-          const who=trip.whosComing?.join(", ")||`${trip.travellers||2} travellers`;
-          setPrompt(`${trip.dest}, ${trip.nights||7} nights, ${who}, budget $${(trip.budget||5000).toLocaleString()}`);
-        }
-      }} color={T.teal}/>)}
-      </div>
+      {/* Planning loader */}
+      {planning&&<div style={{textAlign:"center",padding:"32px 20px",background:T.sand,borderRadius:18,marginBottom:14}}>
+        <div style={{width:48,height:48,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",animation:"breathe 2s ease-in-out infinite"}}><Ic.Compass s={22} c="#fff" w={1.4}/></div>
+        <p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.esp,margin:"0 0 4px"}}>Nora is planning your trip…</p>
+        <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:0}}>Building your itinerary, packing list and budget</p>
+      </div>}
 
-      {/* Overview tab */}
-      {tab==="overview"&&<div style={{animation:"slideRight .3s ease both"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
-          {[{lb:"Days Away",val:trip.days,c:T.teal,bg:T.tealP},{lb:"Travellers",val:trip.travellers,c:T.sky,bg:T.skyP},{lb:"Budget",val:`$${trip.budget.toLocaleString()}`,c:T.gold,bg:T.goldP},{lb:"Spent",val:`$${trip.spent.toLocaleString()}`,c:T.blush,bg:T.blushP}].map(s=>(
-            <div key={s.lb} style={{background:s.bg,borderRadius:16,padding:"14px",border:`1px solid ${s.c}25`}}>
-              <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:s.c,marginBottom:4}}>{s.lb}</div>
-              <div style={{fontFamily:FD,fontSize:22,fontWeight:700,color:T.esp}}>{s.val}</div>
-            </div>
-          ))}
-        </div>
-        <Card ch={<div>
-          <H2 t="Budget Breakdown"/>
-          <div style={{marginBottom:10}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontFamily:FB,fontSize:13,color:T.esp,fontWeight:700}}>Flights</span><span style={{fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold}}>$1,200</span></div>
-            <ProgressBar value={1200} max={trip.budget} color={T.sky}/>
-          </div>
-          <div style={{marginBottom:10}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontFamily:FB,fontSize:13,color:T.esp,fontWeight:700}}>Accommodation</span><span style={{fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold}}>$900</span></div>
-            <ProgressBar value={900} max={trip.budget} color={T.sage}/>
-          </div>
-          <div>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontFamily:FB,fontSize:13,color:T.esp,fontWeight:700}}>Activities</span><span style={{fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold}}>$0</span></div>
-            <ProgressBar value={0} max={trip.budget} color={T.blush}/>
-          </div>
+      {/* AI Plan — full overview */}
+      {plan&&!planning&&<div>
+        {/* Overview */}
+        <Card sx={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",border:"none",marginBottom:10}} ch={<div>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><AIBadge t="Nora's Plan"/></div>
+          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.8)",margin:"0 0 10px",lineHeight:1.7}}>{plan.overview}</p>
+          {plan.familyTip&&<div style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"8px 12px",display:"flex",gap:8}}>
+            <span>👨‍👩‍👧</span><p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.75)",margin:0,lineHeight:1.5}}>{plan.familyTip}</p>
+          </div>}
         </div>}/>
-      </div>}
 
-      {/* Plan This Trip button on overview */}
-      {tab==="overview"&&<button onClick={()=>{
-        const who=(trip.whosComing||[]).join(", ")||(String(trip.travellers||2)+" travellers");
-        const autoPrompt=String(trip.dest||"")+" "+String(trip.nights||7)+" nights, "+who+", budget $"+String(trip.budget||5000);
-        setPrompt(autoPrompt);
-        setTab("ai planner");
-        plan(autoPrompt);
-      }} style={{width:"100%",background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",color:"#fff",border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>
-        <Ic.Compass s={18} c="#fff" w={1.5}/>Plan This Trip with Nora ✨
-      </button>}
-
-      {/* Checklist tab */}
-      {tab==="checklist"&&<div style={{animation:"slideRight .3s ease both"}}>
-        <div style={{display:"flex",gap:8,marginBottom:12}}>
-          <input value={newItem} onChange={e=>setNewItem(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addCheck()} placeholder="Add checklist item…" style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:13,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-          <button onClick={addCheck} style={{background:T.esp,border:"none",borderRadius:13,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
-        </div>
-        {trip.checklist.map((c,i)=>(
-          <div key={i} onClick={()=>toggleCheck(i)} style={{display:"flex",alignItems:"center",gap:12,background:"#fff",borderRadius:14,padding:"13px 14px",marginBottom:8,cursor:"pointer",border:`1.5px solid ${c.done?T.sageP:T.linen}`,transition:"all .2s"}}>
-            <div style={{width:24,height:24,borderRadius:"50%",flexShrink:0,background:c.done?T.sage:T.linen,display:"flex",alignItems:"center",justifyContent:"center",transition:"background .15s"}}>
-              {c.done&&<Ic.Check s={13} c="#fff" w={2.5}/>}
-            </div>
-            <span style={{fontFamily:FB,fontSize:13,color:c.done?T.taupe:T.esp,textDecoration:c.done?"line-through":"none",flex:1}}>{c.item}</span>
+        {/* Book now */}
+        <div style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"14px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",marginBottom:2}}>Ready to book?</div>
+            <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.75)"}}>{plan.bookingTips||"Start with flights, then accommodation"}</div>
           </div>
-        ))}
-        <div style={{textAlign:"center",padding:"10px 0"}}>
-          <span style={{fontFamily:FB,fontSize:12,color:T.bark}}>{checkDone} of {trip.checklist.length} completed</span>
-        </div>
-      </div>}
-
-      {/* Packing tab */}
-      {tab==="packing"&&<div style={{animation:"slideRight .3s ease both"}}>
-        <div style={{display:"flex",gap:6,marginBottom:12}}>
-          {Object.keys(trip.packing).map(p=><Pill key={p} ch={p} active={packPerson===p} on={()=>setPackPerson(p)} color={T.teal}/>)}
-        </div>
-        <div style={{display:"flex",gap:8,marginBottom:12}}>
-          <input value={newPack} onChange={e=>setNewPack(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addPack()} placeholder={`Add item for ${packPerson}…`} style={{flex:1,fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:13,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-          <button onClick={addPack} style={{background:T.teal,border:"none",borderRadius:13,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
-        </div>
-        <Card ch={<div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {(trip.packing[packPerson]||[]).map((item,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:6,background:T.tealP,borderRadius:10,padding:"6px 12px",border:`1px solid ${T.teal}30`}}>
-              <span style={{fontFamily:FB,fontSize:12,color:T.esp}}>{item}</span>
-              <button onClick={()=>setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,packing:{...t.packing,[packPerson]:t.packing[packPerson].filter((_,ii)=>ii!==i)}}:t))} style={{background:"none",border:"none",cursor:"pointer",padding:0}}><Ic.Close s={12} c={T.teal} w={2}/></button>
-            </div>
-          ))}
-          {!(trip.packing[packPerson]||[]).length&&<p style={{fontFamily:FD,fontStyle:"italic",fontSize:14,color:T.taupe,margin:0}}>No items yet — add something above</p>}
-        </div>}/>
-      </div>}
-
-      {/* AI Planner tab */}
-      {tab==="ai planner"&&<div style={{animation:"slideRight .3s ease both"}}>
-        <div style={{background:AIGRAD,borderRadius:18,padding:"16px 18px",marginBottom:14}}>
-          <AIBadge t="AI Trip Planner"/>
-          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.6)",margin:"8px 0 0",lineHeight:1.6}}>Describe your dream trip — I'll build a full family-friendly itinerary, budget and booking list.</p>
-        </div>
-
-        {/* Family filters */}
-        <div style={{background:"#fff",borderRadius:14,padding:"14px",marginBottom:12,border:`1.5px solid ${T.linen}`}}>
-          <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:10}}>Trip Filters</div>
-          <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
-            <button onClick={()=>setFamilyFilter(!familyFilter)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${familyFilter?T.teal:T.linen}`,background:familyFilter?T.tealP:"#fff",fontFamily:FB,fontSize:12,color:familyFilter?T.teal:T.bark,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
-              {familyFilter&&<Ic.Check s={12} c={T.teal} w={2.5}/>}👨‍👩‍👧 Family-friendly
-            </button>
-          </div>
-          <div style={{fontFamily:FB,fontSize:11,color:T.bark,marginBottom:6}}>Kids age group:</div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {[["all","Any age"],["0-3","Baby/Toddler"],["4-7","Young kids"],["8-12","Older kids"],["13+","Teens"]].map(([v,lb])=>(
-              <button key={v} onClick={()=>setAgeFilter(v)} style={{padding:"5px 12px",borderRadius:20,border:`1.5px solid ${ageFilter===v?T.gold:T.linen}`,background:ageFilter===v?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:ageFilter===v?T.esp:T.bark,cursor:"pointer"}}>{lb}</button>
+          <div style={{display:"flex",gap:8}}>
+            {[{lb:"Flights",url:"https://www.skyscanner.com",emoji:"✈️"},{lb:"Hotels",url:"https://www.booking.com",emoji:"🏨"},{lb:"Activities",url:"https://www.viator.com",emoji:"🎡"}].map(b=>(
+              <button key={b.lb} onClick={()=>window.open(b.url,"_blank")} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:10,padding:"8px 10px",textAlign:"center",cursor:"pointer"}}>
+                <div style={{fontSize:16}}>{b.emoji}</div>
+                <div style={{fontFamily:FB,fontSize:9,color:"#fff",fontWeight:700,marginTop:2}}>{b.lb}</div>
+              </button>
             ))}
           </div>
         </div>
 
-        <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. Family trip Japan 10 days, 2 kids aged 6 & 9, $8,000, love culture and food" rows={3} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"14px",borderRadius:14,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp,lineHeight:1.6,marginBottom:10}}/>
-        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
-          {["Japan 10d, 2 kids, $8k","Bali family 7d, $6k","Paris weekend 3d, $3k","Maldives 5d, $10k"].map((e,i)=>(
-            <span key={i} onClick={()=>setPrompt(e)} style={{fontFamily:FB,fontSize:11,color:T.bark,background:T.sand,borderRadius:10,padding:"5px 12px",cursor:"pointer",border:`1px solid ${T.linen}`}}>{e.split(",")[0]} ›</span>
+        {/* Highlights */}
+        {plan.highlights?.length>0&&<Card ch={<div>
+          <H2 t="Trip Highlights"/>
+          {plan.highlights.map((h,i)=>(
+            <div key={i} style={{display:"flex",gap:10,padding:"7px 0",borderBottom:i<plan.highlights.length-1?`1px solid ${T.linen}`:"none"}}>
+              <span style={{fontFamily:FD,fontSize:16,fontWeight:700,color:T.gold,flexShrink:0}}>{i+1}.</span>
+              <span style={{fontFamily:FB,fontSize:13,color:T.bark,lineHeight:1.5}}>{h}</span>
+            </div>
           ))}
-        </div>
-        <button onClick={plan} disabled={!prompt.trim()||loading} style={{width:"100%",background:prompt.trim()&&!loading?"linear-gradient(135deg,#0e2a1e,#1a5a3a)":T.linen,color:prompt.trim()&&!loading?"#fff":T.taupe,border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>
-          {loading?<><Spinner/>Planning your family trip…</>:<><Ic.Compass s={18} c="#fff" w={1.5}/>Plan My Trip</>}
-        </button>
+        </div>}/>}
 
-        {result&&!result.error&&<div style={{animation:"fadeUp .4s ease both"}}>
-          {/* Trip hero */}
-          <Card sx={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",border:"none"}} ch={<div>
-            <h3 style={{fontFamily:FD,fontSize:22,color:"#fff",margin:"0 0 6px",fontStyle:"italic"}}>{result.destination}</h3>
-            <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.7)",margin:"0 0 10px",lineHeight:1.6}}>{result.overview}</p>
-            {result.familyTip&&<div style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"8px 12px",display:"flex",gap:8}}>
-              <span>👨‍👩‍👧</span><p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.8)",margin:0,lineHeight:1.5}}>{result.familyTip}</p>
+        {/* Day by day */}
+        <H2 t="Day by Day" sub="Your full itinerary"/>
+        {plan.days?.map((d,i)=>(
+          <Card key={i} ch={<div>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+              <div style={{width:32,height:32,borderRadius:"50%",background:T.goldP,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold,flexShrink:0}}>{d.day}</div>
+              <span style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp}}>{d.title}</span>
+            </div>
+            <p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"0 0 8px",lineHeight:1.7}}>{d.plan}</p>
+            {d.highlight&&<div style={{background:T.goldP,borderRadius:10,padding:"7px 12px",marginBottom:6,display:"flex",gap:8}}>
+              <span>⭐</span><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>{d.highlight}</p>
+            </div>}
+            {d.kidsFriendly&&<div style={{background:T.sageP,borderRadius:10,padding:"7px 12px",display:"flex",gap:8}}>
+              <span>👧</span><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>Kids: {d.kidsFriendly}</p>
             </div>}
           </div>}/>
+        ))}
 
-          {/* Book everything button */}
-          <div style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"16px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
-            <div style={{flex:1}}>
-              <div style={{fontFamily:FB,fontSize:14,fontWeight:700,color:"#fff",marginBottom:2}}>Ready to book?</div>
-              <div style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.75)"}}>Search flights, hotels & activities</div>
-            </div>
-            <div style={{display:"flex",gap:8}}>
-              {[{lb:"Flights",url:"https://www.skyscanner.com",emoji:"✈️"},{lb:"Hotels",url:"https://www.booking.com",emoji:"🏨"},{lb:"Activities",url:"https://www.viator.com",emoji:"🎡"}].map(b=>(
-                <button key={b.lb} onClick={()=>window.open(b.url,"_blank")} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:10,padding:"8px 10px",textAlign:"center",cursor:"pointer"}}>
-                  <div style={{fontSize:16}}>{b.emoji}</div>
-                  <div style={{fontFamily:FB,fontSize:9,color:"#fff",fontWeight:700,marginTop:2}}>{b.lb}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Day cards */}
-          {result.days?.map((d,i)=>(
-            <Card key={i} ch={<div>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-                <div style={{width:30,height:30,borderRadius:"50%",background:T.goldP,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:FD,fontSize:14,fontWeight:700,color:T.gold,flexShrink:0}}>{d.day}</div>
-                <span style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp,flex:1}}>{d.title}</span>
+        {/* Budget breakdown */}
+        {plan.budget?.length>0&&<Card ch={<div>
+          <H2 t="Budget Breakdown"/>
+          {plan.budget.map((b,i)=>(
+            <div key={i} style={{padding:"10px 0",borderBottom:i<plan.budget.length-1?`1px solid ${T.linen}`:"none"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+                <span style={{fontFamily:FB,fontSize:13,color:T.esp,fontWeight:600}}>{b.cat}</span>
+                <span style={{fontFamily:FD,fontSize:16,fontWeight:700,color:T.gold}}>{b.amount}</span>
               </div>
-              {[["🌅",d.morning],["☀️",d.afternoon],["🌙",d.evening]].map(([em,v])=>v&&<div key={em} style={{display:"flex",gap:10,marginBottom:6}}><span style={{fontSize:16,flexShrink:0}}>{em}</span><span style={{fontFamily:FB,fontSize:13,color:T.bark,lineHeight:1.5}}>{v}</span></div>)}
-              {d.kidsActivity&&<div style={{background:T.sageP,borderRadius:10,padding:"7px 12px",marginTop:6,display:"flex",gap:8}}>
-                <span>👧</span><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>Kids love: {d.kidsActivity}</p>
-              </div>}
-              {d.tip&&<div style={{background:T.goldP,borderRadius:10,padding:"7px 12px",marginTop:6,display:"flex",gap:8}}><Ic.Bulb s={14} c={T.gold} w={1.5}/><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>{d.tip}</p></div>}
-            </div>}/>
+              {b.tip&&<p style={{fontFamily:FB,fontSize:11,color:T.taupe,margin:0,fontStyle:"italic"}}>{b.tip}</p>}
+            </div>
           ))}
+        </div>}/>}
 
-          {/* Budget */}
-          {result.budget?.length>0&&<Card ch={<div>
-            <H2 t="Budget Breakdown"/>
-            {result.budget.map((b,i)=>(
-              <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:i<result.budget.length-1?`1px solid ${T.linen}`:"none"}}>
-                <span style={{fontFamily:FB,fontSize:13,color:T.esp}}>{b.cat}</span>
-                <span style={{fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold}}>{b.amount}</span>
+        {/* Packing list */}
+        {plan.packing&&<Card ch={<div>
+          <H2 t="Packing List" sub="Everything you need"/>
+          {Object.entries(plan.packing).map(([person,items])=>(
+            <div key={person} style={{marginBottom:14}}>
+              <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:8}}>{person}</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {items.map((item,i)=>(
+                  <span key={i} style={{fontFamily:FB,fontSize:12,color:T.esp,background:T.sand,borderRadius:20,padding:"4px 12px",border:`1px solid ${T.linen}`}}>{item}</span>
+                ))}
               </div>
-            ))}
-          </div>}/>}
+            </div>
+          ))}
+        </div>}/>}
 
-          {/* Book first */}
-          {result.bookFirst?.length>0&&<Card sx={{background:ESPG,border:"none"}} ch={<div>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><Ic.Bulb s={16} c={T.gold} w={1.5}/><span style={{fontFamily:FB,fontSize:11,color:T.gold,letterSpacing:2,textTransform:"uppercase",fontWeight:700}}>Book These First</span></div>
-            {result.bookFirst.map((b,i)=>(
-              <div key={i} style={{display:"flex",gap:10,padding:"6px 0",borderBottom:i<result.bookFirst.length-1?`1px solid rgba(255,255,255,.1)`:"none"}}>
-                <span style={{fontFamily:FD,fontSize:14,fontWeight:700,color:T.gold,flexShrink:0}}>{i+1}.</span>
-                <span style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.8)"}}>{b}</span>
+        {/* Checklist */}
+        <Card ch={<div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <H2 t="Before You Go"/>
+            <span style={{fontFamily:FB,fontSize:11,color:T.sage}}>{checkDone}/{(trip.checklist||[]).length} done</span>
+          </div>
+          {(trip.checklist||[]).map((item,i)=>(
+            <div key={i} onClick={()=>setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,checklist:t.checklist.map((c,ci)=>ci===i?{...c,done:!c.done}:c)}:t))} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<trip.checklist.length-1?`1px solid ${T.linen}`:"none",cursor:"pointer"}}>
+              <div style={{width:22,height:22,borderRadius:"50%",background:item.done?T.sage:T.linen,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"background .15s"}}>
+                {item.done&&<Ic.Check s={12} c="#fff" w={2.5}/>}
               </div>
-            ))}
-          </div>}/>}
-        </div>}
+              <span style={{fontFamily:FB,fontSize:13,color:item.done?T.taupe:T.esp,textDecoration:item.done?"line-through":"none"}}>{item.item}</span>
+            </div>
+          ))}
+        </div>}/>
+      </div>}
+
+      {/* No plan yet */}
+      {!plan&&!planning&&<div style={{textAlign:"center",padding:"24px 20px",background:T.sand,borderRadius:18}}>
+        <div style={{fontSize:36,marginBottom:10}}>✨</div>
+        <p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.esp,margin:"0 0 6px"}}>Let Nora plan this trip</p>
+        <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"0 0 14px",lineHeight:1.6}}>Nora will build your full itinerary, packing list, budget and checklist</p>
+        <button onClick={()=>planTrip()} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,color:"#fff",border:"none",borderRadius:13,padding:"12px 24px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:8}}>
+          <Ic.Compass s={16} c="#fff" w={1.5}/>Plan This Trip with Nora
+        </button>
       </div>}
     </div>
   );
 }
+
+function NewTripForm({profile,familyMembers,onAdd,onCancel,newDest,setNewDest,newDate,setNewDate,newNights,setNewNights,newBudget,setNewBudget,newStatus,setNewStatus,newTravellers,setNewTravellers}){
+  return(
+    <div style={{background:"#fff",borderRadius:18,padding:"18px",marginBottom:14,border:`1.5px solid ${T.gold}`,animation:"pop .2s ease both"}}>
+      <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp,margin:"0 0 16px"}}>Plan a new trip ✈️</p>
+      <div style={{marginBottom:12}}>
+        <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Where to?</label>
+        <input value={newDest} onChange={e=>setNewDest(e.target.value)} placeholder="e.g. Bali, Indonesia" style={{width:"100%",fontFamily:FB,fontSize:15,padding:"12px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp}}/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+        <div>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Depart date</label>
+          <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp,background:"#fff"}}/>
+        </div>
+        <div>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Nights</label>
+          <input type="text" inputMode="numeric" value={newNights} onChange={e=>setNewNights(e.target.value)} placeholder="e.g. 7" style={{width:"100%",fontFamily:FB,fontSize:15,fontWeight:700,padding:"10px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp}}/>
+        </div>
+      </div>
+      <div style={{marginBottom:12}}>
+        <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Total budget ($)</label>
+        <input type="text" inputMode="numeric" value={newBudget} onChange={e=>setNewBudget(e.target.value)} placeholder="e.g. 6000" style={{width:"100%",fontFamily:FB,fontSize:15,fontWeight:700,padding:"10px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp}}/>
+      </div>
+      <div style={{marginBottom:12}}>
+        <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Who is coming</label>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {familyMembers.map((person,i)=>{
+            const selected=newTravellers>i;
+            return(
+              <button key={i} onClick={()=>setNewTravellers(selected?i:i+1)} style={{display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:20,border:`1.5px solid ${selected?T.gold:T.linen}`,background:selected?T.goldP:"#fff",cursor:"pointer"}}>
+                <span style={{fontSize:14}}>{person.emoji}</span>
+                <span style={{fontFamily:FB,fontSize:12,color:selected?T.esp:T.bark}}>{person.name}</span>
+                {selected&&<Ic.Check s={11} c={T.gold} w={2.5}/>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{marginBottom:16}}>
+        <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Status</label>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {["Dreaming","Planning","Booked"].map(s=><button key={s} onClick={()=>setNewStatus(s)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${newStatus===s?T.gold:T.linen}`,background:newStatus===s?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:newStatus===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>)}
+        </div>
+      </div>
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={onCancel} style={{flex:1,background:T.sand,border:"none",borderRadius:12,padding:"12px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Cancel</button>
+        <button onClick={onAdd} disabled={!newDest.trim()} style={{flex:2,background:newDest.trim()?`linear-gradient(135deg,${T.gold},#8B6914)`:T.linen,border:"none",borderRadius:12,padding:"12px",fontFamily:FB,fontSize:13,fontWeight:700,color:newDest.trim()?"#fff":T.taupe,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+          <Ic.Compass s={16} c={newDest.trim()?"#fff":T.taupe} w={1.5}/>Add Trip & Plan with Nora
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 // ═══════════════════════════════════════════════════════════════════
 // 3. BUDGET COACH — fully interactive

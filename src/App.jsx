@@ -1056,7 +1056,7 @@ function StyleScreen({profile}){
   };
 
   const saveOutfit=(o)=>{
-    setSavedOutfits(p=>[{...o,savedAt:new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short"})},…p.filter(s=>s.name!==o.name)]);
+    setSavedOutfits(p=>[{...o,savedAt:new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short"})},...p.filter(s=>s.name!==o.name)]);
   };
 
   const saveItem=(item)=>{

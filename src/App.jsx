@@ -1009,115 +1009,217 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
 // ═══════════════════════════════════════════════════════════════════
 // 4. STYLE STYLIST — fully interactive
 // ═══════════════════════════════════════════════════════════════════
-function StyleScreen(){
+function StyleScreen({profile}){
   const [prompt,setPrompt]=useState("");
   const [result,setResult]=useState(null);
   const [loading,setLoading]=useState(false);
   const [saved,setSaved]=useState([]);
   const [activeTab,setActiveTab]=useState("stylist");
-  const [wishlist,setWishlist]=useState([
-    {id:1,name:"Lululemon Align HR",cat:"Activewear",price:128,color:T.sage},
-    {id:2,name:"Reformation Linen Slip",cat:"Style",price:195,color:T.blush},
-    {id:3,name:"Bala Bangles 1lb",cat:"Fitness",price:55,color:T.sky},
-  ]);
-  const [filterCat,setFilterCat]=useState("All");
+  const [mood,setMood]=useState("");
+  const [occasion,setOccasion]=useState("");
+  const [wishlist,setWishlist]=useState(()=>{
+    try{const s=sessionStorage.getItem("hn_wishlist");return s?JSON.parse(s):[
+      {id:1,name:"Lululemon Align HR",cat:"Activewear",price:128,color:T.sage},
+      {id:2,name:"Reformation Linen Slip",cat:"Style",price:195,color:T.blush},
+      {id:3,name:"Bala Bangles 1lb",cat:"Fitness",price:55,color:T.sky},
+    ];}catch(e){return [];}
+  });
+  const [savedOutfits,setSavedOutfits]=useState(()=>{
+    try{const s=sessionStorage.getItem("hn_outfits");return s?JSON.parse(s):[];}catch(e){return [];}
+  });
 
-  const run=async()=>{
-    if(!prompt.trim())return;setLoading(true);setResult(null);
-    const sys=`AI personal stylist. Return ONLY valid JSON:{"intro":"","outfits":[{"name":"","occasion":"","items":[{"piece":"","brand":"","priceRange":"","why":""}],"totalEstimate":"","note":""}],"budgetCheck":""}2-4 outfits, 3-4 items each.`;
-    try{const raw=await claude(sys,prompt);setResult(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
+  useEffect(()=>{try{sessionStorage.setItem("hn_wishlist",JSON.stringify(wishlist));}catch(e){};},[wishlist]);
+  useEffect(()=>{try{sessionStorage.setItem("hn_outfits",JSON.stringify(savedOutfits));}catch(e){};},[savedOutfits]);
+
+  const OCCASIONS=[
+    {lb:"Board meeting",emoji:"👔"},
+    {lb:"School run",emoji:"🚗"},
+    {lb:"Date night",emoji:"✨"},
+    {lb:"Weekend casual",emoji:"☀️"},
+    {lb:"Gym",emoji:"💪"},
+    {lb:"Girls dinner",emoji:"🥂"},
+    {lb:"Holiday",emoji:"🌴"},
+    {lb:"Working from home",emoji:"💻"},
+  ];
+  const MOODS=["Powerful","Relaxed","Playful","Elegant","Sporty","Romantic"];
+
+  const run=async(autoPrompt)=>{
+    const p=autoPrompt||prompt;
+    if(!p.trim()&&!occasion)return;
+    setLoading(true);setResult(null);
+    const profileCtx=profile?`User is a ${profile.role||"working mum"}, has ${profile.kids?.length||0} kids, priorities: ${profile.priorities?.join(",")||"family,career"}.`:"";
+    const finalPrompt=autoPrompt||`${occasion?`Occasion: ${occasion}.`:""} ${mood?`Mood: ${mood}.`:""} ${p} ${profileCtx}`;
+    const sys=`You are Nora, AI personal stylist for modern mums. Return ONLY valid JSON:{"intro":"","outfits":[{"name":"","occasion":"","mood":"","items":[{"piece":"","brand":"","priceRange":"","why":"","searchQuery":""}],"totalEstimate":"","note":"","whyThisWorks":""}],"styleInsight":""}. 2-3 outfits, 3-4 items each. Include specific brands, realistic prices. whyThisWorks should be personal and specific.`;
+    try{const raw=await claude(sys,finalPrompt);setResult(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
     catch(e){setResult({error:true});}
     setLoading(false);
   };
 
-  const saveItem=(outfitIdx,itemIdx,item)=>{
-    const key=`${outfitIdx}-${itemIdx}`;
-    if(saved.includes(key)){setSaved(p=>p.filter(k=>k!==key));}
-    else{setSaved(p=>[...p,key]);setWishlist(p=>[...p,{id:Date.now(),name:item.piece,cat:"Style",price:parseInt(item.priceRange?.replace(/\D/g,""))||0,color:T.lav}]);}
+  const saveOutfit=(o)=>{
+    setSavedOutfits(p=>[{...o,savedAt:new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short"})},…p.filter(s=>s.name!==o.name)]);
   };
 
-  const cats=["All",...new Set(wishlist.map(w=>w.cat))];
-  const visibleWish=filterCat==="All"?wishlist:wishlist.filter(w=>w.cat===filterCat);
+  const saveItem=(item)=>{
+    const newItem={id:Date.now(),name:item.piece,cat:"Style",price:parseInt(item.priceRange?.replace(/[^0-9]/g,"")||"0"),color:T.blush};
+    setWishlist(p=>[newItem,...p.filter(w=>w.name!==newItem.name)]);
+  };
 
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
-      <div style={{background:"linear-gradient(135deg,#2d1428,#4a1a3a)",borderRadius:22,padding:"20px",marginBottom:14}}>
+      {/* Header */}
+      <div style={{background:`linear-gradient(135deg,#2d1428,#4a1a3a)`,borderRadius:22,padding:"20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(242,212,202,.06)"}}/>
         <AIBadge t="Style Stylist"/>
-        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:22,color:"#fff",margin:"8px 0 4px",fontWeight:400}}>Your AI Stylist</h2>
-        <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.45)",margin:0}}>Tell me what you need. I'll curate the perfect pieces.</p>
+        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"10px 0 4px",fontWeight:400}}>Your Style, Elevated</h2>
+        <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.45)",margin:0}}>Nora styles you for every moment of your life</p>
       </div>
 
+      {/* Tabs */}
       <div style={{display:"flex",gap:6,marginBottom:14}}>
-        {["stylist","wishlist","boards"].map(t=><Pill key={t} ch={t.charAt(0).toUpperCase()+t.slice(1)} active={activeTab===t} on={()=>setActiveTab(t)} color={T.lav}/>)}
+        {["stylist","saved","wishlist"].map(t=>(
+          <Pill key={t} ch={t==="stylist"?"Style Me":t==="saved"?"Saved Outfits":"Wishlist"} active={activeTab===t} on={()=>setActiveTab(t)} color={T.blush}/>
+        ))}
       </div>
 
-      {/* AI Stylist */}
-      {activeTab==="stylist"&&<div style={{animation:"slideRight .3s ease both"}}>
-        <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. 3 outfits for Bali — beach, dinner, day trip, budget $300" rows={3} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"14px",borderRadius:16,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp,lineHeight:1.6,marginBottom:10}}/>
-        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
-          {["Bali outfits $300","Work capsule $500","Weekend casual $200","Date night $150"].map((e,i)=><span key={i} onClick={()=>setPrompt(e)} style={{fontFamily:FB,fontSize:11,color:T.bark,background:T.sand,borderRadius:10,padding:"5px 12px",cursor:"pointer",border:`1px solid ${T.linen}`}}>{e.split(" ").slice(0,2).join(" ")} ›</span>)}
+      {/* STYLIST TAB */}
+      {activeTab==="stylist"&&<div>
+        {/* Occasion quick picks */}
+        <div style={{marginBottom:14}}>
+          <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:10}}>What's the occasion?</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {OCCASIONS.map(o=>(
+              <button key={o.lb} onClick={()=>{setOccasion(occasion===o.lb?"":o.lb);}} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 12px",borderRadius:20,border:`1.5px solid ${occasion===o.lb?T.blush:T.linen}`,background:occasion===o.lb?T.blushP:"#fff",cursor:"pointer",transition:"all .15s"}}>
+                <span style={{fontSize:14}}>{o.emoji}</span>
+                <span style={{fontFamily:FB,fontSize:12,color:occasion===o.lb?T.esp:T.bark,fontWeight:occasion===o.lb?700:400}}>{o.lb}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        <button onClick={run} disabled={!prompt.trim()||loading} style={{width:"100%",background:prompt.trim()&&!loading?"linear-gradient(135deg,#4a1a3a,#2d1428)":T.linen,color:prompt.trim()&&!loading?"#fff":T.taupe,border:"none",borderRadius:16,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:16}}>
-          {loading?<><Spinner/>Curating your looks…</>:<><Ic.Hanger s={18} c="#fff" w={1.5}/>Style Me</>}
+
+        {/* Mood selector */}
+        <div style={{marginBottom:14}}>
+          <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:10}}>How do you want to feel?</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {MOODS.map(m=>(
+              <button key={m} onClick={()=>setMood(mood===m?"":m)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${mood===m?T.lav:T.linen}`,background:mood===m?T.lavP:"#fff",fontFamily:FB,fontSize:12,color:mood===m?T.esp:T.bark,cursor:"pointer",fontWeight:mood===m?700:400}}>
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom prompt */}
+        <div style={{marginBottom:12}}>
+          <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:8}}>Add more detail (optional)</div>
+          <input value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. I need to look authoritative but approachable…" style={{width:"100%",fontFamily:FB,fontSize:13,padding:"11px 14px",borderRadius:13,border:`1.5px solid ${T.linen}`,color:T.esp,background:"#fff"}}/>
+        </div>
+
+        <button onClick={()=>run()} disabled={!occasion&&!mood&&!prompt.trim()||loading} style={{width:"100%",background:occasion||mood||prompt.trim()?`linear-gradient(135deg,#2d1428,#4a1a3a)`:T.linen,color:occasion||mood||prompt.trim()?"#fff":T.taupe,border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14,opacity:loading?.7:1}}>
+          {loading?<><Spinner/>Styling you…</>:<>✨ Style Me</>}
         </button>
+
         {result&&!result.error&&<div style={{animation:"fadeUp .4s ease both"}}>
-          <Card sx={{background:"linear-gradient(135deg,#2d1428,#4a1a3a)",border:"none"}} ch={<div><p style={{fontFamily:FD,fontStyle:"italic",fontSize:14,color:"rgba(255,255,255,.85)",margin:"0 0 8px",lineHeight:1.7}}>{result.intro}</p><AIBadge t={result.budgetCheck||"Within budget"}/></div>}/>
+          {result.styleInsight&&<div style={{background:T.blushP,borderRadius:14,padding:"12px 16px",marginBottom:14,borderLeft:`4px solid ${T.blush}`}}>
+            <p style={{fontFamily:FD,fontStyle:"italic",fontSize:14,color:T.esp,margin:0,lineHeight:1.7}}>"{result.styleInsight}"</p>
+          </div>}
           {result.outfits?.map((o,i)=>(
             <Card key={i} ch={<div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-                <div><div style={{fontFamily:FD,fontSize:18,fontWeight:600,color:T.esp}}>{o.name}</div><div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:2}}>{o.occasion}</div></div>
-                <div style={{fontFamily:FD,fontSize:16,fontWeight:700,color:T.gold}}>{o.totalEstimate}</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                <div>
+                  <div style={{fontFamily:FD,fontSize:18,fontWeight:600,color:T.esp}}>{o.name}</div>
+                  <div style={{display:"flex",gap:6,marginTop:4}}>
+                    {o.occasion&&<span style={{fontFamily:FB,fontSize:10,color:T.blush,background:T.blushP,borderRadius:20,padding:"2px 8px"}}>{o.occasion}</span>}
+                    {o.mood&&<span style={{fontFamily:FB,fontSize:10,color:T.lav,background:T.lavP,borderRadius:20,padding:"2px 8px"}}>{o.mood}</span>}
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={()=>saveOutfit(o)} style={{background:savedOutfits.find(s=>s.name===o.name)?T.blushP:T.sand,border:`1px solid ${savedOutfits.find(s=>s.name===o.name)?T.blush:T.linen}`,borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:11,color:savedOutfits.find(s=>s.name===o.name)?T.blush:T.bark,cursor:"pointer"}}>
+                    {savedOutfits.find(s=>s.name===o.name)?"❤️ Saved":"🤍 Save"}
+                  </button>
+                </div>
               </div>
-              {o.items?.map((it,j)=>(
-                <div key={j} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"10px 0",borderBottom:j<o.items.length-1?`1px solid ${T.linen}`:"none"}}>
-                  <Tile ic={Ic.Hanger} c={T.lav} bg={T.lavP} s={18} ts={40} r={12}/>
-                  <div style={{flex:1}}><div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>{it.piece}</div><div style={{fontFamily:FB,fontSize:11,color:T.gold,marginTop:1}}>{it.brand} · {it.priceRange}</div><div style={{fontFamily:FB,fontSize:11,color:T.bark,marginTop:3,lineHeight:1.5}}>{it.why}</div></div>
-                  <button onClick={()=>saveItem(i,j,it)} style={{background:"none",border:"none",cursor:"pointer",flexShrink:0,padding:4}}><Ic.Heart s={18} c={T.blush} filled={saved.includes(`${i}-${j}`)} w={1.8}/></button>
+              {o.whyThisWorks&&<p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"0 0 10px",lineHeight:1.6,fontStyle:"italic"}}>{o.whyThisWorks}</p>}
+              {o.items?.map((item,j)=>(
+                <div key={j} style={{display:"flex",gap:10,padding:"9px 0",borderBottom:j<o.items.length-1?`1px solid ${T.linen}`:"none",alignItems:"flex-start"}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>{item.piece}</div>
+                    <div style={{fontFamily:FB,fontSize:11,color:T.blush,marginTop:1}}>{item.brand}</div>
+                    <div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:1,fontStyle:"italic"}}>{item.why}</div>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end",flexShrink:0}}>
+                    <span style={{fontFamily:FD,fontSize:14,fontWeight:700,color:T.gold}}>{item.priceRange}</span>
+                    <button onClick={()=>{window.open("https://www.google.com/search?q="+encodeURIComponent((item.searchQuery||item.piece+" "+item.brand)+" buy"),"_blank");}} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"3px 8px",fontFamily:FB,fontSize:10,fontWeight:700,color:T.gold,cursor:"pointer"}}>Shop →</button>
+                    <button onClick={()=>saveItem(item)} style={{background:T.blushP,border:`1px solid ${T.blush}30`,borderRadius:8,padding:"3px 8px",fontFamily:FB,fontSize:10,color:T.blush,cursor:"pointer"}}>+ Wishlist</button>
+                  </div>
                 </div>
               ))}
-              {o.note&&<div style={{background:T.blushP,borderRadius:10,padding:"8px 12px",marginTop:10}}><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>{o.note}</p></div>}
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:10,padding:"8px 0",borderTop:`1px solid ${T.linen}`}}>
+                <span style={{fontFamily:FB,fontSize:12,color:T.bark}}>Total estimate</span>
+                <span style={{fontFamily:FD,fontSize:16,fontWeight:700,color:T.gold}}>{o.totalEstimate}</span>
+              </div>
+              {o.note&&<p style={{fontFamily:FB,fontSize:11,color:T.taupe,margin:"6px 0 0",fontStyle:"italic"}}>{o.note}</p>}
             </div>}/>
           ))}
         </div>}
+        {result?.error&&<Card ch={<p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:0}}>Something went quiet — tap Style Me again 💛</p>}/>}
       </div>}
 
-      {/* Wishlist */}
-      {activeTab==="wishlist"&&<div style={{animation:"slideRight .3s ease both"}}>
-        <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:14}}>
-          {cats.map(c=><Pill key={c} ch={c} active={filterCat===c} on={()=>setFilterCat(c)} color={T.lav}/>)}
-        </div>
-        {visibleWish.length===0?(
-          <div style={{textAlign:"center",padding:"32px 20px"}}><Ic.Heart s={36} c={T.linen} w={1.2}/><p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.taupe,marginTop:12}}>Heart items in the Stylist to save them here</p></div>
-        ):visibleWish.map((item,i)=>(
-          <Card key={item.id} ch={<div style={{display:"flex",alignItems:"center",gap:12}}>
-            <Tile ic={Ic.Hanger} c={item.color} bg={item.color+"18"} s={18} ts={42} r={13}/>
-            <div style={{flex:1}}><div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>{item.name}</div><Tag ch={item.cat} c={item.color}/></div>
-            <div style={{textAlign:"right"}}>
-              <div style={{fontFamily:FD,fontSize:16,fontWeight:700,color:T.esp}}>${item.price}</div>
-              <button onClick={()=>setWishlist(p=>p.filter(w=>w.id!==item.id))} style={{background:"none",border:"none",cursor:"pointer",padding:0,marginTop:4}}><Ic.Trash s={14} c={T.taupe} w={1.5}/></button>
+      {/* SAVED OUTFITS TAB */}
+      {activeTab==="saved"&&<div>
+        {savedOutfits.length===0?(
+          <div style={{textAlign:"center",padding:"32px 20px",background:T.sand,borderRadius:16}}>
+            <div style={{fontSize:36,marginBottom:10}}>👗</div>
+            <p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.esp,margin:"0 0 6px"}}>No saved outfits yet</p>
+            <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:0}}>Style yourself and tap 🤍 Save on outfits you love</p>
+          </div>
+        ):savedOutfits.map((o,i)=>(
+          <Card key={i} ch={<div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+              <div>
+                <div style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp}}>{o.name}</div>
+                <div style={{fontFamily:FB,fontSize:10,color:T.taupe,marginTop:2}}>Saved {o.savedAt}</div>
+              </div>
+              <button onClick={()=>setSavedOutfits(p=>p.filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer"}}><Ic.Close s={14} c={T.taupe} w={2}/></button>
+            </div>
+            {o.items?.slice(0,3).map((item,j)=>(
+              <div key={j} style={{fontFamily:FB,fontSize:12,color:T.bark,padding:"4px 0",borderBottom:j<2?`1px solid ${T.linen}`:"none"}}>
+                <span style={{fontWeight:600}}>{item.piece}</span> · {item.brand} · <span style={{color:T.gold}}>{item.priceRange}</span>
+              </div>
+            ))}
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button onClick={()=>{setOccasion(o.occasion||"");setActiveTab("stylist");run(`Style me like this outfit: ${o.name} — ${o.items?.map(i=>i.piece).join(", ")}`);}} style={{flex:1,background:T.blushP,border:`1px solid ${T.blush}30`,borderRadius:10,padding:"8px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.blush,cursor:"pointer"}}>Re-style this</button>
+              <button onClick={()=>window.open("https://www.pinterest.com/search/pins/?q="+encodeURIComponent(o.name+" outfit"),"_blank")} style={{flex:1,background:T.sand,border:`1px solid ${T.linen}`,borderRadius:10,padding:"8px",fontFamily:FB,fontSize:11,color:T.bark,cursor:"pointer"}}>Pinterest →</button>
             </div>
           </div>}/>
         ))}
-        {visibleWish.length>0&&<div style={{background:T.goldP,borderRadius:14,padding:"12px 16px",border:`1px solid ${T.gold}30`,textAlign:"center"}}>
-          <p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0}}>Wishlist total: <strong style={{fontFamily:FD,fontSize:16}}>${visibleWish.reduce((a,i)=>a+i.price,0)}</strong></p>
-        </div>}
       </div>}
 
-      {/* Style Boards */}
-      {activeTab==="boards"&&<div style={{animation:"slideRight .3s ease both"}}>
-        {[{lb:"Power CFO",sub:"Boardroom-ready looks",bg:`linear-gradient(135deg,${T.esp},#3a2a1a)`,items:["Tailored blazer set","Silk blouse","Wide-leg trousers","Block heel pumps","Structured tote"]},{lb:"Active Mum",sub:"From school run to gym",bg:`linear-gradient(135deg,#1a3a2e,#2d6a54)`,items:["High-waist leggings","Sports bra","Zip pullover","White sneakers","Cap"]},{lb:"Vacay Vibes",sub:"Holiday-ready wardrobe",bg:`linear-gradient(135deg,#2d1428,#4a1a3a)`,items:["Linen maxi dress","Straw hat","Flatform sandals","Crochet coverup","Beaded jewellery"]}].map((board,i)=>(
-          <Card key={i} sx={{background:board.bg,border:"none"}} ch={<div>
-            <h3 style={{fontFamily:FD,fontStyle:"italic",fontSize:20,color:"#fff",margin:"0 0 4px"}}>{board.lb}</h3>
-            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.45)",margin:"0 0 14px"}}>{board.sub}</p>
-            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-              {board.items.map((item,j)=><span key={j} style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)",background:"rgba(255,255,255,.1)",borderRadius:8,padding:"4px 10px",border:"1px solid rgba(255,255,255,.1)"}}>{item}</span>)}
+      {/* WISHLIST TAB */}
+      {activeTab==="wishlist"&&<div>
+        {wishlist.length===0?(
+          <div style={{textAlign:"center",padding:"32px 20px",background:T.sand,borderRadius:16}}>
+            <div style={{fontSize:36,marginBottom:10}}>🛍️</div>
+            <p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.esp,margin:"0 0 6px"}}>Your wishlist is empty</p>
+            <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:0}}>Tap "+ Wishlist" on any item while styling</p>
+          </div>
+        ):wishlist.map((item,i)=>(
+          <div key={item.id} style={{display:"flex",alignItems:"center",gap:12,background:"#fff",borderRadius:14,padding:"12px 14px",marginBottom:8,border:`1px solid ${T.linen}`}}>
+            <div style={{width:40,height:40,borderRadius:12,background:item.color+"22",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:20}}>🛍️</div>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>{item.name}</div>
+              <div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:1}}>{item.cat}{item.price>0?` · $${item.price}`:""}</div>
             </div>
-          </div>}/>
+            <div style={{display:"flex",gap:6}}>
+              <button onClick={()=>window.open("https://www.google.com/search?q="+encodeURIComponent(item.name+" buy online"),"_blank")} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"5px 10px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.gold,cursor:"pointer"}}>Buy →</button>
+              <button onClick={()=>setWishlist(p=>p.filter(w=>w.id!==item.id))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.taupe} w={2}/></button>
+            </div>
+          </div>
         ))}
       </div>}
     </div>
   );
 }
+
 
 // ═══════════════════════════════════════════════════════════════════
 // 5. CIRCLE COMMUNITY — fully interactive

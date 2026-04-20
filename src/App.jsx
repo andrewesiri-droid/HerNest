@@ -553,10 +553,10 @@ function TripsScreen({uid}){
             </div>
             <div style={{display:"flex",gap:8}}>
               {[{lb:"Flights",url:"https://www.skyscanner.com",emoji:"✈️"},{lb:"Hotels",url:"https://www.booking.com",emoji:"🏨"},{lb:"Activities",url:"https://www.viator.com",emoji:"🎡"}].map(b=>(
-                <a key={b.lb} href={b.url} target="_blank" rel="noopener noreferrer" style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:10,padding:"8px 10px",textAlign:"center",textDecoration:"none",cursor:"pointer"}}>
+                <button key={b.lb} onClick={()=>window.open(b.url,"_blank")} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:10,padding:"8px 10px",textAlign:"center",cursor:"pointer"}}>
                   <div style={{fontSize:16}}>{b.emoji}</div>
                   <div style={{fontFamily:FB,fontSize:9,color:"#fff",fontWeight:700,marginTop:2}}>{b.lb}</div>
-                </a>
+                </button>
               ))}
             </div>
           </div>

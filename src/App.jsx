@@ -520,11 +520,11 @@ function TripsScreen({uid,profile}){
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Nights</label>
-              <input type="number" value={trip.nights||7} onChange={e=>updateTrip("nights",parseInt(e.target.value)||1)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"9px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+              <input type="text" inputMode="numeric" value={trip.nights||7} onChange={e=>updateTrip("nights",parseInt(e.target.value)||1)} style={{width:"100%",fontFamily:FB,fontSize:15,fontWeight:700,padding:"10px 12px",borderRadius:9,border:"2px solid rgba(255,255,255,.3)",background:"rgba(255,255,255,.12)",color:"#fff"}}/>
             </div>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Budget ($)</label>
-              <input type="number" value={trip.budget||5000} onChange={e=>updateTrip("budget",parseInt(e.target.value)||0)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"9px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+              <input type="text" inputMode="numeric" value={trip.budget||5000} onChange={e=>updateTrip("budget",parseInt(e.target.value)||0)} style={{width:"100%",fontFamily:FB,fontSize:15,fontWeight:700,padding:"10px 12px",borderRadius:9,border:"2px solid rgba(255,255,255,.3)",background:"rgba(255,255,255,.12)",color:"#fff"}}/>
             </div>
           </div>
           <div style={{marginBottom:10}}>

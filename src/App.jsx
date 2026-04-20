@@ -341,6 +341,12 @@ function TripsScreen({uid}){
   const [newPack,setNewPack]=useState("");
   const [showNewTrip,setShowNewTrip]=useState(false);
   const [newDest,setNewDest]=useState("");
+  const [newTravellers,setNewTravellers]=useState(2);
+  const [newBudget,setNewBudget]=useState(5000);
+  const [newDate,setNewDate]=useState("");
+  const [newNights,setNewNights]=useState(7);
+  const [newStatus,setNewStatus]=useState("Dreaming");
+  const [editMode,setEditMode]=useState(false);
 
   const [familyFilter,setFamilyFilter]=useState(true);
   const [ageFilter,setAgeFilter]=useState("all");

@@ -1253,6 +1253,8 @@ function BriefingScreen({profile,onAddTask}){
   const [askResp,setAskResp]=useState(null);
   const [askLoad,setAskLoad]=useState(false);
   const [shared,setShared]=useState(false);
+  const [speaking,setSpeaking]=useState(false);
+  const [addedTasks,setAddedTasks]=useState([]);
   const tC=t=>t==="Work"?T.sky:t==="Family"?T.sage:t==="Me"?T.blush:T.gold;
   const tIC=t=>t==="Work"?Ic.Bag:t==="Family"?Ic.Kids:t==="Me"?Ic.Leaf:Ic.Home;
 
@@ -1292,7 +1294,29 @@ function BriefingScreen({profile,onAddTask}){
     catch(e){setData({greeting:`Good morning${profile?.name?`, ${profile.name}`:""}!`,date:new Date().toLocaleDateString("en-AU",{weekday:"long",month:"long",day:"numeric"}),weatherNote:"Make today count — you've got this.",weatherType:"sunny",priorities:[{text:"Block 2hrs for deep work",tag:"Work"},{text:"School run 8:15am",tag:"Family"},{text:"30 min workout",tag:"Me"},{text:"Grocery order",tag:"Home"},{text:"Check budget",tag:"Work"}],reminders:["Check in with the kids tonight","Review tomorrow's calendar","Drink 8 glasses of water"],budgetNote:"Stay mindful of spending today.",tripNote:profile?.tripGoal?`${profile.tripGoal} — keep planning!`:"Start planning your next adventure.",affirmation:"You carry so much, so gracefully. Today, you have already won.",energyTip:"Start with your hardest task first — your energy is highest in the morning.",focusWord:"Focus"});}
     setLoading(false);
   };
+  const speakBriefing=()=>{
+    if(!data||!window.speechSynthesis)return;
+    if(speaking){window.speechSynthesis.cancel();setSpeaking(false);return;}
+    const txt=`Good morning ${profile?.name||"lovely"}. Here is your briefing for today. Your focus word is ${data.focusWord||"today"}. ${data.weatherNote}. Your top priorities are: ${data.priorities?.slice(0,3).map((p,i)=>`${i+1}. ${p.text}`).join(". ")}. Don't forget: ${data.reminders?.slice(0,2).join(". And ")}. ${data.affirmation}`;
+    const utt=new SpeechSynthesisUtterance(txt);
+    utt.rate=0.92;utt.pitch=1.05;utt.volume=1;
+    const voices=window.speechSynthesis.getVoices();
+    const preferred=voices.find(v=>v.name.includes("Samantha")||v.name.includes("Karen")||v.name.includes("Moira")||v.name.includes("Female")||v.lang==="en-AU"||v.lang==="en-GB");
+    if(preferred)utt.voice=preferred;
+    utt.onend=()=>setSpeaking(false);
+    utt.onerror=()=>setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis.speak(utt);
+  };
+
+  const quickAdd=(text,tag)=>{
+    if(addedTasks.includes(text))return;
+    setAddedTasks(p=>[...p,text]);
+    if(onAddTask)onAddTask({tasks:[{text,tag,priority:"high"}]});
+  };
+
   useEffect(()=>{gen();},[]);
+  useEffect(()=>()=>{window.speechSynthesis?.cancel();},[]);
 
   const askNora=async()=>{
     if(!askInp.trim()||askLoad)return;
@@ -1349,10 +1373,15 @@ Sent from HerNest ✨`;
             <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:"#fff",margin:"0 0 4px",fontWeight:400}}>{data.greeting}</h2>
             <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:0}}>{data.date}</p>
           </div>
-          {data.focusWord&&<div style={{textAlign:"center",background:"rgba(196,154,60,.2)",borderRadius:14,padding:"10px 14px",border:"1px solid rgba(196,154,60,.3)",flexShrink:0}}>
-            <div style={{fontFamily:FD,fontSize:18,fontWeight:700,color:T.gold}}>{data.focusWord}</div>
-            <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>today</div>
-          </div>}
+          <div style={{display:"flex",gap:8,flexShrink:0}}>
+            {data.focusWord&&<div style={{textAlign:"center",background:"rgba(196,154,60,.2)",borderRadius:14,padding:"10px 12px",border:"1px solid rgba(196,154,60,.3)"}}>
+              <div style={{fontFamily:FD,fontSize:16,fontWeight:700,color:T.gold}}>{data.focusWord}</div>
+              <div style={{fontFamily:FB,fontSize:8,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>today</div>
+            </div>}
+            {"speechSynthesis" in window&&<button onClick={speakBriefing} style={{width:44,height:44,borderRadius:13,background:speaking?"rgba(196,154,60,.3)":"rgba(255,255,255,.1)",border:`1px solid ${speaking?"rgba(196,154,60,.5)":"rgba(255,255,255,.15)"}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}} title="Listen to briefing">
+              {speaking?<div style={{display:"flex",gap:2,alignItems:"flex-end",height:16}}>{[10,16,12,18,10].map((h,i)=><div key={i} style={{width:3,height:h,background:T.gold,borderRadius:2,animation:`dot 1s ease-in-out ${i*.1}s infinite`}}/>)}</div>:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" stroke="rgba(255,255,255,.7)" strokeWidth="1.5" strokeLinejoin="round"/><path d="M15.54 8.46a5 5 0 010 7.07" stroke="rgba(255,255,255,.7)" strokeWidth="1.5" strokeLinecap="round"/><path d="M19.07 4.93a10 10 0 010 14.14" stroke="rgba(255,255,255,.4)" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+            </button>}
+          </div>
         </div>
         <div style={{background:"rgba(255,255,255,.08)",borderRadius:13,padding:"12px 14px",borderLeft:`3px solid ${T.gold}`,display:"flex",alignItems:"center",gap:10}}>
           {data.weatherType==="rainy"?<Ic.Drop s={18} c={T.goldP} w={1.4}/>:<Ic.Sun s={18} c={T.goldP} w={1.4}/>}
@@ -1387,7 +1416,12 @@ Sent from HerNest ✨`;
               </div>
               <Tile ic={TC} c={done?T.sage:tc} bg={(done?T.sage:tc)+"18"} s={15} ts={30} r={9}/>
               <span style={{fontFamily:FB,fontSize:13,color:done?T.taupe:T.esp,flex:1,textDecoration:done?"line-through":"none"}}>{p.text}</span>
-              <Tag ch={p.tag} c={done?T.taupe:tc}/>
+              <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                {!done&&<button onClick={e=>{e.stopPropagation();quickAdd(p.text,p.tag);}} style={{background:addedTasks.includes(p.text)?T.sageP:T.goldP,border:`1px solid ${addedTasks.includes(p.text)?T.sage:T.gold}30`,borderRadius:8,padding:"3px 8px",fontFamily:FB,fontSize:10,fontWeight:700,color:addedTasks.includes(p.text)?T.sage:T.gold,cursor:"pointer",whiteSpace:"nowrap"}}>
+                  {addedTasks.includes(p.text)?"Added ✓":"+ Plan"}
+                </button>}
+                <Tag ch={p.tag} c={done?T.taupe:tc}/>
+              </div>
             </div>
           );
         })}

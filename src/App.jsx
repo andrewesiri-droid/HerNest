@@ -540,7 +540,7 @@ function TripsScreen({uid,profile}){
         {/* Overview */}
         <Card sx={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",border:"none",marginBottom:10}} ch={<div>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><AIBadge t="Nora's Plan"/></div>
-          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.8)",margin:"0 0 10px",lineHeight:1.7}}>{plan.overview}</p>
+          <EditableText value={plan.overview} dark onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],overview:v}}))} style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.8)",margin:"0 0 10px",lineHeight:1.7}}/>
           {plan.familyTip&&<div style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"8px 12px",display:"flex",gap:8}}>
             <span>👨‍👩‍👧</span><p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.75)",margin:0,lineHeight:1.5}}>{plan.familyTip}</p>
           </div>}
@@ -562,6 +562,42 @@ function TripsScreen({uid,profile}){
           </div>
         </div>
 
+        {/* Share plan button */}
+        <button onClick={()=>{
+          const txt="✈️ "+trip.dest+" — "+trip.nights+" nights"+"
+
+"
+            +"📋 HIGHLIGHTS
+"+(plan.highlights||[]).map((h,i)=>(i+1)+". "+h).join("
+")+"
+
+"
+            +"📅 ITINERARY
+"+(plan.days||[]).map(d=>"Day "+d.day+": "+d.title+" — "+d.plan).join("
+
+")+"
+
+"
+            +"💰 BUDGET
+"+(plan.budget||[]).map(b=>b.cat+": "+b.amount).join("
+")+"
+
+"
+            +"🎒 PACKING — Mum: "+(plan.packing?.Mum||[]).join(", ")+"
+"
+            +"Kids: "+(plan.packing?.Kids||[]).join(", ")+"
+"
+            +"Everyone: "+(plan.packing?.Everyone||[]).join(", ")+"
+
+"
+            +"Planned by Nora via HerNest ✨";
+          if(navigator.share){navigator.share({title:trip.dest+" Trip Plan",text:txt}).catch(()=>{});}
+          else{navigator.clipboard.writeText(txt).then(()=>alert("Trip plan copied to clipboard!")).catch(()=>{});}
+        }} style={{width:"100%",background:"#fff",border:`1.5px solid ${T.linen}`,borderRadius:14,padding:"12px",fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke={T.esp} strokeWidth="1.8"/><circle cx="6" cy="12" r="3" stroke={T.esp} strokeWidth="1.8"/><circle cx="18" cy="19" r="3" stroke={T.esp} strokeWidth="1.8"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke={T.esp} strokeWidth="1.8" strokeLinecap="round"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke={T.esp} strokeWidth="1.8" strokeLinecap="round"/></svg>
+          Share Trip Plan
+        </button>
+
         {/* Highlights */}
         {plan.highlights?.length>0&&<Card ch={<div>
           <H2 t="Trip Highlights"/>
@@ -581,7 +617,7 @@ function TripsScreen({uid,profile}){
               <div style={{width:32,height:32,borderRadius:"50%",background:T.goldP,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold,flexShrink:0}}>{d.day}</div>
               <span style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp}}>{d.title}</span>
             </div>
-            <p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"0 0 8px",lineHeight:1.7}}>{d.plan}</p>
+            <EditableText value={d.plan} onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],days:p[trip.id].days.map((day,di)=>di===i?{...day,plan:v}:day)}}))} style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"0 0 8px",lineHeight:1.7}}/>
             {d.highlight&&<div style={{background:T.goldP,borderRadius:10,padding:"7px 12px",marginBottom:6,display:"flex",gap:8}}>
               <span>⭐</span><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>{d.highlight}</p>
             </div>}
@@ -646,6 +682,27 @@ function TripsScreen({uid,profile}){
           <Ic.Compass s={16} c="#fff" w={1.5}/>Plan This Trip with Nora
         </button>
       </div>}
+    </div>
+  );
+}
+
+function EditableText({value,onChange,style,dark}){
+  const [editing,setEditing]=useState(false);
+  const [val,setVal]=useState(value);
+  useEffect(()=>setVal(value),[value]);
+  if(editing) return(
+    <div style={{marginBottom:8}}>
+      <textarea value={val} onChange={e=>setVal(e.target.value)} rows={3} style={{width:"100%",fontFamily:style?.fontFamily||FB,fontSize:style?.fontSize||13,padding:"8px 10px",borderRadius:10,border:`1.5px solid ${dark?"rgba(255,255,255,.3)":T.gold}`,background:dark?"rgba(255,255,255,.1)":"#fff",color:dark?"#fff":T.esp,lineHeight:1.6,resize:"none"}}/>
+      <div style={{display:"flex",gap:6,marginTop:6}}>
+        <button onClick={()=>{onChange(val);setEditing(false);}} style={{background:T.sage,border:"none",borderRadius:8,padding:"5px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer"}}>Save</button>
+        <button onClick={()=>{setVal(value);setEditing(false);}} style={{background:"none",border:`1px solid ${dark?"rgba(255,255,255,.2)":T.linen}`,borderRadius:8,padding:"5px 12px",fontFamily:FB,fontSize:11,color:dark?"rgba(255,255,255,.5)":T.bark,cursor:"pointer"}}>Cancel</button>
+      </div>
+    </div>
+  );
+  return(
+    <div onClick={()=>setEditing(true)} style={{...style,cursor:"text",position:"relative",borderRadius:8,padding:"2px 4px",margin:"-2px -4px",transition:"background .15s"}} title="Tap to edit">
+      {val}
+      <span style={{position:"absolute",top:2,right:2,fontSize:10,opacity:.4}}>✏️</span>
     </div>
   );
 }

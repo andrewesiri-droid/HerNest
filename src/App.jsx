@@ -369,9 +369,14 @@ function TripsScreen({uid}){
   const addPack=()=>{if(!newPack.trim())return;setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,packing:{...t.packing,[packPerson]:[...(t.packing[packPerson]||[]),newPack]}}:t));setNewPack("");};
   const addTrip=()=>{if(!newDest.trim())return;setTrips(p=>[...p,{id:Date.now(),dest:newDest,flag:"🌍",days:90,travellers:2,budget:5000,spent:0,status:"Dreaming",checklist:[],packing:{Mum:[],Kids:[],Everyone:[]}}]);setActiveTrip(trips.length);setShowNewTrip(false);setNewDest("");};
 
+  const [familyFilter,setFamilyFilter]=useState(true);
+  const [ageFilter,setAgeFilter]=useState("all");
+
   const plan=async()=>{
     if(!prompt.trim())return;setLoading(true);setResult(null);
-    const sys=`Expert family travel planner. Return ONLY valid JSON:{"destination":"","overview":"","days":[{"day":1,"title":"","morning":"","afternoon":"","evening":"","tip":""}],"budget":[{"cat":"","amount":""}],"bookFirst":["","",""]}`;
+    const familyCtx=familyFilter?`This is a FAMILY trip. Plan must be completely family and child-friendly. Include: nap-friendly schedules, kid meal options, stroller accessibility, family room recommendations, age-appropriate activities. Avoid: late nights, adult-only venues, long uncomfortable journeys without breaks.`:"";
+    const ageCtx=ageFilter!=="all"?`Children age group: ${ageFilter}. Tailor all activities specifically for this age.`:"";
+    const sys=`Expert family travel concierge. ${familyCtx} ${ageCtx} Return ONLY valid JSON:{"destination":"","overview":"","familyTip":"","days":[{"day":1,"title":"","morning":"","afternoon":"","evening":"","tip":"","kidsActivity":""}],"budget":[{"cat":"","amount":""}],"bookFirst":["","",""],"bookingLinks":[{"name":"","url":"","type":"flights|hotels|activities"}]}`;
     try{const raw=await claude(sys,prompt);setResult(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
     catch(e){setResult({error:true});}
     setLoading(false);
@@ -501,26 +506,97 @@ function TripsScreen({uid}){
       {tab==="ai planner"&&<div style={{animation:"slideRight .3s ease both"}}>
         <div style={{background:AIGRAD,borderRadius:18,padding:"16px 18px",marginBottom:14}}>
           <AIBadge t="AI Trip Planner"/>
-          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.6)",margin:"8px 0 0",lineHeight:1.6}}>Describe your trip and I'll build a full itinerary, budget breakdown, and booking order.</p>
+          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.6)",margin:"8px 0 0",lineHeight:1.6}}>Describe your dream trip — I'll build a full family-friendly itinerary, budget and booking list.</p>
         </div>
+
+        {/* Family filters */}
+        <div style={{background:"#fff",borderRadius:14,padding:"14px",marginBottom:12,border:`1.5px solid ${T.linen}`}}>
+          <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:10}}>Trip Filters</div>
+          <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+            <button onClick={()=>setFamilyFilter(!familyFilter)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${familyFilter?T.teal:T.linen}`,background:familyFilter?T.tealP:"#fff",fontFamily:FB,fontSize:12,color:familyFilter?T.teal:T.bark,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
+              {familyFilter&&<Ic.Check s={12} c={T.teal} w={2.5}/>}👨‍👩‍👧 Family-friendly
+            </button>
+          </div>
+          <div style={{fontFamily:FB,fontSize:11,color:T.bark,marginBottom:6}}>Kids age group:</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {[["all","Any age"],["0-3","Baby/Toddler"],["4-7","Young kids"],["8-12","Older kids"],["13+","Teens"]].map(([v,lb])=>(
+              <button key={v} onClick={()=>setAgeFilter(v)} style={{padding:"5px 12px",borderRadius:20,border:`1.5px solid ${ageFilter===v?T.gold:T.linen}`,background:ageFilter===v?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:ageFilter===v?T.esp:T.bark,cursor:"pointer"}}>{lb}</button>
+            ))}
+          </div>
+        </div>
+
         <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. Family trip Japan 10 days, 2 kids aged 6 & 9, $8,000, love culture and food" rows={3} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"14px",borderRadius:14,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp,lineHeight:1.6,marginBottom:10}}/>
-        {["Japan 10d, 2 kids, $8k","Maldives family 7d, $12k","Paris weekend 3d, $3k"].map((e,i)=><span key={i} onClick={()=>setPrompt(e)} style={{fontFamily:FB,fontSize:11,color:T.bark,background:T.sand,borderRadius:10,padding:"4px 12px",cursor:"pointer",border:`1px solid ${T.linen}`,marginRight:6,marginBottom:8,display:"inline-block"}}>{e.split(",")[0]} ›</span>)}
-        <button onClick={plan} disabled={!prompt.trim()||loading} style={{width:"100%",marginTop:8,background:prompt.trim()&&!loading?"linear-gradient(135deg,#0e2a1e,#1a5a3a)":T.linen,color:prompt.trim()&&!loading?"#fff":T.taupe,border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>
-          {loading?<><Spinner/>Planning…</>:<><Ic.Compass s={18} c="#fff" w={1.5}/>Plan My Trip</>}
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
+          {["Japan 10d, 2 kids, $8k","Bali family 7d, $6k","Paris weekend 3d, $3k","Maldives 5d, $10k"].map((e,i)=>(
+            <span key={i} onClick={()=>setPrompt(e)} style={{fontFamily:FB,fontSize:11,color:T.bark,background:T.sand,borderRadius:10,padding:"5px 12px",cursor:"pointer",border:`1px solid ${T.linen}`}}>{e.split(",")[0]} ›</span>
+          ))}
+        </div>
+        <button onClick={plan} disabled={!prompt.trim()||loading} style={{width:"100%",background:prompt.trim()&&!loading?"linear-gradient(135deg,#0e2a1e,#1a5a3a)":T.linen,color:prompt.trim()&&!loading?"#fff":T.taupe,border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>
+          {loading?<><Spinner/>Planning your family trip…</>:<><Ic.Compass s={18} c="#fff" w={1.5}/>Plan My Trip</>}
         </button>
+
         {result&&!result.error&&<div style={{animation:"fadeUp .4s ease both"}}>
-          <Card sx={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",border:"none"}} ch={<div><h3 style={{fontFamily:FD,fontSize:22,color:"#fff",margin:"0 0 6px",fontStyle:"italic"}}>{result.destination}</h3><p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.7)",margin:0,lineHeight:1.6}}>{result.overview}</p></div>}/>
+          {/* Trip hero */}
+          <Card sx={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",border:"none"}} ch={<div>
+            <h3 style={{fontFamily:FD,fontSize:22,color:"#fff",margin:"0 0 6px",fontStyle:"italic"}}>{result.destination}</h3>
+            <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.7)",margin:"0 0 10px",lineHeight:1.6}}>{result.overview}</p>
+            {result.familyTip&&<div style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"8px 12px",display:"flex",gap:8}}>
+              <span>👨‍👩‍👧</span><p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.8)",margin:0,lineHeight:1.5}}>{result.familyTip}</p>
+            </div>}
+          </div>}/>
+
+          {/* Book everything button */}
+          <div style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"16px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:FB,fontSize:14,fontWeight:700,color:"#fff",marginBottom:2}}>Ready to book?</div>
+              <div style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.75)"}}>Search flights, hotels & activities</div>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              {[{lb:"Flights",url:"https://www.skyscanner.com",emoji:"✈️"},{lb:"Hotels",url:"https://www.booking.com",emoji:"🏨"},{lb:"Activities",url:"https://www.viator.com",emoji:"🎡"}].map(b=>(
+                <a key={b.lb} href={b.url} target="_blank" rel="noopener noreferrer" style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:10,padding:"8px 10px",textAlign:"center",textDecoration:"none",cursor:"pointer"}}>
+                  <div style={{fontSize:16}}>{b.emoji}</div>
+                  <div style={{fontFamily:FB,fontSize:9,color:"#fff",fontWeight:700,marginTop:2}}>{b.lb}</div>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Day cards */}
           {result.days?.map((d,i)=>(
             <Card key={i} ch={<div>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
                 <div style={{width:30,height:30,borderRadius:"50%",background:T.goldP,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:FD,fontSize:14,fontWeight:700,color:T.gold,flexShrink:0}}>{d.day}</div>
-                <span style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp}}>{d.title}</span>
+                <span style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp,flex:1}}>{d.title}</span>
               </div>
               {[["🌅",d.morning],["☀️",d.afternoon],["🌙",d.evening]].map(([em,v])=>v&&<div key={em} style={{display:"flex",gap:10,marginBottom:6}}><span style={{fontSize:16,flexShrink:0}}>{em}</span><span style={{fontFamily:FB,fontSize:13,color:T.bark,lineHeight:1.5}}>{v}</span></div>)}
+              {d.kidsActivity&&<div style={{background:T.sageP,borderRadius:10,padding:"7px 12px",marginTop:6,display:"flex",gap:8}}>
+                <span>👧</span><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>Kids love: {d.kidsActivity}</p>
+              </div>}
               {d.tip&&<div style={{background:T.goldP,borderRadius:10,padding:"7px 12px",marginTop:6,display:"flex",gap:8}}><Ic.Bulb s={14} c={T.gold} w={1.5}/><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>{d.tip}</p></div>}
             </div>}/>
           ))}
-          {result.budget?.length>0&&<Card ch={<div><H2 t="Budget Breakdown"/>{result.budget.map((b,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:i<result.budget.length-1?`1px solid ${T.linen}`:"none"}}><span style={{fontFamily:FB,fontSize:13,color:T.esp}}>{b.cat}</span><span style={{fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold}}>{b.amount}</span></div>)}</div>}/>}
+
+          {/* Budget */}
+          {result.budget?.length>0&&<Card ch={<div>
+            <H2 t="Budget Breakdown"/>
+            {result.budget.map((b,i)=>(
+              <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:i<result.budget.length-1?`1px solid ${T.linen}`:"none"}}>
+                <span style={{fontFamily:FB,fontSize:13,color:T.esp}}>{b.cat}</span>
+                <span style={{fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold}}>{b.amount}</span>
+              </div>
+            ))}
+          </div>}/>}
+
+          {/* Book first */}
+          {result.bookFirst?.length>0&&<Card sx={{background:ESPG,border:"none"}} ch={<div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><Ic.Bulb s={16} c={T.gold} w={1.5}/><span style={{fontFamily:FB,fontSize:11,color:T.gold,letterSpacing:2,textTransform:"uppercase",fontWeight:700}}>Book These First</span></div>
+            {result.bookFirst.map((b,i)=>(
+              <div key={i} style={{display:"flex",gap:10,padding:"6px 0",borderBottom:i<result.bookFirst.length-1?`1px solid rgba(255,255,255,.1)`:"none"}}>
+                <span style={{fontFamily:FD,fontSize:14,fontWeight:700,color:T.gold,flexShrink:0}}>{i+1}.</span>
+                <span style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.8)"}}>{b}</span>
+              </div>
+            ))}
+          </div>}/>}
         </div>}
       </div>}
     </div>

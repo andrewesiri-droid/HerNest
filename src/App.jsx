@@ -1091,8 +1091,27 @@ function WellnessScreen({profile}){
     setChatLoad(false);
   };
 
+  // Burnout detection
+  const lowMoodCount=moods.filter(m=>m<=2).length;
+  const burnoutRisk=lowMoodCount>=3||sleep<5.5;
+  const burnoutMsg=lowMoodCount>=4?"You've had a really tough week emotionally. Your body and mind are telling you something. Please be gentle with yourself today.":lowMoodCount>=3?"Three low mood days this week. That's your signal to slow down — even just for an hour.":sleep<5.5?"You've been running on empty sleep. That affects everything. Rest is productive.":"";
+
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
+      {/* Burnout alert */}
+      {burnoutRisk&&<div style={{background:`linear-gradient(135deg,${T.blush},#a85040)`,borderRadius:16,padding:"14px 16px",marginBottom:12,display:"flex",gap:12,alignItems:"flex-start"}}>
+        <span style={{fontSize:24,flexShrink:0}}>💛</span>
+        <div>
+          <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",marginBottom:4}}>Nora notices something</div>
+          <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.85)",margin:"0 0 10px",lineHeight:1.6}}>{burnoutMsg}</p>
+          <div style={{display:"flex",gap:8}}>
+            {["Take a break","Talk to Nora","10-min reset"].map((a,i)=>(
+              <button key={i} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer"}}>{a}</button>
+            ))}
+          </div>
+        </div>
+      </div>}
+
       <div style={{background:"linear-gradient(135deg,#0e2218,#1a4a2e)",borderRadius:22,padding:"20px",marginBottom:14}}>
         <AIBadge t="Wellness Coach"/>
         <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:22,color:"#fff",margin:"8px 0 4px",fontWeight:400}}>Your Thrive Plan</h2>
@@ -1495,7 +1514,26 @@ Sent from HerNest ✨`;
 function NoraScreen({onTasks,profile}){
   const [msgs,setMsgs]=useState([{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}]);
   const [inp,setInp]=useState(""); const [loading,setLoading]=useState(false);
+  const [listening,setListening]=useState(false);
+  const recogRef=useRef(null);
   const ref=useRef(null);
+
+  const startVoice=()=>{
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){alert("Voice input not supported on this browser. Try Chrome.");return;}
+    if(listening){recogRef.current?.stop();setListening(false);return;}
+    const r=new SR();
+    r.continuous=false;r.interimResults=true;r.lang="en-AU";
+    r.onstart=()=>setListening(true);
+    r.onresult=e=>{
+      const t=Array.from(e.results).map(r=>r[0].transcript).join("");
+      setInp(t);
+    };
+    r.onend=()=>setListening(false);
+    r.onerror=()=>setListening(false);
+    recogRef.current=r;
+    r.start();
+  };
   const kidName=profile?.kids?.[0]?.name||"my daughter";
   const trip=profile?.tripGoal||"our next trip";
   const SUGG=[
@@ -1567,6 +1605,9 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
       {msgs.length<2&&<div style={{flexShrink:0,marginBottom:8}}>{SUGG.map((s,i)=><div key={i} onClick={()=>setInp(s)} style={{background:"#fff",border:`1px solid ${T.linen}`,borderRadius:12,padding:"9px 14px",marginBottom:6,cursor:"pointer",fontFamily:FB,fontSize:12,color:T.bark,lineHeight:1.5}}>{s}</div>)}</div>}
       <div style={{flexShrink:0,display:"flex",gap:8,paddingTop:8,borderTop:`1px solid ${T.linen}`}}>
         <textarea value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Tell me what's on your mind…" rows={2} style={{flex:1,fontFamily:FB,fontSize:13,padding:"11px 14px",borderRadius:16,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp,lineHeight:1.5}}/>
+        <button onClick={startVoice} style={{width:46,height:46,borderRadius:14,border:`1.5px solid ${listening?T.blush:T.linen}`,flexShrink:0,background:listening?T.blushP:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",alignSelf:"flex-end",transition:"all .2s"}}>
+          {listening?<div style={{display:"flex",gap:2,alignItems:"flex-end",height:16}}>{[8,14,10,16,8].map((h,i)=><div key={i} style={{width:3,height:h,background:T.blush,borderRadius:2,animation:`dot 1s ease-in-out ${i*.1}s infinite`}}/>)}</div>:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="11" rx="3" stroke={T.bark} strokeWidth="1.5"/><path d="M5 10a7 7 0 0014 0" stroke={T.bark} strokeWidth="1.5" strokeLinecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke={T.bark} strokeWidth="1.5" strokeLinecap="round"/></svg>}
+        </button>
         <button onClick={send} disabled={!inp.trim()||loading} style={{width:46,height:46,borderRadius:14,border:"none",flexShrink:0,background:inp.trim()&&!loading?`linear-gradient(135deg,${T.esp},#4a3020)`:T.linen,cursor:inp.trim()&&!loading?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",alignSelf:"flex-end"}}>
           {loading?<Spinner/>:<Ic.Send s={18} c={inp.trim()?"#fff":T.taupe} w={2}/>}
         </button>
@@ -1910,7 +1951,10 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div style={{flex:1}}>
                   <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{k.name}{k.age?`, ${k.age}`:""}</span>
-                  {k.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.sage,marginTop:2}}>🎂 {k.bday}</div>}
+                  {k.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.sage,marginTop:2,display:"flex",alignItems:"center",gap:6}}>
+                  <span>🎂 {k.bday}</span>
+                  <GiftButton name={k.name} age={k.age} relation="child"/>
+                </div>}
                 </div>
                 <button onClick={()=>{const n=prompt("Edit name:",k.name);if(n&&n.trim())setLocal(p=>({...p,kids:p.kids.map((c,ci)=>ci===i?{...c,name:n.trim()}:c)}));}} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Edit s={14} c={T.bark} w={1.5}/></button>
                 <button onClick={()=>removeKid(i)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
@@ -1942,7 +1986,10 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               <div style={{flex:1}}>
                 <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span>
                 <span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span>
-                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.gold,marginTop:2}}>🎂 {p.bday}</div>}
+                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.gold,marginTop:2,display:"flex",alignItems:"center",gap:6}}>
+                <span>🎂 {p.bday}</span>
+                <GiftButton name={p.name} age="" relation={p.role}/>
+              </div>}
               </div>
               <button onClick={()=>upd("parents",(local.parents||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
@@ -1972,7 +2019,10 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               <div style={{flex:1}}>
                 <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{p.name}</span>
                 <span style={{fontFamily:FB,fontSize:11,color:T.bark,marginLeft:8}}>{p.role}</span>
-                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.lav,marginTop:2}}>🎂 {p.bday}</div>}
+                {p.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.lav,marginTop:2,display:"flex",alignItems:"center",gap:6}}>
+                <span>🎂 {p.bday}</span>
+                <GiftButton name={p.name} age="" relation={p.role}/>
+              </div>}
               </div>
               <button onClick={()=>upd("inlaws",(local.inlaws||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
             </div>
@@ -2165,6 +2215,56 @@ function OfflineBanner(){
     <div style={{background:`linear-gradient(135deg,${T.blush},#a85040)`,padding:"8px 16px",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
       <span style={{fontFamily:FB,fontSize:12,color:"#fff",fontWeight:600}}>You're offline — app still works, AI features need connection</span>
+    </div>
+  );
+}
+
+
+// ─── GIFT BUTTON ─────────────────────────────────────────────────
+function GiftButton({name,age,relation}){
+  const [open,setOpen]=useState(false);
+  const [gifts,setGifts]=useState(null);
+  const [loading,setLoading]=useState(false);
+
+  const suggest=async()=>{
+    if(gifts){setOpen(!open);return;}
+    setOpen(true);setLoading(true);
+    try{
+      const raw=await claude(
+        `You are a thoughtful gift advisor. Return ONLY valid JSON: {"gifts":[{"name":"","price":"","why":"","where":""}]}. 4 gift ideas.`,
+        `Suggest 4 thoughtful gift ideas for ${name}, who is ${relation}${age?`, age ${age}`:""}.  Mix of prices from budget to splurge. Be specific with product names.`
+      );
+      setGifts(JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,"").trim()).gifts);
+    }catch(e){
+      setGifts([{name:"Personalised photo book",price:"$40",why:"Memories they will treasure forever",where:"Chatbooks or Snapfish"},{name:"Spa day voucher",price:"$120",why:"Everyone deserves to be pampered",where:"Local spa"},{name:"Favourite restaurant dinner",price:"$80",why:"Quality time and a delicious meal",where:"OpenTable"},{name:"Heartfelt handwritten letter",price:"Free",why:"The most meaningful gift of all",where:"From the heart"}]);
+    }
+    setLoading(false);
+  };
+
+  return(
+    <div style={{display:"inline-block"}}>
+      <button onClick={suggest} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"2px 8px",fontFamily:FB,fontSize:10,fontWeight:700,color:T.gold,cursor:"pointer"}}>
+        🎁 Gift ideas
+      </button>
+      {open&&<div style={{background:"#fff",borderRadius:14,padding:"14px",marginTop:8,border:`1.5px solid ${T.gold}`,boxShadow:"0 4px 20px rgba(0,0,0,.08)",animation:"pop .2s ease both"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <span style={{fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp}}>Gift ideas for {name}</span>
+          <button onClick={()=>setOpen(false)} style={{background:"none",border:"none",cursor:"pointer"}}><Ic.Close s={14} c={T.taupe} w={2}/></button>
+        </div>
+        {loading?<div style={{display:"flex",justifyContent:"center",padding:"16px 0"}}><Spinner/></div>:
+        gifts?.map((g,i)=>(
+          <div key={i} style={{padding:"8px 0",borderBottom:i<gifts.length-1?`1px solid ${T.linen}`:"none"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+              <div style={{flex:1}}>
+                <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp}}>{g.name}</div>
+                <div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:1}}>{g.why}</div>
+                <div style={{fontFamily:FB,fontSize:10,color:T.sage,marginTop:1}}>📍 {g.where}</div>
+              </div>
+              <span style={{fontFamily:FD,fontSize:14,fontWeight:700,color:T.gold,flexShrink:0,marginLeft:8}}>{g.price}</span>
+            </div>
+          </div>
+        ))}
+      </div>}
     </div>
   );
 }

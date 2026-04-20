@@ -449,7 +449,7 @@ function TripsScreen({uid,profile}){
     const familyCtx=familyFilter?`This is a FAMILY trip. Plan must be completely family and child-friendly. Include: nap-friendly schedules, kid meal options, stroller accessibility, family room recommendations, age-appropriate activities. Avoid: late nights, adult-only venues, long uncomfortable journeys without breaks.`:"";
     const ageCtx=ageFilter!=="all"?`Children age group: ${ageFilter}. Tailor all activities specifically for this age.`:"";
     const sys=`Expert family travel concierge. ${familyCtx} ${ageCtx} Return ONLY valid JSON:{"destination":"","overview":"","familyTip":"","days":[{"day":1,"title":"","morning":"","afternoon":"","evening":"","tip":"","kidsActivity":""}],"budget":[{"cat":"","amount":""}],"bookFirst":["","",""],"bookingLinks":[{"name":"","url":"","type":"flights|hotels|activities"}]}`;
-    try{const raw=await claude(sys,prompt);setResult(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
+    try{const raw=await claude(sys,p);setResult(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
     catch(e){setResult({error:true});}
     setLoading(false);
   };

@@ -564,35 +564,28 @@ function TripsScreen({uid,profile}){
 
         {/* Share plan button */}
         <button onClick={()=>{
-          const txt="✈️ "+trip.dest+" — "+trip.nights+" nights"+"
-
-"
-            +"📋 HIGHLIGHTS
-"+(plan.highlights||[]).map((h,i)=>(i+1)+". "+h).join("
-")+"
-
-"
-            +"📅 ITINERARY
-"+(plan.days||[]).map(d=>"Day "+d.day+": "+d.title+" — "+d.plan).join("
-
-")+"
-
-"
-            +"💰 BUDGET
-"+(plan.budget||[]).map(b=>b.cat+": "+b.amount).join("
-")+"
-
-"
-            +"🎒 PACKING — Mum: "+(plan.packing?.Mum||[]).join(", ")+"
-"
-            +"Kids: "+(plan.packing?.Kids||[]).join(", ")+"
-"
-            +"Everyone: "+(plan.packing?.Everyone||[]).join(", ")+"
-
-"
-            +"Planned by Nora via HerNest ✨";
+          const lines=[];
+          lines.push("✈️ "+trip.dest+" — "+trip.nights+" nights");
+          lines.push("");
+          lines.push("📋 HIGHLIGHTS");
+          (plan.highlights||[]).forEach((h,i)=>lines.push((i+1)+". "+h));
+          lines.push("");
+          lines.push("📅 ITINERARY");
+          (plan.days||[]).forEach(d=>lines.push("Day "+d.day+": "+d.title));
+          lines.push("");
+          lines.push("💰 BUDGET");
+          (plan.budget||[]).forEach(b=>lines.push(b.cat+": "+b.amount));
+          lines.push("");
+          lines.push("🎒 PACKING");
+          lines.push("Mum: "+(plan.packing?.Mum||[]).join(", "));
+          lines.push("Kids: "+(plan.packing?.Kids||[]).join(", "));
+          lines.push("Everyone: "+(plan.packing?.Everyone||[]).join(", "));
+          lines.push("");
+          lines.push("Planned by Nora via HerNest ✨");
+          const txt=lines.join("
+");
           if(navigator.share){navigator.share({title:trip.dest+" Trip Plan",text:txt}).catch(()=>{});}
-          else{navigator.clipboard.writeText(txt).then(()=>alert("Trip plan copied to clipboard!")).catch(()=>{});}
+          else{navigator.clipboard.writeText(txt).then(()=>alert("Copied to clipboard!")).catch(()=>{});}
         }} style={{width:"100%",background:"#fff",border:`1.5px solid ${T.linen}`,borderRadius:14,padding:"12px",fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke={T.esp} strokeWidth="1.8"/><circle cx="6" cy="12" r="3" stroke={T.esp} strokeWidth="1.8"/><circle cx="18" cy="19" r="3" stroke={T.esp} strokeWidth="1.8"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke={T.esp} strokeWidth="1.8" strokeLinecap="round"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke={T.esp} strokeWidth="1.8" strokeLinecap="round"/></svg>
           Share Trip Plan

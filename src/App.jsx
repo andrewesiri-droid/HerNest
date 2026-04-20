@@ -341,7 +341,7 @@ function PlanScreen({aiTasks,profile,uid}){
 // ═══════════════════════════════════════════════════════════════════
 // 2. TRIP PLANNER — fully interactive with AI
 // ═══════════════════════════════════════════════════════════════════
-function TripsScreen({uid}){
+function TripsScreen({uid,profile}){
   const [trips,setTrips]=useState([]);
   const [activeTrip,setActiveTrip]=useState(0);
   const [tab,setTab]=useState("overview");
@@ -2775,7 +2775,7 @@ export default function HerNest(){
     brief:   <BriefingScreen profile={profile}/>,
     nora:    <NoraScreen onTasks={handleAI} profile={profile}/>,
     plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>,
-    trips:   <TripsScreen uid={user?.uid}/>,
+    trips:   <TripsScreen uid={user?.uid} profile={profile}/>,
     budget:  <BudgetScreen uid={user?.uid}/>,
     style:   <StyleScreen/>,
     circle:  <CircleScreen profile={profile}/>,

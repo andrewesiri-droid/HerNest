@@ -343,6 +343,8 @@ function TripsScreen({uid}){
   const [newDest,setNewDest]=useState("");
 
   const trip=trips[activeTrip]||trips[0];
+  const budgetPct=Math.round(((trip?.spent||0)/(trip?.budget||1))*100);
+  const checkDone=(trip?.checklist||[]).filter(c=>c.done).length;
   if(!trips.length) return(
     <div style={{animation:"fadeUp .45s ease both"}}>
       <div style={{background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",borderRadius:22,padding:"28px 24px",marginBottom:14,textAlign:"center"}}>
@@ -382,8 +384,7 @@ function TripsScreen({uid}){
     setLoading(false);
   };
 
-  const budgetPct=Math.round((trip.spent/trip.budget)*100);
-  const checkDone=trip.checklist.filter(c=>c.done).length;
+
 
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>

@@ -372,7 +372,14 @@ function TripsScreen({uid}){
   const toggleCheck=i=>setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,checklist:t.checklist.map((c,ci)=>ci===i?{...c,done:!c.done}:c)}:t));
   const addCheck=()=>{if(!newItem.trim())return;setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,checklist:[...t.checklist,{item:newItem,done:false}]}:t));setNewItem("");};
   const addPack=()=>{if(!newPack.trim())return;setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,packing:{...t.packing,[packPerson]:[...(t.packing[packPerson]||[]),newPack]}}:t));setNewPack("");};
-  const addTrip=()=>{if(!newDest.trim())return;setTrips(p=>[...p,{id:Date.now(),dest:newDest,flag:"🌍",days:90,travellers:2,budget:5000,spent:0,status:"Dreaming",checklist:[],packing:{Mum:[],Kids:[],Everyone:[]}}]);setActiveTrip(trips.length);setShowNewTrip(false);setNewDest("");};
+  const addTrip=()=>{
+    if(!newDest.trim())return;
+    const t={id:Date.now(),dest:newDest,flag:"🌍",nights:newNights,travellers:newTravellers,budget:newBudget,spent:0,status:newStatus,departDate:newDate,checklist:[{item:"Book flights",done:false},{item:"Book accommodation",done:false},{item:"Travel insurance",done:false},{item:"Visas and passports",done:false},{item:"Vaccinations check",done:false}],packing:{Mum:[],Kids:[],Everyone:[]}};
+    setTrips(p=>[...p,t]);setActiveTrip(trips.length);setShowNewTrip(false);
+    setNewDest("");setNewTravellers(2);setNewBudget(5000);setNewDate("");setNewNights(7);setNewStatus("Dreaming");
+  };
+  const updateTrip=(f,v)=>setTrips(p=>p.map((t,i)=>i===activeTrip?{...t,[f]:v}:t));
+  const deleteTrip=()=>{if(trips.length<=1){setTrips([]);setActiveTrip(0);}else{setTrips(p=>p.filter((_,i)=>i!==activeTrip));setActiveTrip(0);}};
 
   const plan=async()=>{
     if(!prompt.trim())return;setLoading(true);setResult(null);

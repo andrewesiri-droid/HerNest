@@ -540,7 +540,7 @@ function TripsScreen({uid,profile}){
         {/* Overview */}
         <Card sx={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",border:"none",marginBottom:10}} ch={<div>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><AIBadge t="Nora's Plan"/></div>
-          <EditableText value={plan.overview} dark onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],overview:v}}))} style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.8)",margin:"0 0 10px",lineHeight:1.7}}/>
+          <FieldEditor value={plan.overview} dark onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],overview:v}}))}/>
           {plan.familyTip&&<div style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"8px 12px",display:"flex",gap:8}}>
             <span>👨‍👩‍👧</span><p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.75)",margin:0,lineHeight:1.5}}>{plan.familyTip}</p>
           </div>}
@@ -610,7 +610,7 @@ function TripsScreen({uid,profile}){
               <div style={{width:32,height:32,borderRadius:"50%",background:T.goldP,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:FD,fontSize:15,fontWeight:700,color:T.gold,flexShrink:0}}>{d.day}</div>
               <span style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp}}>{d.title}</span>
             </div>
-            <EditableText value={d.plan} onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],days:p[trip.id].days.map((day,di)=>di===i?{...day,plan:v}:day)}}))} style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"0 0 8px",lineHeight:1.7}}/>
+            <FieldEditor value={d.plan} onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],days:p[trip.id].days.map((day,di)=>di===i?{...day,plan:v}:day)}}))}/>
             {d.highlight&&<div style={{background:T.goldP,borderRadius:10,padding:"7px 12px",marginBottom:6,display:"flex",gap:8}}>
               <span>⭐</span><p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0,fontStyle:"italic"}}>{d.highlight}</p>
             </div>}
@@ -679,23 +679,26 @@ function TripsScreen({uid,profile}){
   );
 }
 
-function EditableText({value,onChange,style,dark}){
+function FieldEditor({value,onChange,dark}){
   const [editing,setEditing]=useState(false);
   const [val,setVal]=useState(value);
   useEffect(()=>setVal(value),[value]);
-  if(editing) return(
-    <div style={{marginBottom:8}}>
-      <textarea value={val} onChange={e=>setVal(e.target.value)} rows={3} style={{width:"100%",fontFamily:style?.fontFamily||FB,fontSize:style?.fontSize||13,padding:"8px 10px",borderRadius:10,border:`1.5px solid ${dark?"rgba(255,255,255,.3)":T.gold}`,background:dark?"rgba(255,255,255,.1)":"#fff",color:dark?"#fff":T.esp,lineHeight:1.6,resize:"none"}}/>
-      <div style={{display:"flex",gap:6,marginTop:6}}>
-        <button onClick={()=>{onChange(val);setEditing(false);}} style={{background:T.sage,border:"none",borderRadius:8,padding:"5px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer"}}>Save</button>
-        <button onClick={()=>{setVal(value);setEditing(false);}} style={{background:"none",border:`1px solid ${dark?"rgba(255,255,255,.2)":T.linen}`,borderRadius:8,padding:"5px 12px",fontFamily:FB,fontSize:11,color:dark?"rgba(255,255,255,.5)":T.bark,cursor:"pointer"}}>Cancel</button>
-      </div>
-    </div>
-  );
   return(
-    <div onClick={()=>setEditing(true)} style={{...style,cursor:"text",position:"relative",borderRadius:8,padding:"2px 4px",margin:"-2px -4px",transition:"background .15s"}} title="Tap to edit">
-      {val}
-      <span style={{position:"absolute",top:2,right:2,fontSize:10,opacity:.4}}>✏️</span>
+    <div style={{marginBottom:8}}>
+      {editing?(
+        <div>
+          <textarea value={val} onChange={e=>setVal(e.target.value)} rows={3} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"8px 10px",borderRadius:10,border:`1.5px solid ${dark?"rgba(255,255,255,.3)":T.gold}`,background:dark?"rgba(255,255,255,.08)":"#fff",color:dark?"#fff":T.esp,lineHeight:1.6,resize:"none"}}/>
+          <div style={{display:"flex",gap:6,marginTop:6}}>
+            <button onClick={()=>{onChange(val);setEditing(false);}} style={{background:T.sage,border:"none",borderRadius:8,padding:"5px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer"}}>Save</button>
+            <button onClick={()=>{setVal(value);setEditing(false);}} style={{background:"none",border:`1px solid ${dark?"rgba(255,255,255,.2)":T.linen}`,borderRadius:8,padding:"5px 14px",fontFamily:FB,fontSize:11,color:dark?"rgba(255,255,255,.5)":T.bark,cursor:"pointer"}}>Cancel</button>
+          </div>
+        </div>
+      ):(
+        <div style={{display:"flex",alignItems:"flex-start",gap:8}}>
+          <p style={{fontFamily:FB,fontSize:13,color:dark?"rgba(255,255,255,.8)":T.bark,margin:0,lineHeight:1.7,flex:1}}>{val}</p>
+          <button onClick={()=>setEditing(true)} style={{background:dark?"rgba(255,255,255,.1)":T.sand,border:`1px solid ${dark?"rgba(255,255,255,.15)":T.linen}`,borderRadius:8,padding:"3px 8px",fontFamily:FB,fontSize:10,color:dark?"rgba(255,255,255,.6)":T.bark,cursor:"pointer",flexShrink:0,whiteSpace:"nowrap"}}>✏️ Edit</button>
+        </div>
+      )}
     </div>
   );
 }

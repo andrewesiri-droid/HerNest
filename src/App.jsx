@@ -443,8 +443,9 @@ function TripsScreen({uid,profile}){
   const updateTrip=(f,v)=>setTrips(p=>p.map((t,i)=>i===activeTrip?{...t,[f]:v}:t));
   const deleteTrip=()=>{if(trips.length<=1){setTrips([]);setActiveTrip(0);}else{setTrips(p=>p.filter((_,i)=>i!==activeTrip));setActiveTrip(0);}};
 
-  const plan=async()=>{
-    if(!prompt.trim())return;setLoading(true);setResult(null);
+  const plan=async(overridePrompt)=>{
+    const p=overridePrompt||prompt;
+    if(!p.trim())return;setLoading(true);setResult(null);
     const familyCtx=familyFilter?`This is a FAMILY trip. Plan must be completely family and child-friendly. Include: nap-friendly schedules, kid meal options, stroller accessibility, family room recommendations, age-appropriate activities. Avoid: late nights, adult-only venues, long uncomfortable journeys without breaks.`:"";
     const ageCtx=ageFilter!=="all"?`Children age group: ${ageFilter}. Tailor all activities specifically for this age.`:"";
     const sys=`Expert family travel concierge. ${familyCtx} ${ageCtx} Return ONLY valid JSON:{"destination":"","overview":"","familyTip":"","days":[{"day":1,"title":"","morning":"","afternoon":"","evening":"","tip":"","kidsActivity":""}],"budget":[{"cat":"","amount":""}],"bookFirst":["","",""],"bookingLinks":[{"name":"","url":"","type":"flights|hotels|activities"}]}`;
@@ -601,10 +602,13 @@ function TripsScreen({uid,profile}){
       {/* Plan This Trip button on overview */}
       {tab==="overview"&&<button onClick={()=>{
         const who=trip.whosComing?.join(", ")||`${trip.travellers||2} travellers`;
-        setPrompt(`${trip.dest}, ${trip.nights||7} nights, ${who}, budget $${(trip.budget||5000).toLocaleString()}`);
+        const kids=trip.whosComing?.filter(n=>n!==trip.whosComing[0])||[];
+        const autoPrompt=`${trip.dest}, ${trip.nights||7} nights, ${who}${kids.length?`, including kids`:""}${trip.departDate?`, departing ${new Date(trip.departDate).toLocaleDateString("en-AU",{month:"short",year:"numeric"})}`:""}${trip.budget?`, budget $${trip.budget.toLocaleString()}`:""}`;
+        setPrompt(autoPrompt);
         setTab("ai planner");
+        plan(autoPrompt);
       }} style={{width:"100%",background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",color:"#fff",border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>
-        <Ic.Compass s={18} c="#fff" w={1.5}/>Plan This Trip with Nora
+        <Ic.Compass s={18} c="#fff" w={1.5}/>Plan This Trip with Nora ✨
       </button>}
 
       {/* Checklist tab */}

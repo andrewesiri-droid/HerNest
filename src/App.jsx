@@ -1244,25 +1244,83 @@ function WellnessScreen({profile}){
 // ═══════════════════════════════════════════════════════════════════
 // 7. MORNING BRIEFING — fully interactive
 // ═══════════════════════════════════════════════════════════════════
-function BriefingScreen({profile}){
+function BriefingScreen({profile,onAddTask}){
   const [data,setData]=useState(null);
   const [loading,setLoading]=useState(false);
   const [checkedPriorities,setCheckedPriorities]=useState([]);
   const [checkedReminders,setCheckedReminders]=useState([]);
+  const [askInp,setAskInp]=useState("");
+  const [askResp,setAskResp]=useState(null);
+  const [askLoad,setAskLoad]=useState(false);
+  const [shared,setShared]=useState(false);
   const tC=t=>t==="Work"?T.sky:t==="Family"?T.sage:t==="Me"?T.blush:T.gold;
   const tIC=t=>t==="Work"?Ic.Bag:t==="Family"?Ic.Kids:t==="Me"?Ic.Leaf:Ic.Home;
 
+  // Upcoming birthdays in next 7 days
+  const upcomingBdays=[];
+  const today=new Date();
+  [...(profile?.kids||[]),...(profile?.parents||[]),...(profile?.inlaws||[])].forEach(p=>{
+    if(p?.bday){
+      const parts=p.bday.split("/");
+      if(parts.length===2){
+        const next=new Date(today.getFullYear(),parseInt(parts[0])-1,parseInt(parts[1]));
+        if(next<today)next.setFullYear(today.getFullYear()+1);
+        const days=Math.round((next-today)/86400000);
+        if(days<=7)upcomingBdays.push({name:p.name,days});
+      }
+    }
+  });
+  if(profile?.partnerBday){
+    const parts=profile.partnerBday.split("-");
+    if(parts.length===3){
+      const next=new Date(today.getFullYear(),parseInt(parts[1])-1,parseInt(parts[2]));
+      if(next<today)next.setFullYear(today.getFullYear()+1);
+      const days=Math.round((next-today)/86400000);
+      if(days<=7)upcomingBdays.push({name:profile.partner||"Partner",days});
+    }
+  }
+
   const gen=async()=>{
-    setLoading(true);setCheckedPriorities([]);setCheckedReminders([]);
+    setLoading(true);setCheckedPriorities([]);setCheckedReminders([]);setAskResp(null);
+    const bdayCtx=upcomingBdays.length?`IMPORTANT — upcoming birthdays: ${upcomingBdays.map(b=>`${b.name} in ${b.days} day${b.days===1?"":"s"}`).join(", ")}. Include a reminder about this.`:"";
+    const familyCtx=`Partner: ${profile?.partner||"none"}, kids: ${profile?.kids?.map(k=>`${k.name} (${k.age||"?"})`).join(",")||"none"}, parents: ${profile?.parents?.map(p=>p.name).join(",")||"none"}, in-laws: ${profile?.inlaws?.map(p=>p.name).join(",")||"none"}`;
     const sys=`You are Nora inside HerNest. Return ONLY valid JSON no markdown:
-{"greeting":"","date":"","weatherNote":"","weatherType":"sunny|cloudy|rainy","priorities":[{"text":"","tag":"Work|Family|Me|Home"}],"reminders":["","",""],"budgetNote":"","tripNote":"","affirmation":"","energyTip":""}
-3 priorities, 3 reminders, include energyTip for the day.`;
-    const ctx=`Name: ${profile?.name||"Sarah"}, role: ${profile?.role||"CFO"}, kids: ${profile?.kids?.map(k=>k.name).join(",")||"Mia, Jake"}, trip: ${profile?.tripGoal||"Bali in 47 days"}, priorities: ${profile?.priorities?.join(",")||"family,career,fitness"}`;
+{"greeting":"","date":"","weatherNote":"","weatherType":"sunny|cloudy|rainy","priorities":[{"text":"","tag":"Work|Family|Me|Home"}],"reminders":["","",""],"budgetNote":"","tripNote":"","affirmation":"","energyTip":"","focusWord":""}
+5 priorities, 3-4 reminders, include energyTip and a one-word focusWord for the day (e.g. "Focus", "Rest", "Connect").`;
+    const ctx=`Name: ${profile?.name||"Sarah"}, role: ${profile?.role||"CFO"}, ${familyCtx}, trip: ${profile?.tripGoal||"none"}, fitness: ${profile?.fitnessGoal||"none"}, challenge: ${profile?.challenge||"mental load"}, priorities: ${profile?.priorities?.join(",")||"family,career,fitness"}. ${bdayCtx}`;
     try{const raw=await claude(sys,ctx);setData(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
-    catch(e){setData({greeting:`Good morning${profile?.name?`, ${profile.name}`:""}!`,date:new Date().toLocaleDateString("en-AU",{weekday:"long",month:"long",day:"numeric"}),weatherNote:"24°C and sunny — great day for a morning run",weatherType:"sunny",priorities:[{text:"CFO board deck — block 2hrs at 9am",tag:"Work"},{text:"School run 8:15am",tag:"Family"},{text:"Pilates 6:30am",tag:"Me"}],reminders:["Mia's recital Friday — keep Thursday evening free","Bali travel insurance still not booked","Grocery order expires tonight"],budgetNote:"4% under budget this month. You're crushing it, CFO!",tripNote:"Bali in 47 days — travel insurance is the only blocker",affirmation:"You carry so much, so gracefully. Today, you've already won.",energyTip:"Start with your hardest task first — your energy is highest in the morning."});}
+    catch(e){setData({greeting:`Good morning${profile?.name?`, ${profile.name}`:""}!`,date:new Date().toLocaleDateString("en-AU",{weekday:"long",month:"long",day:"numeric"}),weatherNote:"Make today count — you've got this.",weatherType:"sunny",priorities:[{text:"Block 2hrs for deep work",tag:"Work"},{text:"School run 8:15am",tag:"Family"},{text:"30 min workout",tag:"Me"},{text:"Grocery order",tag:"Home"},{text:"Check budget",tag:"Work"}],reminders:["Check in with the kids tonight","Review tomorrow's calendar","Drink 8 glasses of water"],budgetNote:"Stay mindful of spending today.",tripNote:profile?.tripGoal?`${profile.tripGoal} — keep planning!`:"Start planning your next adventure.",affirmation:"You carry so much, so gracefully. Today, you have already won.",energyTip:"Start with your hardest task first — your energy is highest in the morning.",focusWord:"Focus"});}
     setLoading(false);
   };
   useEffect(()=>{gen();},[]);
+
+  const askNora=async()=>{
+    if(!askInp.trim()||askLoad)return;
+    const msg=askInp.trim();setAskInp("");setAskLoad(true);
+    const ctx=data?`Briefing context: priorities=${data.priorities?.map(p=>p.text).join(",")}, reminders=${data.reminders?.join(",")}.`:"";
+    try{const raw=await claude(`You are Nora, warm AI assistant. ${ctx} Answer in 2 sentences max, actionable and warm.`,msg);setAskResp(raw);}
+    catch(e){setAskResp("I am here with you 💛");}
+    setAskLoad(false);
+  };
+
+  const shareBriefing=()=>{
+    if(!data)return;
+    const txt=`My day — ${data.date}
+
+Priorities:
+${data.priorities?.map((p,i)=>`${i+1}. ${p.text}`).join("
+")}
+
+Reminders:
+${data.reminders?.map(r=>`• ${r}`).join("
+")}
+
+Nora says: "${data.affirmation}"
+
+Sent from HerNest ✨`;
+    if(navigator.share){navigator.share({title:"My Day",text:txt}).catch(()=>{});}
+    else{navigator.clipboard.writeText(txt).catch(()=>{});setShared(true);setTimeout(()=>setShared(false),2000);}
+  };
 
   if(loading) return(
     <div style={{textAlign:"center",padding:"50px 20px",animation:"fadeUp .4s ease both"}}>
@@ -1280,14 +1338,38 @@ function BriefingScreen({profile}){
       {/* Hero */}
       <div style={{background:AIGRAD,borderRadius:24,padding:"24px 22px",marginBottom:14,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
-        <AIBadge t="Morning Briefing"/>
-        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:"#fff",margin:"10px 0 4px",fontWeight:400}}>{data.greeting}</h2>
-        <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:0}}>{data.date}</p>
-        <div style={{marginTop:14,background:"rgba(255,255,255,.08)",borderRadius:13,padding:"12px 14px",borderLeft:`3px solid ${T.gold}`,display:"flex",alignItems:"center",gap:10}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+          <AIBadge t="Morning Briefing"/>
+          <button onClick={shareBriefing} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:20,padding:"5px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"rgba(255,255,255,.7)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+            {shared?<><Ic.Check s={11} c={T.sage} w={2.5}/>Copied!</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><circle cx="6" cy="12" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><circle cx="18" cy="19" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="rgba(255,255,255,.7)" strokeWidth="1.8" strokeLinecap="round"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="rgba(255,255,255,.7)" strokeWidth="1.8" strokeLinecap="round"/></svg>Share</>}
+          </button>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+          <div style={{flex:1}}>
+            <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:"#fff",margin:"0 0 4px",fontWeight:400}}>{data.greeting}</h2>
+            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:0}}>{data.date}</p>
+          </div>
+          {data.focusWord&&<div style={{textAlign:"center",background:"rgba(196,154,60,.2)",borderRadius:14,padding:"10px 14px",border:"1px solid rgba(196,154,60,.3)",flexShrink:0}}>
+            <div style={{fontFamily:FD,fontSize:18,fontWeight:700,color:T.gold}}>{data.focusWord}</div>
+            <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>today</div>
+          </div>}
+        </div>
+        <div style={{background:"rgba(255,255,255,.08)",borderRadius:13,padding:"12px 14px",borderLeft:`3px solid ${T.gold}`,display:"flex",alignItems:"center",gap:10}}>
           {data.weatherType==="rainy"?<Ic.Drop s={18} c={T.goldP} w={1.4}/>:<Ic.Sun s={18} c={T.goldP} w={1.4}/>}
           <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.75)",margin:0,lineHeight:1.6}}>{data.weatherNote}</p>
         </div>
       </div>
+
+      {/* Birthday alerts */}
+      {upcomingBdays.map((b,i)=>(
+        <div key={i} style={{background:`linear-gradient(135deg,${T.blush},#a85040)`,borderRadius:14,padding:"12px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:22}}>🎂</span>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>{b.name}'s birthday {b.days===0?"is TODAY!":b.days===1?"is tomorrow!"`is in ${b.days} days`}</div>
+            <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.75)"}}>Don't forget to make it special 💛</div>
+          </div>
+        </div>
+      ))}
 
       {/* Priorities — interactive checkboxes */}
       <Card sx={{borderLeft:`4px solid ${T.gold}`}} ch={<div>
@@ -1348,6 +1430,23 @@ function BriefingScreen({profile}){
         <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Ic.Flower s={32} c={T.blush} w={1.2}/></div>
         <p style={{fontFamily:FD,fontStyle:"italic",fontSize:17,color:T.esp,margin:0,lineHeight:1.7}}>"{data.affirmation}"</p>
       </div>
+
+      {/* Ask Nora */}
+      <Card sx={{background:AIGRAD,border:"none",marginBottom:14}} ch={<div>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+          <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Ic.Star s={13} c="#fff" w={1.5}/></div>
+          <span style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"rgba(255,255,255,.8)"}}>Ask Nora about your day</span>
+        </div>
+        {askResp&&<div style={{background:"rgba(255,255,255,.08)",borderRadius:12,padding:"10px 12px",marginBottom:10}}>
+          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.85)",margin:0,lineHeight:1.6}}>{askResp}</p>
+        </div>}
+        <div style={{display:"flex",gap:8}}>
+          <input value={askInp} onChange={e=>setAskInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&askNora()} placeholder="e.g. How do I fit gym in today?" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 12px",borderRadius:12,border:"1px solid rgba(255,255,255,.15)",background:"rgba(255,255,255,.08)",color:"#fff",outline:"none"}}/>
+          <button onClick={askNora} disabled={!askInp.trim()||askLoad} style={{background:askInp.trim()&&!askLoad?`linear-gradient(135deg,${T.gold},#8B6914)`:"rgba(255,255,255,.1)",border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            {askLoad?<Spinner/>:<Ic.Send s={15} c="#fff" w={2}/>}
+          </button>
+        </div>
+      </div>}/>
 
       <button onClick={gen} style={{width:"100%",background:"none",border:`1.5px solid ${T.linen}`,borderRadius:13,padding:"11px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
         <Ic.Refresh s={15} c={T.bark} w={1.8}/> Refresh briefing

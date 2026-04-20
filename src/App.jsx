@@ -299,6 +299,7 @@ function PlanScreen({aiTasks,profile,uid}){
               <div style={{fontFamily:FB,fontSize:13,color:t.done?T.taupe:T.esp,textDecoration:t.done?"line-through":"none"}}>{t.text}</div>
               <div style={{display:"flex",gap:6,marginTop:4}}>
                 <Tag ch={t.tag} c={tc}/>
+                {t.recur&&t.recur!=="none"&&<span style={{fontFamily:FB,fontSize:9,color:T.teal,background:T.tealP,borderRadius:10,padding:"2px 7px"}}>🔁</span>}
                 <Tag ch={t.priority} c={pColor(t.priority)}/>
               </div>
             </div>

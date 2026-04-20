@@ -2932,7 +2932,7 @@ export default function HerNest(){
     plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>,
     trips:   <TripsScreen uid={user?.uid} profile={profile}/>,
     budget:  <BudgetScreen uid={user?.uid}/>,
-    style:   <StyleScreen/>,
+    style:   <StyleScreen profile={profile}/>,
     circle:  <CircleScreen profile={profile}/>,
     wellness:<WellnessScreen profile={profile}/>,
     profile: <ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>,

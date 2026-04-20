@@ -526,6 +526,36 @@ function TripsScreen({uid,profile}){
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Travellers</label>
               <input type="number" value={trip.travellers||2} onChange={e=>updateTrip("travellers",parseInt(e.target.value)||2)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
             </div>
+          </div>
+          {/* Who is coming */}
+          <div style={{marginBottom:10}}>
+            <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:6}}>Who is coming</label>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {[
+                {name:profile?.name?.split(" ")[0]||"Me",emoji:"👩"},
+                ...(profile?.partner?[{name:profile.partner,emoji:"👨"}]:[]),
+                ...(profile?.kids||[]).map(k=>({name:k.name,emoji:"👧"})),
+                ...(profile?.parents||[]).map(p=>({name:p.name,emoji:"👴"})),
+              ].map((person,i)=>{
+                const coming=(trip.whosComing||[profile?.name?.split(" ")[0]||"Me"]).includes(person.name);
+                return(
+                  <button key={i} onClick={()=>{
+                    const current=trip.whosComing||[profile?.name?.split(" ")[0]||"Me"];
+                    const updated=coming?current.filter(n=>n!==person.name):[...current,person.name];
+                    updateTrip("whosComing",updated);
+                    updateTrip("travellers",Math.max(1,updated.length));
+                  }} style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:20,border:`1.5px solid ${coming?"rgba(196,154,60,.8)":"rgba(255,255,255,.2)"}`,background:coming?"rgba(196,154,60,.2)":"transparent",cursor:"pointer"}}>
+                    <span style={{fontSize:14}}>{person.emoji}</span>
+                    <span style={{fontFamily:FB,fontSize:11,color:coming?T.gold:"rgba(255,255,255,.5)"}}>{person.name}</span>
+                    {coming&&<Ic.Check s={10} c={T.gold} w={2.5}/>}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.35)",marginTop:6}}>{trip.travellers||1} traveller{(trip.travellers||1)!==1?"s":""} going</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8,display:"none"}}>
+            <div>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Budget</label>
               <input type="number" value={trip.budget||5000} onChange={e=>updateTrip("budget",parseInt(e.target.value)||5000)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>

@@ -554,7 +554,7 @@ function TripsScreen({uid,profile}){
             </div>
             <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.35)",marginTop:6}}>{trip.travellers||1} traveller{(trip.travellers||1)!==1?"s":""} going</div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8,display:"none"}}>
+          <div style={{display:"none"}}>
             <div>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Budget</label>

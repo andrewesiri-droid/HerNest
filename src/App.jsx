@@ -1447,99 +1447,86 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
 // ═══════════════════════════════════════════════════════════════════
 function HomeScreen({go,aiTasks,profile,streak=1}){
   const [water,setWater]=useState(()=>{try{return parseInt(sessionStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
-  const [mood,setMood]=useState(null);
+  const [noraInp,setNoraInp]=useState("");
+  const [noraResp,setNoraResp]=useState(null);
+  const [noraLoad,setNoraLoad]=useState(false);
   const hour=new Date().getHours();
   const date=new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"});
-  const greet=hour<5?"Still up?"  :hour<12?"Good morning":hour<17?"Good afternoon":hour<21?"Good evening":"Good night";
-  const moods=[{IC:Ic.Moon,c:T.blush,msg:"Sending you a big hug today. 💛"},{IC:Ic.Leaf,c:T.taupe,msg:"One step at a time, lovely."},{IC:Ic.Sun,c:T.gold,msg:"Good energy — keep it going!"},{IC:Ic.Flower,c:T.sage,msg:"Love that energy for you!"},{IC:Ic.Star,c:T.teal,msg:"You are absolutely glowing!"}];
-  const FEATS=[{id:"brief",lb:"Daily Briefing",sub:"Morning intelligence",bg:"linear-gradient(135deg,#2d1a00,#5a3a10)",IC:Ic.Sun,ic:"#F0E2B8"},{id:"nora",lb:"Nora AI",sub:"Mental load manager",bg:AIGRAD,IC:Ic.Star,ic:"#C49A3C"},{id:"trips",lb:"Trip Planner",sub:"Full itinerary builder",bg:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",IC:Ic.Compass,ic:"#C8E0CE"},{id:"budget",lb:"Budget Coach",sub:"CFO-level insights",bg:"linear-gradient(135deg,#1a1400,#3a2e00)",IC:Ic.Budget,ic:"#F0E2B8"},{id:"style",lb:"Style Stylist",sub:"AI outfit curator",bg:"linear-gradient(135deg,#2d1428,#4a1a3a)",IC:Ic.Hanger,ic:"#F2D4CA"},{id:"circle",lb:"Circle AI",sub:"Find your people",bg:"linear-gradient(135deg,#0e2028,#1a3a2e)",IC:Ic.People,ic:"#C4DCEA"},{id:"wellness",lb:"Wellness",sub:"Adapted for you",bg:"linear-gradient(135deg,#0e2218,#1a4a2e)",IC:Ic.Leaf,ic:"#C8E0CE"}];
-
-  useEffect(()=>{try{sessionStorage.setItem("hn_hw",String(water));}catch(e){};},[water]);
-
-  // Dynamic quick stats
-  const tasksDone=aiTasks?.filter?.(t=>t.done)?.length||0;
-  const tripGoal=profile?.tripGoal;
+  const greet=hour<5?"Still up?":hour<12?"Good morning":hour<17?"Good afternoon":hour<21?"Good evening":"Good night";
   const firstName=profile?.name?.split(" ")[0]||"lovely";
-
+  const tripGoal=profile?.tripGoal;
+  const FEATS=[
+    {id:"brief",lb:"Briefing",sub:"Your morning",bg:"linear-gradient(135deg,#2d1a00,#5a3a10)",IC:Ic.Sun,ic:"#F0E2B8"},
+    {id:"plan",lb:"Plan",sub:"Tasks & meals",bg:"linear-gradient(135deg,#0e1a2e,#1a3a5a)",IC:Ic.Plan,ic:"#C4DCEA"},
+    {id:"trips",lb:"Trips",sub:"Plan & pack",bg:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",IC:Ic.Compass,ic:"#C8E0CE"},
+    {id:"budget",lb:"Budget",sub:"CFO insights",bg:"linear-gradient(135deg,#1a1400,#3a2e00)",IC:Ic.Budget,ic:"#F0E2B8"},
+    {id:"style",lb:"Style",sub:"AI stylist",bg:"linear-gradient(135deg,#2d1428,#4a1a3a)",IC:Ic.Hanger,ic:"#F2D4CA"},
+    {id:"circle",lb:"Circle",sub:"Your people",bg:"linear-gradient(135deg,#0e1428,#1a2a4e)",IC:Ic.People,ic:"#C4DCEA"},
+    {id:"wellness",lb:"Thrive",sub:"Mind & body",bg:"linear-gradient(135deg,#0e2218,#1a4a2e)",IC:Ic.Leaf,ic:"#C8E0CE"},
+  ];
+  useEffect(()=>{try{sessionStorage.setItem("hn_hw",String(water));}catch(e){};},[water]);
+  const askNora=async()=>{
+    if(!noraInp.trim()||noraLoad)return;
+    const msg=noraInp.trim();setNoraInp("");setNoraLoad(true);
+    const profileCtx=profile?`User: ${profile.name}, ${profile.role}, kids: ${profile.kids?.map(k=>k.name).join(",")}, priorities: ${profile.priorities?.join(",")}.`:"";
+    try{
+      const raw=await claude(`You are Nora, warm AI life assistant. ${profileCtx} Reply in 2 sentences max — warm, specific, actionable. End with one emoji.`,msg);
+      setNoraResp(raw);
+    }catch(e){setNoraResp("I am here with you. Let us tackle this together 💛");}
+    setNoraLoad(false);
+  };
+  const PROMPTS=["What should I focus on today?","I am feeling overwhelmed","Plan my week for me"];
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
-      {/* Personal hero */}
-      <div style={{background:ESPG,borderRadius:24,padding:"22px 22px 18px",marginBottom:12,position:"relative",overflow:"hidden"}}>
+      {/* Hero — Nora front and centre */}
+      <div style={{background:AIGRAD,borderRadius:24,padding:"22px 20px 18px",marginBottom:12,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",background:"rgba(196,154,60,.06)"}}/>
         <div style={{position:"absolute",bottom:-30,left:-30,width:100,height:100,borderRadius:"50%",background:"rgba(107,158,122,.04)"}}/>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
           <div>
-            <p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.3)",letterSpacing:2,textTransform:"uppercase",margin:"0 0 4px"}}>{date}</p>
-            <h1 style={{fontFamily:FD,fontStyle:"italic",fontSize:30,color:"#fff",margin:"0 0 4px",fontWeight:300}}>{greet},</h1>
-            <h1 style={{fontFamily:FD,fontSize:30,color:T.gold,margin:"0 0 6px",fontWeight:700,fontStyle:"normal"}}>{firstName} ✨</h1>
+            <p style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.3)",letterSpacing:2,textTransform:"uppercase",margin:"0 0 4px"}}>{date}</p>
+            <h1 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:"#fff",margin:"0 0 2px",fontWeight:300}}>{greet},</h1>
+            <h1 style={{fontFamily:FD,fontSize:26,color:T.gold,margin:0,fontWeight:700,fontStyle:"normal"}}>{firstName} ✨</h1>
           </div>
-          <div style={{display:"flex",gap:8}}>
-            <div style={{textAlign:"center",background:"rgba(255,255,255,.08)",borderRadius:16,padding:"10px 12px",border:"1px solid rgba(255,255,255,.08)"}}>
-              <div style={{fontFamily:FD,fontSize:22,fontWeight:700,color:"#fff"}}>{water}</div>
-              <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>water</div>
+          <div style={{display:"flex",gap:6}}>
+            <div style={{textAlign:"center",background:"rgba(255,255,255,.08)",borderRadius:14,padding:"8px 10px"}}>
+              <div style={{fontFamily:FD,fontSize:18,fontWeight:700,color:"#fff"}}>{water}</div>
+              <div style={{fontFamily:FB,fontSize:8,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>water</div>
             </div>
-            <div style={{textAlign:"center",background:"rgba(196,154,60,.15)",borderRadius:16,padding:"10px 12px",border:`1px solid rgba(196,154,60,.25)`}}>
-              <div style={{fontFamily:FD,fontSize:22,fontWeight:700,color:T.gold}}>{streak}🔥</div>
-              <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>streak</div>
+            <div style={{textAlign:"center",background:"rgba(196,154,60,.15)",borderRadius:14,padding:"8px 10px",border:`1px solid rgba(196,154,60,.25)`}}>
+              <div style={{fontFamily:FD,fontSize:18,fontWeight:700,color:T.gold}}>{streak}🔥</div>
+              <div style={{fontFamily:FB,fontSize:8,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>streak</div>
             </div>
           </div>
         </div>
-        {/* Quick action row */}
-        <div style={{display:"flex",gap:8,marginTop:14}}>
-          {[{lb:"Brief me",ic:"☀️",id:"brief",c:T.goldP},{lb:"Talk to Nora",ic:"✨",id:"nora",c:T.lavP},{lb:"My Plan",ic:"📋",id:"plan",c:T.sageP}].map(q=>(
-            <button key={q.id} onClick={()=>go(q.id)} style={{flex:1,background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:"8px 6px",cursor:"pointer",textAlign:"center",transition:"all .15s"}}>
-              <div style={{fontSize:16,marginBottom:3}}>{q.ic}</div>
-              <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:600}}>{q.lb}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Notification prompt if not enabled */}
-      {typeof Notification!=="undefined"&&Notification.permission!=="granted"&&<div onClick={()=>go("profile")} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"13px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12,boxShadow:`0 4px 16px ${T.gold}44`}}>
-        <div style={{width:38,height:38,borderRadius:11,background:"rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Ic.Bell s={20} c="#fff" w={1.5}/></div>
-        <div style={{flex:1}}>
-          <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Enable Morning Briefing</div>
-          <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.75)",marginTop:2}}>Get Nora's daily brief at 7am ☀️</div>
-        </div>
-        <Ic.Arrow s={18} c="rgba(255,255,255,.7)" w={1.5}/>
-      </div>}
-
-      {/* Trip countdown if set */}
-      {tripGoal&&<div onClick={()=>go("trips")} style={{background:`linear-gradient(135deg,#0e2a1e,#1a5a3a)`,borderRadius:16,padding:"14px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12,border:"1px solid rgba(107,158,122,.2)"}}>
-        <Tile ic={Ic.Compass} c="#C8E0CE" bg="rgba(107,158,122,.2)" s={20} ts={44} r={13}/>
-        <div style={{flex:1}}>
-          <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Next Adventure</div>
-          <div style={{fontFamily:FD,fontStyle:"italic",fontSize:17,color:"#fff",fontWeight:400}}>{tripGoal}</div>
-        </div>
-        <Ic.Arrow s={18} c="rgba(255,255,255,.4)" w={1.5}/>
-      </div>}
-
-      {/* Featured Nora card */}
-      <div onClick={()=>go("nora")} className="lift" style={{background:AIGRAD,borderRadius:22,padding:"20px",marginBottom:10,cursor:"pointer",position:"relative",overflow:"hidden",boxShadow:"0 6px 28px rgba(0,0,0,.25)"}}>
-        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(196,154,60,.08)"}}/>
-        <div style={{display:"flex",alignItems:"center",gap:14}}>
-          <div style={{width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:`0 0 24px rgba(196,154,60,.5)`,animation:"breathe 3s ease-in-out infinite"}}><Ic.Star s={26} c="#fff" w={1.3}/></div>
-          <div style={{flex:1}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}><span style={{fontFamily:FD,fontStyle:"italic",fontSize:22,color:"#fff",fontWeight:400}}>Nora AI</span><AIBadge t="Mental Load"/></div>
-            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.55)",margin:0,lineHeight:1.5}}>Tell me what's on your mind — I'll organise everything for you</p>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+          <div style={{width:44,height:44,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:`0 0 20px rgba(196,154,60,.5)`,animation:"breathe 3s ease-in-out infinite"}}><Ic.Star s={20} c="#fff" w={1.3}/></div>
+          <div style={{flex:1,background:"rgba(255,255,255,.08)",borderRadius:"16px 16px 16px 4px",padding:"10px 14px"}}>
+            <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.85)",margin:0,lineHeight:1.5}}>{noraResp||`What is on your mind today, ${firstName}?`}</p>
           </div>
-          <Ic.Arrow s={20} c="rgba(255,255,255,.4)" w={1.5}/>
         </div>
+        <div style={{display:"flex",gap:8,marginBottom:10}}>
+          <input value={noraInp} onChange={e=>setNoraInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&askNora()} placeholder="Tell Nora anything..." style={{flex:1,fontFamily:FB,fontSize:13,padding:"11px 14px",borderRadius:14,border:"1.5px solid rgba(255,255,255,.15)",background:"rgba(255,255,255,.1)",color:"#fff",outline:"none"}}/>
+          <button onClick={askNora} disabled={!noraInp.trim()||noraLoad} style={{width:44,height:44,borderRadius:13,border:"none",background:noraInp.trim()&&!noraLoad?`linear-gradient(135deg,${T.gold},#8B6914)`:"rgba(255,255,255,.1)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"background .15s"}}>
+            {noraLoad?<Spinner/>:<Ic.Send s={18} c={noraInp.trim()?"#fff":"rgba(255,255,255,.3)"} w={2}/>}
+          </button>
+        </div>
+        {!noraResp&&<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {PROMPTS.map((p,i)=><button key={i} onClick={()=>setNoraInp(p)} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,padding:"5px 12px",fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.65)",cursor:"pointer"}}>{p}</button>)}
+        </div>}
+        {noraResp&&<button onClick={()=>go("nora")} style={{width:"100%",background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:12,padding:"9px",fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.7)",cursor:"pointer",marginTop:4}}>Continue with Nora →</button>}
       </div>
-
-      <H2 t="Your AI Suite" sub="Tap to explore"/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-        {FEATS.filter(f=>f.id!=="nora").map(f=>(
-          <div key={f.id} onClick={()=>go(f.id)} className="lift" style={{background:f.bg,borderRadius:20,padding:"16px 14px",cursor:"pointer",position:"relative",overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,.18)"}}>
-            <div style={{position:"absolute",bottom:-20,right:-20,width:60,height:60,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
-            <div style={{width:38,height:38,borderRadius:12,background:"rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10,border:"1px solid rgba(255,255,255,.08)"}}><f.IC s={18} c={f.ic} w={1.4}/></div>
-            <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>{f.lb}</div>
-            <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.38)",marginTop:2}}>{f.sub}</div>
-          </div>
-        ))}
-      </div>
-      {aiTasks?.length>0&&<Card sx={{borderLeft:`4px solid ${T.gold}`}} ch={<div>
+      {typeof Notification!=="undefined"&&Notification.permission!=="granted"&&<div onClick={()=>go("profile")} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"12px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
+        <Ic.Bell s={18} c="#fff" w={1.5}/>
+        <div style={{flex:1}}><div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>Enable Morning Briefing</div><div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.75)"}}>Nora greets you every morning</div></div>
+        <Ic.Arrow s={16} c="rgba(255,255,255,.7)" w={1.5}/>
+      </div>}
+      {tripGoal&&<div onClick={()=>go("trips")} style={{background:`linear-gradient(135deg,#0e2a1e,#1a5a3a)`,borderRadius:16,padding:"13px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12,border:"1px solid rgba(107,158,122,.2)"}}>
+        <Tile ic={Ic.Compass} c="#C8E0CE" bg="rgba(107,158,122,.2)" s={18} ts={40} r={12}/>
+        <div style={{flex:1}}><div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Next Adventure</div><div style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:"#fff",fontWeight:400}}>{tripGoal}</div></div>
+        <Ic.Arrow s={16} c="rgba(255,255,255,.4)" w={1.5}/>
+      </div>}
+      {aiTasks?.length>0&&<Card sx={{borderLeft:`4px solid ${T.gold}`,marginBottom:12}} ch={<div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>Nora organised</span><AIBadge t={`${aiTasks.length} tasks`}/></div>
         {aiTasks.slice(0,3).map((tk,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<2?`1px solid ${T.linen}`:"none"}}>
@@ -1549,32 +1536,29 @@ function HomeScreen({go,aiTasks,profile,streak=1}){
           </div>
         ))}
       </div>}/>}
+      <H2 t="Everything else" sub="All your tools in one place"/>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+        {FEATS.map(f=>(
+          <div key={f.id} onClick={()=>go(f.id)} className="lift" style={{background:f.bg,borderRadius:18,padding:"16px 14px",cursor:"pointer",position:"relative",overflow:"hidden",boxShadow:"0 4px 16px rgba(0,0,0,.15)"}}>
+            <div style={{position:"absolute",bottom:-16,right:-16,width:50,height:50,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
+            <div style={{width:36,height:36,borderRadius:11,background:"rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10,border:"1px solid rgba(255,255,255,.08)"}}><f.IC s={17} c={f.ic} w={1.4}/></div>
+            <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>{f.lb}</div>
+            <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.38)",marginTop:2}}>{f.sub}</div>
+          </div>
+        ))}
+      </div>
       <Card ch={<div>
-        <p style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp,margin:"0 0 14px"}}>How are you today?</p>
-        <div style={{display:"flex",gap:8}}>
-          {moods.map((m,i)=>(
-            <button key={i} onClick={()=>setMood(i)} style={{flex:1,border:`2px solid ${mood===i?m.c:T.linen}`,background:mood===i?m.c+"18":T.cream,borderRadius:13,padding:"10px 0",cursor:"pointer",transition:"all .15s",display:"flex",alignItems:"center",justifyContent:"center"}}>
-              <m.IC s={18} c={mood===i?m.c:T.taupe} w={1.5}/>
-            </button>
-          ))}
-        </div>
-        {mood!==null&&<p style={{fontFamily:FB,fontSize:12,color:T.bark,margin:"10px 0 0",textAlign:"center",fontStyle:"italic"}}>{moods[mood].msg}</p>}
-      </div>}/>
-      <Card ch={<div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}><Ic.Drop s={18} c={T.sky} w={1.5}/><span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>Hydration</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}><Ic.Drop s={16} c={T.sky} w={1.5}/><span style={{fontFamily:FD,fontSize:14,fontWeight:600,color:T.esp}}>Hydration</span></div>
           <span style={{fontFamily:FB,fontSize:12,color:T.bark}}>{water}/8</span>
         </div>
-        <div style={{display:"flex",gap:5}}>
-          {Array.from({length:8},(_,i)=>(
-            <div key={i} onClick={()=>setWater(i<water?i:i+1)} style={{flex:1,height:28,borderRadius:8,cursor:"pointer",background:i<water?T.sky:T.skyP,transition:"background .15s"}}/>
-          ))}
+        <div style={{display:"flex",gap:4}}>
+          {Array.from({length:8},(_,i)=><div key={i} onClick={()=>setWater(i<water?i:i+1)} style={{flex:1,height:26,borderRadius:7,cursor:"pointer",background:i<water?T.sky:T.skyP,transition:"background .15s"}}/>)}
         </div>
       </div>}/>
     </div>
   );
 }
-
 // ═══════════════════════════════════════════════════════════════════
 // ONBOARDING
 // ═══════════════════════════════════════════════════════════════════

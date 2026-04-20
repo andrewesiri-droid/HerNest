@@ -1044,14 +1044,19 @@ function StyleScreen({profile}){
   const MOODS=["Powerful","Relaxed","Playful","Elegant","Sporty","Romantic"];
 
   const run=async(autoPrompt)=>{
-    const p=autoPrompt||prompt;
-    if(!p.trim()&&!occasion)return;
+    if(!occasion&&!mood&&!prompt.trim()&&!autoPrompt)return;
     setLoading(true);setResult(null);
-    const profileCtx=profile?`User is a ${profile.role||"working mum"}, has ${profile.kids?.length||0} kids, priorities: ${profile.priorities?.join(",")||"family,career"}.`:"";
-    const finalPrompt=autoPrompt||`${occasion?`Occasion: ${occasion}.`:""} ${mood?`Mood: ${mood}.`:""} ${p} ${profileCtx}`;
-    const sys=`You are Nora, AI personal stylist for modern mums. Return ONLY valid JSON:{"intro":"","outfits":[{"name":"","occasion":"","mood":"","items":[{"piece":"","brand":"","priceRange":"","why":"","searchQuery":""}],"totalEstimate":"","note":"","whyThisWorks":""}],"styleInsight":""}. 2-3 outfits, 3-4 items each. Include specific brands, realistic prices. whyThisWorks should be personal and specific.`;
-    try{const raw=await claude(sys,finalPrompt);setResult(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
-    catch(e){setResult({error:true});}
+    const profileCtx=profile?`User is a ${profile.role||"working mum"}, has ${(profile.kids||[]).length} kids.`:"";
+    const finalPrompt=autoPrompt||((occasion?"Occasion: "+occasion+". ":"")+(mood?"Mood: "+mood+". ":"")+prompt+" "+profileCtx).trim();
+    const sys="You are Nora, AI personal stylist for modern mums. Return ONLY valid JSON:{"intro":"","outfits":[{"name":"","occasion":"","mood":"","items":[{"piece":"","brand":"","priceRange":"","why":"","searchQuery":""}],"totalEstimate":"","note":"","whyThisWorks":""}],"styleInsight":""}. 2-3 outfits, 3-4 items each. Include specific real brands and realistic prices.";
+    try{
+      const raw=await claude(sys,finalPrompt);
+      const cleaned=raw.replace(/```json|```/g,"").trim();
+      setResult(JSON.parse(cleaned));
+    }catch(e){
+      console.log("Style error:",e);
+      setResult({error:true});
+    }
     setLoading(false);
   };
 

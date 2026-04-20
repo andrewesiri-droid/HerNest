@@ -538,13 +538,16 @@ function TripsScreen({uid,profile}){
       {/* AI Plan — full overview */}
       {plan&&!planning&&<div>
         {/* Overview */}
-        <Card sx={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",border:"none",marginBottom:10}} ch={<div>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><AIBadge t="Nora's Plan"/></div>
+        <div style={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",borderRadius:18,padding:"18px",marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <AIBadge t="Nora's Plan"/>
+            <FieldEditor value={plan.overview} dark inline onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],overview:v}}))}/>
+          </div>
           <FieldEditor value={plan.overview} dark onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],overview:v}}))}/>
           {plan.familyTip&&<div style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"8px 12px",display:"flex",gap:8}}>
             <span>👨‍👩‍👧</span><p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.75)",margin:0,lineHeight:1.5}}>{plan.familyTip}</p>
           </div>}
-        </div>}/>
+        </div>
 
         {/* Book now */}
         <div style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"14px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
@@ -679,25 +682,28 @@ function TripsScreen({uid,profile}){
   );
 }
 
-function FieldEditor({value,onChange,dark}){
+function FieldEditor({value,onChange,dark,inline}){
   const [editing,setEditing]=useState(false);
   const [val,setVal]=useState(value);
   useEffect(()=>setVal(value),[value]);
+  if(inline) return(
+    <button onClick={()=>setEditing(!editing)} style={{background:dark?"rgba(255,255,255,.15)":"rgba(0,0,0,.06)",border:"none",borderRadius:8,padding:"4px 10px",fontFamily:FB,fontSize:11,color:dark?"rgba(255,255,255,.8)":T.bark,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+      ✏️ Edit
+    </button>
+  );
   return(
-    <div style={{marginBottom:8}}>
+    <div style={{marginBottom:10}}>
+      <p style={{fontFamily:FB,fontSize:13,color:dark?"rgba(255,255,255,.8)":T.bark,margin:"0 0 8px",lineHeight:1.7}}>{val}</p>
       {editing?(
         <div>
           <textarea value={val} onChange={e=>setVal(e.target.value)} rows={3} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"8px 10px",borderRadius:10,border:`1.5px solid ${dark?"rgba(255,255,255,.3)":T.gold}`,background:dark?"rgba(255,255,255,.08)":"#fff",color:dark?"#fff":T.esp,lineHeight:1.6,resize:"none"}}/>
           <div style={{display:"flex",gap:6,marginTop:6}}>
-            <button onClick={()=>{onChange(val);setEditing(false);}} style={{background:T.sage,border:"none",borderRadius:8,padding:"5px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer"}}>Save</button>
-            <button onClick={()=>{setVal(value);setEditing(false);}} style={{background:"none",border:`1px solid ${dark?"rgba(255,255,255,.2)":T.linen}`,borderRadius:8,padding:"5px 14px",fontFamily:FB,fontSize:11,color:dark?"rgba(255,255,255,.5)":T.bark,cursor:"pointer"}}>Cancel</button>
+            <button onClick={()=>{onChange(val);setEditing(false);}} style={{background:T.sage,border:"none",borderRadius:8,padding:"6px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer"}}>Save</button>
+            <button onClick={()=>{setVal(value);setEditing(false);}} style={{background:"none",border:`1px solid ${dark?"rgba(255,255,255,.2)":T.linen}`,borderRadius:8,padding:"6px 14px",fontFamily:FB,fontSize:11,color:dark?"rgba(255,255,255,.5)":T.bark,cursor:"pointer"}}>Cancel</button>
           </div>
         </div>
       ):(
-        <div style={{display:"flex",alignItems:"flex-start",gap:8}}>
-          <p style={{fontFamily:FB,fontSize:13,color:dark?"rgba(255,255,255,.8)":T.bark,margin:0,lineHeight:1.7,flex:1}}>{val}</p>
-          <button onClick={()=>setEditing(true)} style={{background:dark?"rgba(255,255,255,.1)":T.sand,border:`1px solid ${dark?"rgba(255,255,255,.15)":T.linen}`,borderRadius:8,padding:"3px 8px",fontFamily:FB,fontSize:10,color:dark?"rgba(255,255,255,.6)":T.bark,cursor:"pointer",flexShrink:0,whiteSpace:"nowrap"}}>✏️ Edit</button>
-        </div>
+        <button onClick={()=>setEditing(true)} style={{background:dark?"rgba(255,255,255,.1)":T.sand,border:`1px solid ${dark?"rgba(255,255,255,.15)":T.linen}`,borderRadius:8,padding:"5px 12px",fontFamily:FB,fontSize:11,color:dark?"rgba(255,255,255,.6)":T.bark,cursor:"pointer"}}>✏️ Edit this section</button>
       )}
     </div>
   );

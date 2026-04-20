@@ -541,9 +541,9 @@ function TripsScreen({uid,profile}){
         <div style={{background:"linear-gradient(135deg,#1a3a2e,#2d6a54)",borderRadius:18,padding:"18px",marginBottom:10}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <AIBadge t="Nora's Plan"/>
-            <FieldEditor value={plan.overview} dark inline onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],overview:v}}))}/>
+            <button onClick={()=>{const ls=[];ls.push("✈️ "+trip.dest+" — "+trip.nights+" nights");ls.push("");(plan.highlights||[]).forEach((h,i)=>ls.push((i+1)+". "+h));ls.push("");(plan.days||[]).forEach(d=>ls.push("Day "+d.day+": "+d.title));ls.push("");(plan.budget||[]).forEach(b=>ls.push(b.cat+": "+b.amount));ls.push("");ls.push("Mum: "+(plan.packing?.Mum||[]).join(", "));ls.push("Kids: "+(plan.packing?.Kids||[]).join(", "));ls.push("HerNest ✨");const txt=ls.join("\n");if(navigator.share){navigator.share({title:trip.dest,text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{});alert("Copied to clipboard!");}}} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:10,padding:"6px 14px",fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff",cursor:"pointer"}}>📤 Share</button>
           </div>
-          <FieldEditor value={plan.overview} dark onChange={v=>setPlanData(p=>({...p,[trip.id]:{...p[trip.id],overview:v}}))}/>
+          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.8)",margin:"0 0 10px",lineHeight:1.7}}>{plan.overview}</p>
           {plan.familyTip&&<div style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"8px 12px",display:"flex",gap:8}}>
             <span>👨‍👩‍👧</span><p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.75)",margin:0,lineHeight:1.5}}>{plan.familyTip}</p>
           </div>}

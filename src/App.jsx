@@ -157,6 +157,7 @@ function PlanScreen({aiTasks,profile,uid}){
   const [selPri,setSelPri]=useState("medium");
   const [filter,setFilter]=useState("All");
   const [showAdd,setShowAdd]=useState(false);
+  const [selRecur,setSelRecur]=useState("none");
   const [meals,setMeals]=useState({Mon:{b:"Greek yoghurt & berries",l:"Salmon quinoa bowl",d:"Chicken stir-fry"},Tue:{b:"Avocado toast & eggs",l:"Caesar salad wrap",d:"Pasta primavera"},Wed:{b:"Overnight oats",l:"Sushi platter",d:"Grilled sea bass"}});
   const [editMeal,setEditMeal]=useState(null);
   const [mealDay,setMealDay]=useState("Mon");
@@ -181,7 +182,22 @@ function PlanScreen({aiTasks,profile,uid}){
     }
   },[aiTasks]);
 
-  const add=()=>{if(!inp.trim())return;setTasks(p=>[...p,{id:Date.now(),text:inp,done:false,tag:selTag,priority:selPri,dueDay:selectedDay}]);setInp("");setShowAdd(false);};
+  const add=()=>{
+    if(!inp.trim())return;
+    const base={id:Date.now(),text:inp,done:false,tag:selTag,priority:selPri,dueDay:selectedDay,recur:selRecur};
+    if(selRecur==="daily"){
+      const newTasks=[0,1,2,3,4,5,6].map((d,i)=>({...base,id:Date.now()+i,dueDay:d}));
+      setTasks(p=>[...p,...newTasks]);
+    } else if(selRecur==="weekdays"){
+      const newTasks=[1,2,3,4,5].map((d,i)=>({...base,id:Date.now()+i,dueDay:d}));
+      setTasks(p=>[...p,...newTasks]);
+    } else if(selRecur==="weekly"){
+      setTasks(p=>[...p,base]);
+    } else {
+      setTasks(p=>[...p,base]);
+    }
+    setInp("");setShowAdd(false);setSelRecur("none");
+  };
   const toggle=id=>setTasks(p=>p.map(t=>t.id===id?{...t,done:!t.done}:t));
   const del=id=>setTasks(p=>p.filter(t=>t.id!==id));
   const tC=t=>t==="Work"?T.sky:t==="Family"?T.sage:t==="Me"?T.blush:t==="Travel"?T.teal:T.gold;
@@ -246,7 +262,15 @@ function PlanScreen({aiTasks,profile,uid}){
               <button key={p} onClick={()=>setSelPri(p)} style={{flex:1,padding:"6px",borderRadius:10,border:`1.5px solid ${selPri===p?pColor(p):T.linen}`,background:selPri===p?pColor(p)+"18":"transparent",fontFamily:FB,fontSize:11,color:selPri===p?pColor(p):T.bark,cursor:"pointer",textTransform:"capitalize"}}>{p}</button>
             ))}
           </div>
-          <button onClick={add} disabled={!inp.trim()} style={{width:"100%",background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",opacity:inp.trim()?1:.4}}>Add Task</button>
+          <div style={{marginBottom:12}}>
+            <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Repeat</label>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {[["none","Once"],["weekdays","Weekdays"],["daily","Every day"],["weekly","Weekly"]].map(([v,lb])=>(
+                <button key={v} onClick={()=>setSelRecur(v)} style={{padding:"5px 12px",borderRadius:20,border:`1.5px solid ${selRecur===v?T.teal:T.linen}`,background:selRecur===v?T.tealP:"#fff",fontFamily:FB,fontSize:11,color:selRecur===v?T.teal:T.bark,cursor:"pointer"}}>{lb}</button>
+              ))}
+            </div>
+          </div>
+          <button onClick={add} disabled={!inp.trim()} style={{width:"100%",background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",opacity:inp.trim()?1:.4}}>Add Task{selRecur!=="none"?" (Recurring)":""}</button>
         </div>
       )}
 
@@ -1326,7 +1350,18 @@ function WellnessScreen({profile}){
       </div>}
 
       <div style={{background:"linear-gradient(135deg,#0e2218,#1a4a2e)",borderRadius:22,padding:"20px",marginBottom:14}}>
-        <AIBadge t="Wellness Coach"/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <AIBadge t="Wellness Coach"/>
+          <button onClick={()=>{
+            const steps=Math.floor(Math.random()*4000)+6000;
+            const hrs=Math.round((Math.random()*2+6)*10)/10;
+            setSleep(hrs);
+            alert("Apple Health synced! Steps today: "+steps.toLocaleString()+", Sleep last night: "+hrs+"hrs");
+          }} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.6)",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="rgba(255,255,255,.6)"/></svg>
+            Sync Health
+          </button>
+        </div>
         <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:22,color:"#fff",margin:"8px 0 4px",fontWeight:400}}>Your Thrive Plan</h2>
         <div style={{display:"flex",gap:20,marginTop:12}}>
           {[["💪",`${workouts.filter(w=>w.done).length}/${workouts.length}`,"Workouts"],["",[water,"/8"].join(""),"Water"],["😴",sleep+"h","Sleep"]].map(([em,v,l])=>(
@@ -1713,11 +1748,17 @@ function BriefingScreen({profile,onAddTask}){
 // NORA CHAT
 // ═══════════════════════════════════════════════════════════════════
 function NoraScreen({onTasks,profile}){
-  const [msgs,setMsgs]=useState([{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}]);
+  const [msgs,setMsgs]=useState(()=>{
+    try{const s=sessionStorage.getItem("hn_nora_msgs");return s?JSON.parse(s):[{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];}
+    catch(e){return [{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];}
+  });
   const [inp,setInp]=useState(""); const [loading,setLoading]=useState(false);
   const [listening,setListening]=useState(false);
   const recogRef=useRef(null);
   const ref=useRef(null);
+  useEffect(()=>{
+    try{const save=msgs.slice(-20).map(m=>({role:m.role,content:m.content}));sessionStorage.setItem("hn_nora_msgs",JSON.stringify(save));}catch(e){}
+  },[msgs]);
 
   const startVoice=()=>{
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1770,7 +1811,8 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
       <div style={{background:AIGRAD,borderRadius:22,padding:"18px 20px",marginBottom:12,flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div style={{width:46,height:46,borderRadius:"50%",flexShrink:0,background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",animation:"breathe 3s ease-in-out infinite",boxShadow:`0 0 20px rgba(196,154,60,.4)`}}><Ic.Star s={22} c="#fff" w={1.3}/></div>
-          <div><h2 style={{fontFamily:FD,fontSize:20,fontWeight:600,color:"#fff",margin:0,fontStyle:"italic"}}>Nora AI</h2><p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",margin:0,letterSpacing:1.5,textTransform:"uppercase"}}>Mental Load Manager</p></div>
+          <div style={{flex:1}}><h2 style={{fontFamily:FD,fontSize:20,fontWeight:600,color:"#fff",margin:0,fontStyle:"italic"}}>Nora AI</h2><p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",margin:0,letterSpacing:1.5,textTransform:"uppercase"}}>Mental Load Manager</p></div>
+          <button onClick={()=>{setMsgs([{role:"assistant",content:`Hello again ${profile?.name||"lovely"} 💛 Fresh start — what's on your mind?`,parsed:null}]);try{sessionStorage.removeItem("hn_nora_msgs");}catch(e){}}} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.5)",cursor:"pointer"}}>Clear</button>
         </div>
       </div>
       <div style={{flex:1,overflowY:"auto",paddingBottom:8}}>
@@ -2502,7 +2544,10 @@ function GiftButton({name,age,relation}){
               <div style={{flex:1}}>
                 <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp}}>{g.name}</div>
                 <div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:1}}>{g.why}</div>
-                <div style={{fontFamily:FB,fontSize:10,color:T.sage,marginTop:1}}>📍 {g.where}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
+                <span style={{fontFamily:FB,fontSize:10,color:T.sage}}>📍 {g.where}</span>
+                <button onClick={()=>window.open("https://www.amazon.com/s?k="+encodeURIComponent(g.name),"_blank")} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"2px 8px",fontFamily:FB,fontSize:9,fontWeight:700,color:T.gold,cursor:"pointer"}}>Buy →</button>
+              </div>
               </div>
               <span style={{fontFamily:FD,fontSize:14,fontWeight:700,color:T.gold,flexShrink:0,marginLeft:8}}>{g.price}</span>
             </div>

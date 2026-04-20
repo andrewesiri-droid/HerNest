@@ -507,7 +507,7 @@ function TripsScreen({uid,profile}){
 
         {/* Inline editor */}
         {editMode&&<div style={{background:"rgba(255,255,255,.08)",borderRadius:14,padding:"14px",marginTop:12,border:"1px solid rgba(255,255,255,.1)"}}>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Destination</label>
               <input value={trip.dest} onChange={e=>updateTrip("dest",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
@@ -517,17 +517,16 @@ function TripsScreen({uid,profile}){
               <input type="date" value={trip.departDate||""} onChange={e=>updateTrip("departDate",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
             <div>
               <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Nights</label>
-              <input type="number" value={trip.nights||7} onChange={e=>updateTrip("nights",parseInt(e.target.value)||7)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+              <input type="number" value={trip.nights||7} onChange={e=>updateTrip("nights",parseInt(e.target.value)||1)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"9px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
             </div>
             <div>
-              <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Travellers</label>
-              <input type="number" value={trip.travellers||2} onChange={e=>updateTrip("travellers",parseInt(e.target.value)||2)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+              <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Budget ($)</label>
+              <input type="number" value={trip.budget||5000} onChange={e=>updateTrip("budget",parseInt(e.target.value)||0)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"9px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
             </div>
           </div>
-          {/* Who is coming */}
           <div style={{marginBottom:10}}>
             <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:6}}>Who is coming</label>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
@@ -553,13 +552,6 @@ function TripsScreen({uid,profile}){
               })}
             </div>
             <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.35)",marginTop:6}}>{trip.travellers||1} traveller{(trip.travellers||1)!==1?"s":""} going</div>
-          </div>
-          <div style={{display:"none"}}>
-            <div>
-            <div>
-              <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Budget</label>
-              <input type="number" value={trip.budget||5000} onChange={e=>updateTrip("budget",parseInt(e.target.value)||5000)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
-            </div>
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
             {["Dreaming","Planning","Booked","Completed"].map(s=><button key={s} onClick={()=>updateTrip("status",s)} style={{padding:"4px 12px",borderRadius:20,border:`1px solid ${trip.status===s?"rgba(196,154,60,.8)":"rgba(255,255,255,.2)"}`,background:trip.status===s?"rgba(196,154,60,.2)":"transparent",fontFamily:FB,fontSize:11,color:trip.status===s?T.gold:"rgba(255,255,255,.5)",cursor:"pointer"}}>{s}</button>)}

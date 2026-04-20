@@ -746,7 +746,9 @@ function BudgetScreen({uid}){
     const overBudget=categories.filter(c=>c.spent>c.budget*0.9).map(c=>`${c.lb} (${Math.round((c.spent/c.budget)*100)}%)`).join(", ")||"none";
     const recentExp=expenses.slice(0,5).map(e=>`${e.cat} $${e.amount}${e.note?` (${e.note})`:""}`).join(", ");
     const ctx=`Real budget data: total budget $${totalBudget}, spent $${totalSpent} (${Math.round((totalSpent/totalBudget)*100)}%). Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name} $${savingsGoal.saved}/$${savingsGoal.target} (${Math.round((savingsGoal.saved/savingsGoal.target)*100)}%). Near budget limit: ${overBudget}. Recent expenses: ${recentExp}.`;
-    try{const raw=await claude(`You are Nora, CFO-level budget coach in HerNest. You have access to the user's REAL spending data. ${ctx} Be specific, reference her actual numbers, give actionable advice. 3-4 sentences max. Be warm but direct.`,msg,h);setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
+    const guiltFree=totalBudget-totalSpent>0?`She has $${(totalBudget-totalSpent).toLocaleString()} remaining — this is guilt-free money she CAN spend without any worry.`:"She has reached her budget this month.";
+    try{const raw=await claude(`You are Nora, a warm and supportive financial companion inside HerNest. You are NEVER judgmental about spending — money is for living. ${ctx} ${guiltFree}
+Your tone is like a brilliant, encouraging best friend who happens to be a CFO. Celebrate wins first. Never use words like "overspending", "too much" or "should cut back" — instead say things like "you have room to play with", "guilt-free spending", "you are doing great". Be specific with her numbers. 3-4 sentences max.`,msg,h);setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
     catch(e){setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"Something went quiet on my end — but your question was a great one. Give me another go in a moment. 💳"}]);}
     setLoading(false);
   };
@@ -758,7 +760,7 @@ function BudgetScreen({uid}){
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:10}}>
           <div>
             <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"0 0 4px",fontWeight:400}}>Financial Pulse</h2>
-            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:0}}>April 2026</p>
+            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:0}}>{new Date().toLocaleDateString("en-AU",{month:"long",year:"numeric"})} {totalSpent<totalBudget*0.8?"· 🎉 On track!":totalSpent<totalBudget?"· ✓ Looking good":""}</p>
           </div>
           <div style={{textAlign:"right"}}>
             <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:T.gold}}>${totalSpent.toLocaleString()}</div>
@@ -801,7 +803,11 @@ function BudgetScreen({uid}){
             </div>
           );
         })}
-        <Card sx={{background:`linear-gradient(135deg,${T.esp},#5a3a22)`,border:"none"}} ch={<div><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><Ic.Bulb s={16} c={T.gold} w={1.5}/><span style={{fontFamily:FB,fontSize:10,color:T.gold,letterSpacing:2,textTransform:"uppercase",fontWeight:700}}>CFO Tip</span></div><p style={{fontFamily:FD,fontStyle:"italic",fontSize:14,color:"rgba(255,255,255,.8)",margin:0,lineHeight:1.75}}>"Automate 20% of income to savings before spending. Your future self is your best investment."</p></div>}/>
+        <Card sx={{background:`linear-gradient(135deg,${T.esp},#5a3a22)`,border:"none"}} ch={<div>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><Ic.Bulb s={16} c={T.gold} w={1.5}/><span style={{fontFamily:FB,fontSize:10,color:T.gold,letterSpacing:2,textTransform:"uppercase",fontWeight:700}}>Nora Says</span></div>
+          <p style={{fontFamily:FD,fontStyle:"italic",fontSize:14,color:"rgba(255,255,255,.8)",margin:"0 0 14px",lineHeight:1.75}}>"You are doing better than you think. ${totalSpent>0?`You have tracked $${totalSpent.toLocaleString()} this month — that awareness alone puts you ahead of most people.`:`Start tracking your spending and watch your financial confidence grow.`}"</p>
+          <button onClick={()=>{if(window.confirm("Reset budget for a new month? This will clear your expenses."))setExpenses([]);}} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",borderRadius:10,padding:"7px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:"rgba(255,255,255,.6)",cursor:"pointer"}}>Start fresh month →</button>
+        </div>}/>
       </div>}
 
       {/* Expenses */}
@@ -880,11 +886,25 @@ function BudgetScreen({uid}){
 
       {/* Coach */}
       {activeTab==="coach"&&<div style={{animation:"slideRight .3s ease both"}}>
+
+        {/* Guilt-free spending card */}
+        {totalSpent<totalBudget&&<div style={{background:`linear-gradient(135deg,${T.sage},#4a7a5a)`,borderRadius:18,padding:"16px 18px",marginBottom:14}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+            <span style={{fontSize:28}}>✅</span>
+            <div>
+              <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Guilt-free money this month</div>
+              <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>You can spend this without any worry</div>
+            </div>
+          </div>
+          <div style={{fontFamily:FD,fontSize:36,fontWeight:700,color:"#fff",marginBottom:4}}>${(totalBudget-totalSpent).toLocaleString()}</div>
+          <div style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.6)"}}>That is ${Math.round((totalBudget-totalSpent)/30)} a day to enjoy guilt-free 💛</div>
+        </div>}
+
         <div style={{background:AIGRAD,borderRadius:18,padding:"16px",marginBottom:14}}>
-          <AIBadge t="Budget Coach"/>
-          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.6)",margin:"8px 0 0",lineHeight:1.6}}>Ask me anything about your finances. I have your full budget data.</p>
+          <AIBadge t="Financial Companion"/>
+          <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.6)",margin:"8px 0 0",lineHeight:1.6}}>I am on your side. Ask me anything — I will celebrate your wins and help you make the most of what you have.</p>
         </div>
-        {["Am I on track for Bali?","Where am I overspending?","How do I save more this month?"].map((q,i)=>(
+        {["How much can I spend guilt-free?","What are my biggest wins this month?","Help me save for my trip","What should I treat myself to?"].map((q,i)=>(
           <div key={i} onClick={()=>setInp(q)} style={{background:"#fff",border:`1px solid ${T.linen}`,borderRadius:11,padding:"9px 14px",cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",gap:8,fontFamily:FB,fontSize:12,color:T.bark}}>
             <Ic.Budget s={13} c={T.taupe} w={1.5}/>{q}
           </div>

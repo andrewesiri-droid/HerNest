@@ -601,9 +601,8 @@ function TripsScreen({uid,profile}){
 
       {/* Plan This Trip button on overview */}
       {tab==="overview"&&<button onClick={()=>{
-        const who=trip.whosComing?.join(", ")||`${trip.travellers||2} travellers`;
-        const kids=trip.whosComing?.filter(n=>n!==trip.whosComing[0])||[];
-        const autoPrompt=`${trip.dest}, ${trip.nights||7} nights, ${who}${kids.length?`, including kids`:""}${trip.departDate?`, departing ${new Date(trip.departDate).toLocaleDateString("en-AU",{month:"short",year:"numeric"})}`:""}${trip.budget?`, budget $${trip.budget.toLocaleString()}`:""}`;
+        const who=(trip.whosComing||[]).join(", ")||(String(trip.travellers||2)+" travellers");
+        const autoPrompt=String(trip.dest||"")+" "+String(trip.nights||7)+" nights, "+who+", budget $"+String(trip.budget||5000);
         setPrompt(autoPrompt);
         setTab("ai planner");
         plan(autoPrompt);

@@ -598,6 +598,15 @@ function TripsScreen({uid,profile}){
         </div>}/>
       </div>}
 
+      {/* Plan This Trip button on overview */}
+      {tab==="overview"&&<button onClick={()=>{
+        const who=trip.whosComing?.join(", ")||`${trip.travellers||2} travellers`;
+        setPrompt(`${trip.dest}, ${trip.nights||7} nights, ${who}, budget $${(trip.budget||5000).toLocaleString()}`);
+        setTab("ai planner");
+      }} style={{width:"100%",background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",color:"#fff",border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>
+        <Ic.Compass s={18} c="#fff" w={1.5}/>Plan This Trip with Nora
+      </button>}
+
       {/* Checklist tab */}
       {tab==="checklist"&&<div style={{animation:"slideRight .3s ease both"}}>
         <div style={{display:"flex",gap:8,marginBottom:12}}>

@@ -562,7 +562,13 @@ function TripsScreen({uid,profile}){
 
       {/* Tabs */}
       <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:16}}>
-        {["overview","checklist","packing","ai planner"].map(t=><Pill key={t} ch={t.charAt(0).toUpperCase()+t.slice(1)} active={tab===t} on={()=>setTab(t)} color={T.teal}/>)}
+        {["overview","checklist","packing","ai planner"].map(t=><Pill key={t} ch={t.charAt(0).toUpperCase()+t.slice(1)} active={tab===t} on={()=>{
+        setTab(t);
+        if(t==="ai planner"&&!prompt.trim()&&trip){
+          const who=trip.whosComing?.join(", ")||`${trip.travellers||2} travellers`;
+          setPrompt(`${trip.dest}, ${trip.nights||7} nights, ${who}, budget $${(trip.budget||5000).toLocaleString()}`);
+        }
+      }} color={T.teal}/>)}
       </div>
 
       {/* Overview tab */}

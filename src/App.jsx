@@ -1348,19 +1348,7 @@ function BriefingScreen({profile,onAddTask}){
 
   const shareBriefing=()=>{
     if(!data)return;
-    const txt=`My day — ${data.date}
-
-Priorities:
-${data.priorities?.map((p,i)=>`${i+1}. ${p.text}`).join("
-")}
-
-Reminders:
-${data.reminders?.map(r=>`• ${r}`).join("
-")}
-
-Nora says: "${data.affirmation}"
-
-Sent from HerNest ✨`;
+    const nl="\n";const txt="My day — "+data.date+nl+nl+"Priorities:"+nl+data.priorities?.map((p,i)=>(i+1)+". "+p.text).join(nl)+nl+nl+"Reminders:"+nl+data.reminders?.map(r=>"• "+r).join(nl)+nl+nl+'Nora says: "'+data.affirmation+'"'+nl+nl+"Sent from HerNest ✨";
     if(navigator.share){navigator.share({title:"My Day",text:txt}).catch(()=>{});}
     else{navigator.clipboard.writeText(txt).catch(()=>{});setShared(true);setTimeout(()=>setShared(false),2000);}
   };

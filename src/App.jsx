@@ -585,8 +585,8 @@ function TripsScreen({uid,profile}){
           lines.push("Everyone: "+(plan.packing?.Everyone||[]).join(", "));
           lines.push("");
           lines.push("Planned by Nora via HerNest ✨");
-          const txt=lines.join("
-");
+          const txt=lines.join("\n");
+
           if(navigator.share){navigator.share({title:trip.dest+" Trip Plan",text:txt}).catch(()=>{});}
           else{navigator.clipboard.writeText(txt).then(()=>alert("Copied to clipboard!")).catch(()=>{});}
         }} style={{width:"100%",background:"#fff",border:`1.5px solid ${T.linen}`,borderRadius:14,padding:"12px",fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14}}>

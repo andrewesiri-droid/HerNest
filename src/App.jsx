@@ -1836,6 +1836,33 @@ function HomeScreen({go,aiTasks,profile,streak=1}){
         </div>}
         {noraResp&&<button onClick={()=>go("nora")} style={{width:"100%",background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:12,padding:"9px",fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.7)",cursor:"pointer",marginTop:4}}>Continue with Nora →</button>}
       </div>
+      {/* Proactive birthday alerts */}
+      {[...(profile?.kids||[]),...(profile?.parents||[]),...(profile?.inlaws||[])].filter(p=>{
+        if(!p?.bday)return false;
+        const parts=p.bday.split("/");
+        if(parts.length!==2)return false;
+        const today=new Date();
+        const next=new Date(today.getFullYear(),parseInt(parts[0])-1,parseInt(parts[1]));
+        if(next<today)next.setFullYear(today.getFullYear()+1);
+        return Math.round((next-today)/86400000)<=7;
+      }).map((p,i)=>{
+        const today=new Date();
+        const parts=p.bday.split("/");
+        const next=new Date(today.getFullYear(),parseInt(parts[0])-1,parseInt(parts[1]));
+        if(next<today)next.setFullYear(today.getFullYear()+1);
+        const days=Math.round((next-today)/86400000);
+        return(
+          <div key={i} style={{background:`linear-gradient(135deg,${T.blush},#a85040)`,borderRadius:16,padding:"13px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:12}}>
+            <span style={{fontSize:24,flexShrink:0}}>🎂</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>{p.name} — {days===0?"TODAY!":days===1?"tomorrow":`in ${days} days`}</div>
+              <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.75)"}}>Want Nora to handle the gift?</div>
+            </div>
+            <button onClick={()=>go("profile")} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:10,padding:"7px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer",flexShrink:0}}>Gift ideas 🎁</button>
+          </div>
+        );
+      })}
+
       {typeof Notification!=="undefined"&&Notification.permission!=="granted"&&<div onClick={()=>go("profile")} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"12px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
         <Ic.Bell s={18} c="#fff" w={1.5}/>
         <div style={{flex:1}}><div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>Enable Morning Briefing</div><div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.75)"}}>Nora greets you every morning</div></div>
@@ -2203,6 +2230,22 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             </button>
           );})}
         </div>
+      </div>}/>
+
+      {/* Family Events */}
+      <Card ch={<div>
+        <H2 t="Family Events" sub="Upcoming dates Nora will remind you about"/>
+        {(local.events||[]).map((ev,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.goldP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
+            <span style={{fontSize:20,flexShrink:0}}>{ev.emoji}</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>{ev.name}</div>
+              <div style={{fontFamily:FB,fontSize:11,color:T.bark,marginTop:1}}>{ev.date}</div>
+            </div>
+            <button onClick={()=>upd("events",(local.events||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
+          </div>
+        ))}
+        <EventAdder onAdd={ev=>upd("events",[...(local.events||[]),ev])}/>
       </div>}/>
 
       {/* Goals */}

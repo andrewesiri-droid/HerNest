@@ -1401,7 +1401,7 @@ function BriefingScreen({profile,onAddTask}){
         <div key={i} style={{background:`linear-gradient(135deg,${T.blush},#a85040)`,borderRadius:14,padding:"12px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:10}}>
           <span style={{fontSize:22}}>🎂</span>
           <div style={{flex:1}}>
-            <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>{b.name}'s birthday {b.days===0?"is TODAY!":b.days===1?"is tomorrow!"`is in ${b.days} days`}</div>
+            <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>{b.name}'s birthday {b.days===0?"is TODAY!":b.days===1?"is tomorrow!":`is in ${b.days} days`}</div>
             <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.75)"}}>Don't forget to make it special 💛</div>
           </div>
         </div>

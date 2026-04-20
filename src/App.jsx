@@ -342,6 +342,9 @@ function TripsScreen({uid}){
   const [showNewTrip,setShowNewTrip]=useState(false);
   const [newDest,setNewDest]=useState("");
 
+  const [familyFilter,setFamilyFilter]=useState(true);
+  const [ageFilter,setAgeFilter]=useState("all");
+
   const trip=trips[activeTrip]||trips[0];
   const budgetPct=Math.round(((trip?.spent||0)/(trip?.budget||1))*100);
   const checkDone=(trip?.checklist||[]).filter(c=>c.done).length;
@@ -370,9 +373,6 @@ function TripsScreen({uid}){
   const addCheck=()=>{if(!newItem.trim())return;setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,checklist:[...t.checklist,{item:newItem,done:false}]}:t));setNewItem("");};
   const addPack=()=>{if(!newPack.trim())return;setTrips(p=>p.map((t,ti)=>ti===activeTrip?{...t,packing:{...t.packing,[packPerson]:[...(t.packing[packPerson]||[]),newPack]}}:t));setNewPack("");};
   const addTrip=()=>{if(!newDest.trim())return;setTrips(p=>[...p,{id:Date.now(),dest:newDest,flag:"🌍",days:90,travellers:2,budget:5000,spent:0,status:"Dreaming",checklist:[],packing:{Mum:[],Kids:[],Everyone:[]}}]);setActiveTrip(trips.length);setShowNewTrip(false);setNewDest("");};
-
-  const [familyFilter,setFamilyFilter]=useState(true);
-  const [ageFilter,setAgeFilter]=useState("all");
 
   const plan=async()=>{
     if(!prompt.trim())return;setLoading(true);setResult(null);

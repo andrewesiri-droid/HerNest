@@ -358,12 +358,43 @@ function TripsScreen({uid}){
           <Ic.Plus s={18} c="#fff" w={2}/> Add Your First Trip
         </button>
       </div>
-      {showNewTrip&&<div style={{background:"#fff",borderRadius:18,padding:"16px",border:`1.5px solid ${T.gold}`,animation:"pop .2s ease both"}}>
-        <p style={{fontFamily:FD,fontSize:16,fontWeight:600,color:T.esp,margin:"0 0 12px"}}>Where to?</p>
-        <input value={newDest} onChange={e=>setNewDest(e.target.value)} placeholder="e.g. Bali, Indonesia" style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp,marginBottom:10}}/>
+{showNewTrip&&<div style={{background:"#fff",borderRadius:18,padding:"18px",border:`1.5px solid ${T.gold}`,animation:"pop .2s ease both",marginBottom:14}}>
+        <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp,margin:"0 0 16px"}}>Plan a new trip ✈️</p>
+        <div style={{marginBottom:12}}>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Destination</label>
+          <input value={newDest} onChange={e=>setNewDest(e.target.value)} placeholder="e.g. Bali, Indonesia" style={{width:"100%",fontFamily:FB,fontSize:14,padding:"11px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp}}/>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+          <div>
+            <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Depart date</label>
+            <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp,background:"#fff"}}/>
+          </div>
+          <div>
+            <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Nights</label>
+            <input type="number" value={newNights} onChange={e=>setNewNights(parseInt(e.target.value)||7)} min={1} max={60} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp}}/>
+          </div>
+        </div>
+        <div style={{marginBottom:12}}>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Travellers</label>
+          <div style={{display:"flex",gap:6}}>
+            {[1,2,3,4,5,6].map(n=><button key={n} onClick={()=>setNewTravellers(n)} style={{flex:1,padding:"8px 0",borderRadius:10,border:`1.5px solid ${newTravellers===n?T.teal:T.linen}`,background:newTravellers===n?T.tealP:"#fff",fontFamily:FD,fontSize:15,fontWeight:700,color:newTravellers===n?T.teal:T.bark,cursor:"pointer"}}>{n}</button>)}
+          </div>
+        </div>
+        <div style={{marginBottom:12}}>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Total budget</label>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {[1000,2000,3000,5000,8000,10000,15000,20000].map(b=><button key={b} onClick={()=>setNewBudget(b)} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${newBudget===b?T.gold:T.linen}`,background:newBudget===b?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:newBudget===b?T.esp:T.bark,cursor:"pointer"}}>${b>=1000?b/1000+"k":b}</button>)}
+          </div>
+        </div>
+        <div style={{marginBottom:16}}>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Status</label>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {["Dreaming","Planning","Booked","Completed"].map(s=><button key={s} onClick={()=>setNewStatus(s)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${newStatus===s?T.gold:T.linen}`,background:newStatus===s?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:newStatus===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>)}
+          </div>
+        </div>
         <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>setShowNewTrip(false)} style={{flex:1,background:T.sand,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Cancel</button>
-          <button onClick={addTrip} style={{flex:2,background:T.esp,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>Add Trip</button>
+          <button onClick={()=>setShowNewTrip(false)} style={{flex:1,background:T.sand,border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Cancel</button>
+          <button onClick={addTrip} disabled={!newDest.trim()} style={{flex:2,background:newDest.trim()?`linear-gradient(135deg,${T.esp},#4a2e18)`:T.linen,border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,color:newDest.trim()?"#fff":T.taupe,cursor:"pointer"}}>Add Trip ✈️</button>
         </div>
       </div>}
     </div>
@@ -422,11 +453,16 @@ function TripsScreen({uid}){
           <div>
             <span style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",letterSpacing:2,textTransform:"uppercase"}}>{trip.status}</span>
             <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"4px 0 2px",fontWeight:400}}>{trip.dest}</h2>
-            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.5)",margin:0}}>{trip.travellers} travellers</p>
+            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.5)",margin:0}}>{trip.travellers} traveller{trip.travellers!==1?"s":""} · {trip.nights||trip.days||"?"} nights{trip.departDate?` · ${new Date(trip.departDate).toLocaleDateString("en-AU",{day:"numeric",month:"short"})}`:""}</p>
           </div>
-          <div style={{textAlign:"center",background:"rgba(255,255,255,.1)",borderRadius:14,padding:"10px 14px"}}>
-            <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:T.gold}}>{trip.days}</div>
-            <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase"}}>days away</div>
+          <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+            <div style={{textAlign:"center",background:"rgba(255,255,255,.1)",borderRadius:14,padding:"10px 12px"}}>
+              <div style={{fontFamily:FD,fontSize:24,fontWeight:700,color:T.gold}}>{trip.nights||trip.days||"?"}</div>
+              <div style={{fontFamily:FB,fontSize:8,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase"}}>nights</div>
+            </div>
+            <button onClick={()=>setEditMode(!editMode)} style={{width:36,height:36,borderRadius:10,background:editMode?"rgba(196,154,60,.2)":"rgba(255,255,255,.1)",border:`1px solid ${editMode?"rgba(196,154,60,.4)":"rgba(255,255,255,.15)"}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginTop:2}}>
+              <Ic.Edit s={16} c={editMode?T.gold:"rgba(255,255,255,.7)"} w={1.5}/>
+            </button>
           </div>
         </div>
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
@@ -437,6 +473,38 @@ function TripsScreen({uid}){
           <div style={{background:T.gold,borderRadius:10,height:6,width:`${budgetPct}%`,transition:"width .5s"}}/>
         </div>
         <div style={{marginTop:10,fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.5)"}}>Checklist: {checkDone}/{trip.checklist.length} items done</div>
+
+        {/* Inline editor */}
+        {editMode&&<div style={{background:"rgba(255,255,255,.08)",borderRadius:14,padding:"14px",marginTop:12,border:"1px solid rgba(255,255,255,.1)"}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+            <div>
+              <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Destination</label>
+              <input value={trip.dest} onChange={e=>updateTrip("dest",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+            </div>
+            <div>
+              <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Depart date</label>
+              <input type="date" value={trip.departDate||""} onChange={e=>updateTrip("departDate",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
+            <div>
+              <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Nights</label>
+              <input type="number" value={trip.nights||7} onChange={e=>updateTrip("nights",parseInt(e.target.value)||7)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+            </div>
+            <div>
+              <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Travellers</label>
+              <input type="number" value={trip.travellers||2} onChange={e=>updateTrip("travellers",parseInt(e.target.value)||2)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+            </div>
+            <div>
+              <label style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:4}}>Budget</label>
+              <input type="number" value={trip.budget||5000} onChange={e=>updateTrip("budget",parseInt(e.target.value)||5000)} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"8px 10px",borderRadius:9,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+            {["Dreaming","Planning","Booked","Completed"].map(s=><button key={s} onClick={()=>updateTrip("status",s)} style={{padding:"4px 12px",borderRadius:20,border:`1px solid ${trip.status===s?"rgba(196,154,60,.8)":"rgba(255,255,255,.2)"}`,background:trip.status===s?"rgba(196,154,60,.2)":"transparent",fontFamily:FB,fontSize:11,color:trip.status===s?T.gold:"rgba(255,255,255,.5)",cursor:"pointer"}}>{s}</button>)}
+          </div>
+          <button onClick={()=>{if(window.confirm("Delete this trip?"))deleteTrip();}} style={{background:"rgba(212,130,106,.15)",border:"1px solid rgba(212,130,106,.3)",borderRadius:10,padding:"6px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.blush,cursor:"pointer"}}>Delete trip</button>
+        </div>}
       </div>
 
       {/* Tabs */}

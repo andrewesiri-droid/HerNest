@@ -146,7 +146,7 @@ async function claude(sys,msg,hist=[]){
 // GOOGLE CALENDAR
 // ═══════════════════════════════════════════════════════════════════
 async function fetchGCalEvents(){
-  const token=sessionStorage.getItem("hn_gtoken");
+  const token=sessionStorage.getItem("hn_gtoken")||localStorage.getItem("hn_gtoken");
   if(!token)return null;
   const now=new Date();
   const end=new Date(now.getTime()+7*24*60*60*1000);
@@ -2314,7 +2314,7 @@ function LoginScreen({onLogin}){
       }
       const result=await signInWithPopup(auth,googleProvider);
       const cred=GoogleAuthProvider.credentialFromResult(result);
-      if(cred?.accessToken)sessionStorage.setItem("hn_gtoken",cred.accessToken);
+      if(cred?.accessToken){sessionStorage.setItem("hn_gtoken",cred.accessToken);localStorage.setItem("hn_gtoken",cred.accessToken);}
       const u=result.user;
       onLogin({uid:u.uid,email:u.email,name:u.displayName?.split(" ")[0]||"",isGoogle:true});
     }catch(e){setError("Google sign in failed. Please try again.");setLoading(false);}
@@ -3199,7 +3199,7 @@ export default function HerNest(){
     getRedirectResult(auth).then(result=>{
       if(result?.user){
         const cred=GoogleAuthProvider.credentialFromResult(result);
-        if(cred?.accessToken)sessionStorage.setItem("hn_gtoken",cred.accessToken);
+        if(cred?.accessToken){sessionStorage.setItem("hn_gtoken",cred.accessToken);localStorage.setItem("hn_gtoken",cred.accessToken);}
       }
     }).catch(()=>{});
 

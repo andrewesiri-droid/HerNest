@@ -636,8 +636,8 @@ function TripsScreen({uid,profile}){
                 </button>
               ))}
             </div>
-            <button onClick={()=>{const ls=[];ls.push("✈️ "+trip.dest+" — "+trip.nights+" nights");ls.push("");(plan.highlights||[]).forEach((h,i)=>ls.push((i+1)+". "+h));ls.push("");(plan.days||[]).forEach(d=>ls.push("Day "+d.day+": "+d.title));ls.push("");(plan.budget||[]).forEach(b=>ls.push(b.cat+": "+b.amount));const txt=ls.join("
-");if(navigator.share){navigator.share({title:trip.dest,text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{});alert("Copied!");};}} style={{width:"100%",background:"#fff",border:`1.5px solid ${T.linen}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp,cursor:"pointer"}}>
+            <button onClick={()=>{const ls=[];ls.push("✈️ "+trip.dest+" — "+trip.nights+" nights");ls.push("");(plan.highlights||[]).forEach((h,i)=>ls.push((i+1)+". "+h));ls.push("");(plan.days||[]).forEach(d=>ls.push("Day "+d.day+": "+d.title));ls.push("");(plan.budget||[]).forEach(b=>ls.push(b.cat+": "+b.amount));const txt=ls.join("\n")
+
               📤 Share trip plan
             </button>
           </div>

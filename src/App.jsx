@@ -143,6 +143,23 @@ async function claude(sys,msg,hist=[]){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// GOOGLE CALENDAR
+// ═══════════════════════════════════════════════════════════════════
+async function fetchGCalEvents(){
+  const token=sessionStorage.getItem("hn_gtoken");
+  if(!token)return null;
+  const now=new Date();
+  const end=new Date(now.getTime()+7*24*60*60*1000);
+  const url="https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin="+now.toISOString()+"&timeMax="+end.toISOString()+"&singleEvents=true&orderBy=startTime&maxResults=20";
+  try{
+    const res=await fetch(url,{headers:{Authorization:"Bearer "+token}});
+    if(!res.ok)return null;
+    const data=await res.json();
+    return (data.items||[]).map(e=>({id:e.id,title:e.summary||"Untitled",start:e.start?.dateTime||e.start?.date,end:e.end?.dateTime||e.end?.date,location:e.location||"",allDay:!e.start?.dateTime}));
+  }catch(e){return null;}
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // 1. PLAN / TASK MANAGER — fully interactive
 // ═══════════════════════════════════════════════════════════════════
 function PlanScreen({aiTasks,profile,uid}){
@@ -2166,6 +2183,23 @@ function HomeScreen({go,aiTasks,profile,streak=1}){
         );
       })}
 
+      {!calConnected&&<div onClick={connectCalendar} style={{background:"linear-gradient(135deg,#1a3a6e,#1a5a9e)",borderRadius:16,padding:"12px 16px",marginBottom:10,cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:22}}>📅</span>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>Connect Google Calendar</div>
+          <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.75)"}}>Nora reads your schedule and briefs you daily</div>
+        </div>
+        <Ic.Arrow s={16} c="rgba(255,255,255,.7)" w={1.5}/>
+      </div>}
+      {calConnected&&<div style={{background:"linear-gradient(135deg,#1a3a6e,#1a5a9e)",borderRadius:16,padding:"12px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:22}}>📅</span>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>Calendar connected · {calEvents.length} events this week ✓</div>
+          <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.75)"}}>Nora is reading your schedule</div>
+        </div>
+        <button onClick={connectCalendar} style={{background:"rgba(255,255,255,.15)",border:"none",borderRadius:8,padding:"4px 10px",fontFamily:FB,fontSize:10,color:"#fff",cursor:"pointer"}}>Refresh</button>
+      </div>}
+
       {typeof Notification!=="undefined"&&Notification.permission!=="granted"&&<div onClick={()=>go("profile")} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,borderRadius:16,padding:"12px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
         <Ic.Bell s={18} c="#fff" w={1.5}/>
         <div style={{flex:1}}><div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>Enable Morning Briefing</div><div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.75)"}}>Nora greets you every morning</div></div>
@@ -3048,6 +3082,15 @@ const TABS=[
 // ═══════════════════════════════════════════════════════════════════
 export default function HerNest(){
   const [screen,setScreen]=useState("splash");
+  const [calEvents,setCalEvents]=useState([]);
+  const [calConnected,setCalConnected]=useState(false);
+
+  const connectCalendar=async()=>{
+    const events=await fetchGCalEvents();
+    if(events){setCalEvents(events);setCalConnected(true);sessionStorage.setItem("hn_cal","1");}
+    else{alert("Could not connect. Please sign out and sign back in to grant calendar access.");}
+  };
+
   const [profile,setProfile]=useState({avatar:"👩",name:"",city:"",role:"",partner:"",kids:[],parents:[],inlaws:[],siblings:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
   const [tab,setTab]=useState("home");
   const [aiTasks,setAiTasks]=useState([]);

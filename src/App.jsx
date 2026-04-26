@@ -3252,7 +3252,7 @@ export default function HerNest(){
   };
 
   const screens={
-    home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak}/>,
+    home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>,
     brief:   <BriefingScreen profile={profile}/>,
     nora:    <NoraScreen onTasks={handleAI} profile={profile}/>,
     plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>,

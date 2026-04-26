@@ -2587,7 +2587,7 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const [saved, setSaved] = useState(false);
   const [kn, setKn] = useState("");
   const [ka, setKa] = useState("");
-  const upd = (k,v) => setLocal(p=>({...p,[k]:v}));
+  const upd = (k,v) => { setLocal(p=>{const updated={...p,[k]:v};onSave(updated);return updated;}); };
   const addKid = () => { if(!kn.trim())return; setLocal(p=>({...p,kids:[...(p.kids||[]),{name:kn,age:ka}]})); setKn(""); setKa(""); };
   const removeKid = i => setLocal(p=>({...p,kids:(p.kids||[]).filter((_,idx)=>idx!==i)}));
   const save = () => {

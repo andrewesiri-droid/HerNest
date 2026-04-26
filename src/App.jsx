@@ -2653,21 +2653,28 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               <button key={s} onClick={()=>setLocal(p=>({...p,bodyShape:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.bodyShape===s?T.blush:T.linen}`,background:local.bodyShape===s?T.blushP:"#fff",fontFamily:FB,fontSize:11,color:local.bodyShape===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
             ))}
           </div>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
-          <div>
-            <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Height</label>
-            <select value={local.height||""} onChange={e=>setLocal(p=>({...p,height:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
-              <option value="">Select</option>
-              {["Under 5'1" (155cm)","5'1"-5'3" (155-160cm)","5'3"-5'5" (160-165cm)","5'5"-5'7" (165-170cm)","5'7"-5'9" (170-175cm)","Over 5'9" (175cm+)"].map(h=><option key={h}>{h}</option>)}
-            </select>
+        <div style={{marginBottom:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark}}>Size region</label>
+            <div style={{display:"flex",gap:4}}>
+              {["US","UK","AU"].map(r=><button key={r} onClick={()=>setLocal(p=>({...p,sizeRegion:r,height:"",clothingSize:""}))} style={{padding:"4px 12px",borderRadius:20,border:`1.5px solid ${(local.sizeRegion||"US")===r?T.esp:T.linen}`,background:(local.sizeRegion||"US")===r?T.esp:"#fff",fontFamily:FB,fontSize:11,fontWeight:700,color:(local.sizeRegion||"US")===r?"#fff":T.bark,cursor:"pointer"}}>{r}</button>)}
+            </div>
           </div>
-          <div>
-            <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Clothing size</label>
-            <select value={local.clothingSize||""} onChange={e=>setLocal(p=>({...p,clothingSize:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
-              <option value="">Select</option>
-              {["US 0 / AU 6","US 2 / AU 8","US 4 / AU 10","US 6 / AU 12","US 8 / AU 14","US 10 / AU 16","US 12 / AU 18","US 14+ / AU 20+"].map(s=><option key={s}>{s}</option>)}
-            </select>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div>
+              <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Height</label>
+              <select value={local.height||""} onChange={e=>setLocal(p=>({...p,height:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+                <option value="">Select</option>
+                {{US:['Under 5'0"',"5'0\"-5'2\"","5'2\"-5'4\"","5'4\"-5'6\"","5'6\"-5'8\"","5'8\"-5'10\"","Over 5'10\""],UK:["Under 152cm","152-157cm","158-162cm","163-167cm","168-172cm","173-177cm","Over 177cm"],AU:["Under 152cm","152-157cm","158-162cm","163-167cm","168-172cm","173-177cm","Over 177cm"]}[local.sizeRegion||"US"].map(h=><option key={h}>{h}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Clothing size</label>
+              <select value={local.clothingSize||""} onChange={e=>setLocal(p=>({...p,clothingSize:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+                <option value="">Select</option>
+                {{US:["US 00","US 0","US 2","US 4","US 6","US 8","US 10","US 12","US 14","US 16+"],UK:["UK 4","UK 6","UK 8","UK 10","UK 12","UK 14","UK 16","UK 18","UK 20+"],AU:["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"]}[local.sizeRegion||"US"].map(s=><option key={s}>{s}</option>)}
+              </select>
+            </div>
           </div>
         </div>
         <div style={{marginBottom:14}}>

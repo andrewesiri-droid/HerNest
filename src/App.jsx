@@ -2672,7 +2672,7 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Clothing size</label>
               <select value={local.clothingSize||""} onChange={e=>setLocal(p=>({...p,clothingSize:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
                 <option value="">Select</option>
-                {{US:["US 00","US 0","US 2","US 4","US 6","US 8","US 10","US 12","US 14","US 16+"],UK:["UK 4","UK 6","UK 8","UK 10","UK 12","UK 14","UK 16","UK 18","UK 20+"],AU:["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"]}[local.sizeRegion||"US"].map(s=><option key={s}>{s}</option>)}
+                {(local.sizeRegion||"US")==="US"?["US 00","US 0","US 2","US 4","US 6","US 8","US 10","US 12","US 14","US 16+"].map(s=><option key={s}>{s}</option>):(local.sizeRegion||"US")==="UK"?["UK 4","UK 6","UK 8","UK 10","UK 12","UK 14","UK 16","UK 18","UK 20+"].map(s=><option key={s}>{s}</option>):["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"].map(s=><option key={s}>{s}</option>)}
               </select>
             </div>
           </div>

@@ -1954,7 +1954,8 @@ function BriefingScreen({profile,onAddTask,calEvents}){
 // ═══════════════════════════════════════════════════════════════════
 // NORA CHAT
 // ═══════════════════════════════════════════════════════════════════
-function NoraScreen({onTasks,profile}){
+function NoraScreen({onTasks,profile,calEvents,onAddTask}){
+  const [showBriefing,setShowBriefing]=useState(false);
   const [msgs,setMsgs]=useState(()=>{
     try{const s=sessionStorage.getItem("hn_nora_msgs");return s?JSON.parse(s):[{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];}
     catch(e){return [{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];}
@@ -3063,7 +3064,6 @@ const TABS=[
   {id:"budget",  lb:"Budget", IC:Ic.Budget},
   {id:"style",   lb:"Style",  IC:Ic.Hanger},
   {id:"circle",  lb:"Circle", IC:Ic.People},
-  {id:"brief",   lb:"Morning",IC:Ic.Sun,  ai:true},
   {id:"wellness",lb:"Thrive", IC:Ic.Leaf},
 ];
 
@@ -3234,7 +3234,7 @@ export default function HerNest(){
   const screens={
     home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>,
     brief:   <BriefingScreen profile={profile}/>,
-    nora:    <NoraScreen onTasks={handleAI} profile={profile}/>,
+    nora:    <NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAITasks}/>,
     plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>,
     trips:   <TripsScreen uid={user?.uid} profile={profile}/>,
     budget:  <BudgetScreen uid={user?.uid}/>,

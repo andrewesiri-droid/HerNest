@@ -15,6 +15,7 @@ const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope("https://www.googleapis.com/auth/calendar.readonly");
 
 const saveProfile = async (uid, profile) => {
   try { await setDoc(doc(db,"users",uid),{profile,updatedAt:serverTimestamp()},{merge:true}); } catch(e) {}
@@ -1710,7 +1711,7 @@ function WellnessScreen({profile}){
 // ═══════════════════════════════════════════════════════════════════
 // 7. MORNING BRIEFING — fully interactive
 // ═══════════════════════════════════════════════════════════════════
-function BriefingScreen({profile,onAddTask}){
+function BriefingScreen({profile,onAddTask,calEvents}){
   const [data,setData]=useState(null);
   const [loading,setLoading]=useState(false);
   const [checkedPriorities,setCheckedPriorities]=useState([]);
@@ -1751,11 +1752,17 @@ function BriefingScreen({profile,onAddTask}){
   const gen=async()=>{
     setLoading(true);setCheckedPriorities([]);setCheckedReminders([]);setAskResp(null);
     const bdayCtx=upcomingBdays.length?`IMPORTANT — upcoming birthdays: ${upcomingBdays.map(b=>`${b.name} in ${b.days} day${b.days===1?"":"s"}`).join(", ")}. Include a reminder about this.`:"";
+    const today=new Date().toDateString();
+    const todayEvents=(calEvents||[]).filter(e=>{
+      if(!e.start)return false;
+      return new Date(e.start).toDateString()===today;
+    });
+    const calCtx=todayEvents.length?`CALENDAR EVENTS TODAY: ${todayEvents.map(e=>{const t=e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});return `${t} - ${e.title}${e.location?` at ${e.location}`:""}`;}).join(", ")}. Include these in priorities.`:"";
     const familyCtx=`Partner: ${profile?.partner||"none"}, kids: ${profile?.kids?.map(k=>`${k.name} (${k.age||"?"})`).join(",")||"none"}, parents: ${profile?.parents?.map(p=>p.name).join(",")||"none"}, in-laws: ${profile?.inlaws?.map(p=>p.name).join(",")||"none"}`;
     const sys=`You are Nora inside HerNest. Return ONLY valid JSON no markdown:
 {"greeting":"","date":"","weatherNote":"","weatherType":"sunny|cloudy|rainy","priorities":[{"text":"","tag":"Work|Family|Me|Home"}],"reminders":["","",""],"budgetNote":"","tripNote":"","affirmation":"","energyTip":"","focusWord":""}
 5 priorities, 3-4 reminders, include energyTip and a one-word focusWord for the day (e.g. "Focus", "Rest", "Connect").`;
-    const ctx=`Name: ${profile?.name||"Sarah"}, role: ${profile?.role||"CFO"}, ${familyCtx}, trip: ${profile?.tripGoal||"none"}, fitness: ${profile?.fitnessGoal||"none"}, challenge: ${profile?.challenge||"mental load"}, priorities: ${profile?.priorities?.join(",")||"family,career,fitness"}. ${bdayCtx}`;
+    const ctx=`Name: ${profile?.name||"Sarah"}, role: ${profile?.role||"CFO"}, ${familyCtx}, trip: ${profile?.tripGoal||"none"}, fitness: ${profile?.fitnessGoal||"none"}, challenge: ${profile?.challenge||"mental load"}, priorities: ${profile?.priorities?.join(",")||"family,career,fitness"}. ${bdayCtx} ${calCtx}`;
     try{const raw=await claude(sys,ctx);setData(JSON.parse(raw.replace(/```json|```/g,"").trim()));}
     catch(e){setData({greeting:`Good morning${profile?.name?`, ${profile.name}`:""}!`,date:new Date().toLocaleDateString("en-AU",{weekday:"long",month:"long",day:"numeric"}),weatherNote:"Make today count — you've got this.",weatherType:"sunny",priorities:[{text:"Block 2hrs for deep work",tag:"Work"},{text:"School run 8:15am",tag:"Family"},{text:"30 min workout",tag:"Me"},{text:"Grocery order",tag:"Home"},{text:"Check budget",tag:"Work"}],reminders:["Check in with the kids tonight","Review tomorrow's calendar","Drink 8 glasses of water"],budgetNote:"Stay mindful of spending today.",tripNote:profile?.tripGoal?`${profile.tripGoal} — keep planning!`:"Start planning your next adventure.",affirmation:"You carry so much, so gracefully. Today, you have already won.",energyTip:"Start with your hardest task first — your energy is highest in the morning.",focusWord:"Focus"});}
     setLoading(false);

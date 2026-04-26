@@ -427,7 +427,7 @@ function TripsScreen({uid,profile}){
 
     const packingTemplate=packingNames.reduce((acc,name)=>({...acc,[name]:["","","",""]}),{});
 
-    const sys="You are Nora, expert travel concierge. Return ONLY valid JSON: {"overview":"","tripType":"","familyTip":"","highlights":["","",""],"days":[{"day":1,"title":"","plan":"","highlight":"","kidsFriendly":"","soloTip":""}],"packing":"+JSON.stringify(packingTemplate)+","checklist":["","","","","",""],"budget":[{"cat":"","amount":"","tip":""}],"bookingTips":""}";
+      const sys=`You are Nora, expert travel concierge. Return ONLY valid JSON: {"overview":"","tripType":"","familyTip":"","highlights":["","",""],"days":[{"day":1,"title":"","plan":"","highlight":"","kidsFriendly":"","soloTip":""}],"packing":${JSON.stringify(packingTemplate)},"checklist":["","","","","",""],"budget":[{"cat":"","amount":"","tip":""}],"bookingTips":""}`;
     const prompt="Plan a "+(tripData.nights||7)+" night trip to "+tripData.dest+". TRIP TYPE: "+tripType+" Total travellers: "+numTravellers+". Budget: $"+(tripData.budget||5000)+". Departure: "+(tripData.departDate||"soon")+". Make it specific, practical and exciting with real local recommendations tailored exactly to this group.";
     try{
       const raw=await claude(sys,prompt);

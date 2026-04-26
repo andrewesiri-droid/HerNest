@@ -2647,87 +2647,73 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       <Card ch={<div>
         <H2 t="Style Profile" sub="Helps Nora style you perfectly"/>
         <div style={{marginBottom:14}}>
-          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Body shape</label>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Body shape</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-            {["Hourglass","Pear","Apple","Rectangle","Petite","Plus size"].map(s=>(
-              <button key={s} onClick={()=>setLocal(p=>({...p,bodyShape:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.bodyShape===s?T.blush:T.linen}`,background:local.bodyShape===s?T.blushP:"#fff",fontFamily:FB,fontSize:11,color:local.bodyShape===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
-            ))}
+            {["Hourglass","Pear","Apple","Rectangle","Petite","Plus size"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,bodyShape:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.bodyShape===s?T.blush:T.linen}`,background:local.bodyShape===s?T.blushP:"#fff",fontFamily:FB,fontSize:11,color:local.bodyShape===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
-        <div style={{marginBottom:14}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark}}>Size region</label>
+        </div>
+        <div style={{marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark}}>Size region</label>
             <div style={{display:"flex",gap:4}}>
-              {["US","UK","AU"].map(r=><button key={r} onClick={()=>setLocal(p=>({...p,sizeRegion:r,height:"",clothingSize:""}))} style={{padding:"4px 12px",borderRadius:20,border:`1.5px solid ${(local.sizeRegion||"US")===r?T.esp:T.linen}`,background:(local.sizeRegion||"US")===r?T.esp:"#fff",fontFamily:FB,fontSize:11,fontWeight:700,color:(local.sizeRegion||"US")===r?"#fff":T.bark,cursor:"pointer"}}>{r}</button>)}
+              {["US","UK","AU"].map(r=>(<button key={r} onClick={()=>setLocal(p=>({...p,sizeRegion:r,height:"",clothingSize:""}))} style={{padding:"4px 12px",borderRadius:20,border:`1.5px solid ${(local.sizeRegion||"US")===r?T.esp:T.linen}`,background:(local.sizeRegion||"US")===r?T.esp:"#fff",fontFamily:FB,fontSize:11,fontWeight:700,color:(local.sizeRegion||"US")===r?"#fff":T.bark,cursor:"pointer"}}>{r}</button>))}
             </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
             <div>
-              <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Height</label>
+              <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:4}}>Height</label>
               <select value={local.height||""} onChange={e=>setLocal(p=>({...p,height:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
                 <option value="">Select</option>
-                  {(local.sizeRegion||"US")==="US"?["Under 5ft","5ft-5ft2","5ft2-5ft4","5ft4-5ft6","5ft6-5ft8","5ft8-5ft10","Over 5ft10"].map(h=><option key={h}>{h}</option>):["Under 152cm","152-157cm","158-162cm","163-167cm","168-172cm","173-177cm","Over 177cm"].map(h=><option key={h}>{h}</option>)}
+                {((local.sizeRegion||"US")==="US"?["Under 5ft","5ft-5ft2","5ft2-5ft4","5ft4-5ft6","5ft6-5ft8","5ft8-5ft10","Over 5ft10"]:["Under 152cm","152-157cm","158-162cm","163-167cm","168-172cm","173-177cm","Over 177cm"]).map(h=>(<option key={h}>{h}</option>))}
               </select>
             </div>
             <div>
-              <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Clothing size</label>
+              <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:4}}>Clothing size</label>
               <select value={local.clothingSize||""} onChange={e=>setLocal(p=>({...p,clothingSize:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
                 <option value="">Select</option>
-                {(local.sizeRegion||"US")==="US"?["US 00","US 0","US 2","US 4","US 6","US 8","US 10","US 12","US 14","US 16+"].map(s=><option key={s}>{s}</option>):(local.sizeRegion||"US")==="UK"?["UK 4","UK 6","UK 8","UK 10","UK 12","UK 14","UK 16","UK 18","UK 20+"].map(s=><option key={s}>{s}</option>):["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"].map(s=><option key={s}>{s}</option>)}
+                {((local.sizeRegion||"US")==="US"?["US 00","US 0","US 2","US 4","US 6","US 8","US 10","US 12","US 14","US 16+"]: (local.sizeRegion||"US")==="UK"?["UK 4","UK 6","UK 8","UK 10","UK 12","UK 14","UK 16","UK 18","UK 20+"]:["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"]).map(s=>(<option key={s}>{s}</option>))}
               </select>
             </div>
           </div>
         </div>
-        <div style={{marginBottom:14}}>
-          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Style vibe</label>
+        <div style={{marginBottom:12}}>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Style vibe</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-            {["Classic","Minimalist","Boho","Edgy","Preppy","Romantic","Sporty"].map(s=>(
-              <button key={s} onClick={()=>setLocal(p=>({...p,styleVibe:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleVibe===s?T.lav:T.linen}`,background:local.styleVibe===s?T.lavP:"#fff",fontFamily:FB,fontSize:11,color:local.styleVibe===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
-            ))}
+            {["Classic","Minimalist","Boho","Edgy","Preppy","Romantic","Sporty"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,styleVibe:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleVibe===s?T.lav:T.linen}`,background:local.styleVibe===s?T.lavP:"#fff",fontFamily:FB,fontSize:11,color:local.styleVibe===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
         </div>
-        <div style={{marginBottom:14}}>
-          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Work dress code</label>
+        <div style={{marginBottom:12}}>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Work dress code</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-            {["Corporate","Business casual","Smart casual","Creative","Casual"].map(s=>(
-              <button key={s} onClick={()=>setLocal(p=>({...p,dresscode:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.dresscode===s?T.sky:T.linen}`,background:local.dresscode===s?T.skyP:"#fff",fontFamily:FB,fontSize:11,color:local.dresscode===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
-            ))}
+            {["Corporate","Business casual","Smart casual","Creative","Casual"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,dresscode:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.dresscode===s?T.sky:T.linen}`,background:local.dresscode===s?T.skyP:"#fff",fontFamily:FB,fontSize:11,color:local.dresscode===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
         </div>
-        <div style={{marginBottom:4}}>
-          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Clothing budget/month</label>
+        <div>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Clothing budget/month</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-            {["Under $100","$100-200","$200-400","$400-600","$600+"].map(s=>(
-              <button key={s} onClick={()=>setLocal(p=>({...p,styleBudget:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleBudget===s?T.gold:T.linen}`,background:local.styleBudget===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.styleBudget===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
-            ))}
+            {["Under $100","$100-200","$200-400","$400-600","$600+"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,styleBudget:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleBudget===s?T.gold:T.linen}`,background:local.styleBudget===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.styleBudget===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
         </div>
       </div>}/>
 
-      {/* Health Profile */}
       <Card ch={<div>
-        <H2 t="Health & Wellness" sub="Helps Nora coach you better"/>
-        <div style={{marginBottom:14}}>
-          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Dietary preferences</label>
+        <H2 t="Health" sub="Helps Nora coach you better"/>
+        <div style={{marginBottom:12}}>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Dietary preferences</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-            {["No restrictions","Vegetarian","Vegan","Gluten free","Dairy free","Halal","Kosher"].map(s=>(
-              <button key={s} onClick={()=>setLocal(p=>({...p,diet:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.diet===s?T.sage:T.linen}`,background:local.diet===s?T.sageP:"#fff",fontFamily:FB,fontSize:11,color:local.diet===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
-            ))}
+            {["No restrictions","Vegetarian","Vegan","Gluten free","Dairy free","Halal","Kosher"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,diet:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.diet===s?T.sage:T.linen}`,background:local.diet===s?T.sageP:"#fff",fontFamily:FB,fontSize:11,color:local.diet===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
         </div>
-        <div style={{marginBottom:14}}>
-          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Fitness level</label>
+        <div style={{marginBottom:12}}>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Fitness level</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-            {["Just starting","1-2x per week","3-4x per week","5+ per week","Very active"].map(s=>(
-              <button key={s} onClick={()=>setLocal(p=>({...p,fitnessLevel:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.fitnessLevel===s?T.teal:T.linen}`,background:local.fitnessLevel===s?T.tealP:"#fff",fontFamily:FB,fontSize:11,color:local.fitnessLevel===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
-            ))}
+            {["Just starting","1-2x per week","3-4x per week","5+ per week","Very active"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,fitnessLevel:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.fitnessLevel===s?T.teal:T.linen}`,background:local.fitnessLevel===s?T.tealP:"#fff",fontFamily:FB,fontSize:11,color:local.fitnessLevel===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
         </div>
-        <div style={{marginBottom:4}}>
-          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Energy pattern</label>
+        <div>
+          <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Energy pattern</label>
           <div style={{display:"flex",gap:8}}>
-            {["🌅 Morning person","☀️ Mid-day","🌙 Night owl"].map(s=>(
-              <button key={s} onClick={()=>setLocal(p=>({...p,energyPattern:s}))} style={{flex:1,padding:"9px 6px",borderRadius:12,border:`1.5px solid ${local.energyPattern===s?T.gold:T.linen}`,background:local.energyPattern===s?T.goldP:"#fff",fontFamily:FB,fontSize:10,color:local.energyPattern===s?T.esp:T.bark,cursor:"pointer",textAlign:"center"}}>{s}</button>
-            ))}
+            {["Morning person","Mid-day","Night owl"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,energyPattern:s}))} style={{flex:1,padding:"9px 6px",borderRadius:12,border:`1.5px solid ${local.energyPattern===s?T.gold:T.linen}`,background:local.energyPattern===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.energyPattern===s?T.esp:T.bark,cursor:"pointer",textAlign:"center"}}>{s}</button>))}
           </div>
         </div>
       </div>}/>

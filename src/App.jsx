@@ -2267,6 +2267,8 @@ function LoginScreen({onLogin}){
     setLoading(true);setError("");
     try{
       const result=await signInWithPopup(auth,googleProvider);
+      const cred=GoogleAuthProvider.credentialFromResult(result);
+      if(cred?.accessToken)sessionStorage.setItem("hn_gtoken",cred.accessToken);
       const u=result.user;
       onLogin({uid:u.uid,email:u.email,name:u.displayName?.split(" ")[0]||"",isGoogle:true});
     }catch(e){setError("Google sign in failed. Please try again.");setLoading(false);}

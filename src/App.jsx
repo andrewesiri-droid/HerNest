@@ -2643,6 +2643,88 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         <EventAdder onAdd={ev=>upd("events",[...(local.events||[]),ev])}/>
       </div>}/>
 
+      {/* Style Profile */}
+      <Card ch={<div>
+        <H2 t="Style Profile" sub="Helps Nora style you perfectly"/>
+        <div style={{marginBottom:14}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Body shape</label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {["Hourglass","Pear","Apple","Rectangle","Petite","Plus size"].map(s=>(
+              <button key={s} onClick={()=>setLocal(p=>({...p,bodyShape:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.bodyShape===s?T.blush:T.linen}`,background:local.bodyShape===s?T.blushP:"#fff",fontFamily:FB,fontSize:11,color:local.bodyShape===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+          <div>
+            <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Height</label>
+            <select value={local.height||""} onChange={e=>setLocal(p=>({...p,height:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+              <option value="">Select</option>
+              {["Under 155cm","155-160cm","161-165cm","166-170cm","171-175cm","Over 175cm"].map(h=><option key={h}>{h}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Clothing size</label>
+            <select value={local.clothingSize||""} onChange={e=>setLocal(p=>({...p,clothingSize:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+              <option value="">Select</option>
+              {["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"].map(s=><option key={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Style vibe</label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {["Classic","Minimalist","Boho","Edgy","Preppy","Romantic","Sporty"].map(s=>(
+              <button key={s} onClick={()=>setLocal(p=>({...p,styleVibe:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleVibe===s?T.lav:T.linen}`,background:local.styleVibe===s?T.lavP:"#fff",fontFamily:FB,fontSize:11,color:local.styleVibe===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Work dress code</label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {["Corporate","Business casual","Smart casual","Creative","Casual"].map(s=>(
+              <button key={s} onClick={()=>setLocal(p=>({...p,dresscode:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.dresscode===s?T.sky:T.linen}`,background:local.dresscode===s?T.skyP:"#fff",fontFamily:FB,fontSize:11,color:local.dresscode===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:4}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Clothing budget/month</label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {["Under $100","$100-200","$200-400","$400-600","$600+"].map(s=>(
+              <button key={s} onClick={()=>setLocal(p=>({...p,styleBudget:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleBudget===s?T.gold:T.linen}`,background:local.styleBudget===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.styleBudget===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+            ))}
+          </div>
+        </div>
+      </div>}/>
+
+      {/* Health Profile */}
+      <Card ch={<div>
+        <H2 t="Health & Wellness" sub="Helps Nora coach you better"/>
+        <div style={{marginBottom:14}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Dietary preferences</label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {["No restrictions","Vegetarian","Vegan","Gluten free","Dairy free","Halal","Kosher"].map(s=>(
+              <button key={s} onClick={()=>setLocal(p=>({...p,diet:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.diet===s?T.sage:T.linen}`,background:local.diet===s?T.sageP:"#fff",fontFamily:FB,fontSize:11,color:local.diet===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Fitness level</label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {["Just starting","1-2x per week","3-4x per week","5+ per week","Very active"].map(s=>(
+              <button key={s} onClick={()=>setLocal(p=>({...p,fitnessLevel:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.fitnessLevel===s?T.teal:T.linen}`,background:local.fitnessLevel===s?T.tealP:"#fff",fontFamily:FB,fontSize:11,color:local.fitnessLevel===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:4}}>
+          <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Energy pattern</label>
+          <div style={{display:"flex",gap:8}}>
+            {["🌅 Morning person","☀️ Mid-day","🌙 Night owl"].map(s=>(
+              <button key={s} onClick={()=>setLocal(p=>({...p,energyPattern:s}))} style={{flex:1,padding:"9px 6px",borderRadius:12,border:`1.5px solid ${local.energyPattern===s?T.gold:T.linen}`,background:local.energyPattern===s?T.goldP:"#fff",fontFamily:FB,fontSize:10,color:local.energyPattern===s?T.esp:T.bark,cursor:"pointer",textAlign:"center"}}>{s}</button>
+            ))}
+          </div>
+        </div>
+      </div>}/>
+
       {/* Goals */}
       <Card ch={<div>
         <H2 t="Your Goals"/>

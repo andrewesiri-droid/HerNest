@@ -162,7 +162,7 @@ async function fetchGCalEvents(){
 // ═══════════════════════════════════════════════════════════════════
 // 1. PLAN / TASK MANAGER — fully interactive
 // ═══════════════════════════════════════════════════════════════════
-function PlanScreen({aiTasks,profile,uid}){
+function PlanScreen({aiTasks,profile,uid,calEvents}){
   const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const today=new Date();
   const [selectedDay,setSelectedDay]=useState(today.getDay());
@@ -298,6 +298,27 @@ function PlanScreen({aiTasks,profile,uid}){
       </div>
 
       {/* Tasks */}
+      {/* Calendar events for today */}
+      {(()=>{
+        const today=new Date().toDateString();
+        const todayCal=(calEvents||[]).filter(e=>e.start&&new Date(e.start).toDateString()===today);
+        if(!todayCal.length)return null;
+        return(
+          <div style={{marginBottom:14}}>
+            <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+              <span>📅</span> From your calendar today
+            </div>
+            {todayCal.map((e,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"linear-gradient(135deg,#1a3a6e11,#1a5a9e11)",borderRadius:12,padding:"10px 14px",marginBottom:6,border:"1px solid #1a5a9e22"}}>
+                <span style={{fontFamily:FB,fontSize:12,color:"#1a5a9e",fontWeight:700,flexShrink:0}}>{e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"})}</span>
+                <span style={{fontFamily:FB,fontSize:13,color:T.esp,flex:1}}>{e.title}</span>
+                {e.location&&<span style={{fontFamily:FB,fontSize:10,color:T.taupe}}>📍{e.location}</span>}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {visible.length===0?(
         <div style={{textAlign:"center",padding:"32px 20px"}}>
           <div style={{fontSize:40,marginBottom:12}}>✨</div>
@@ -3255,7 +3276,7 @@ export default function HerNest(){
     home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>,
     brief:   <BriefingScreen profile={profile}/>,
     nora:    <NoraScreen onTasks={handleAI} profile={profile}/>,
-    plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid}/>,
+    plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>,
     trips:   <TripsScreen uid={user?.uid} profile={profile}/>,
     budget:  <BudgetScreen uid={user?.uid}/>,
     style:   <StyleScreen profile={profile}/>,

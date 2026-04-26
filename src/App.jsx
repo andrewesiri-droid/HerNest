@@ -696,19 +696,54 @@ function TripsScreen({uid,profile}){
         </div>}/>}
 
         {/* Packing list */}
-        {plan.packing&&<Card ch={<div>
-          <H2 t="Packing List" sub="Everything you need"/>
-          {Object.entries(plan.packing).map(([person,items])=>(
-            <div key={person} style={{marginBottom:14}}>
-              <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:8}}>{person}</div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                {items.map((item,i)=>(
-                  <span key={i} style={{fontFamily:FB,fontSize:12,color:T.esp,background:T.sand,borderRadius:20,padding:"4px 12px",border:`1px solid ${T.linen}`}}>{item}</span>
-                ))}
+        {plan.packing&&(()=>{
+          const allItems=Object.entries(plan.packing).flatMap(([person,items])=>items.map(item=>({person,item,key:person+"-"+item})));
+          const packed=planData[trip.id]?.packedItems||[];
+          const togglePacked=(key)=>{
+            const current=planData[trip.id]?.packedItems||[];
+            const updated=current.includes(key)?current.filter(k=>k!==key):[...current,key];
+            setPlanData(p=>({...p,[trip.id]:{...p[trip.id],packedItems:updated}}));
+          };
+          const totalItems=allItems.length;
+          const packedCount=packed.length;
+          const pct=totalItems?Math.round((packedCount/totalItems)*100):0;
+          return(
+            <Card ch={<div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <H2 t="Packing List"/>
+                <span style={{fontFamily:FB,fontSize:12,color:pct===100?T.sage:T.bark,fontWeight:700}}>{packedCount}/{totalItems} packed {pct===100?"✓":""}</span>
               </div>
-            </div>
-          ))}
-        </div>}/>}
+              <div style={{background:T.linen,borderRadius:10,height:6,marginBottom:14}}>
+                <div style={{background:pct===100?T.sage:T.gold,borderRadius:10,height:6,width:pct+"%",transition:"width .3s"}}/>
+              </div>
+              {Object.entries(plan.packing).map(([person,items])=>(
+                <div key={person} style={{marginBottom:14}}>
+                  <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",color:T.bark,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                    <span>{person==="Mum"?"👩":person==="Dad"?"👨":person==="Kids"?"👧":"👜"}</span>
+                    {person}
+                    <span style={{fontFamily:FB,fontSize:10,color:T.taupe,fontWeight:400,letterSpacing:0}}>· {items.filter(item=>packed.includes(person+"-"+item)).length}/{items.length}</span>
+                  </div>
+                  {items.filter(Boolean).map((item,i)=>{
+                    const key=person+"-"+item;
+                    const isPacked=packed.includes(key);
+                    return(
+                      <div key={i} onClick={()=>togglePacked(key)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:i<items.length-1?`1px solid ${T.linen}`:"none",cursor:"pointer"}}>
+                        <div style={{width:22,height:22,borderRadius:"50%",background:isPacked?T.sage:T.linen,border:`2px solid ${isPacked?T.sage:T.taupe}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
+                          {isPacked&&<Ic.Check s={11} c="#fff" w={2.5}/>}
+                        </div>
+                        <span style={{fontFamily:FB,fontSize:13,color:isPacked?T.taupe:T.esp,textDecoration:isPacked?"line-through":"none",transition:"all .15s"}}>{item}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+              {pct===100&&<div style={{background:T.sageP,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8,marginTop:4}}>
+                <Ic.Check s={16} c={T.sage} w={2.5}/>
+                <span style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.sage}}>All packed! You're ready to go 🎉</span>
+              </div>}
+            </div>}/>
+          );
+        })()}
 
         {/* Checklist */}
         <Card ch={<div>

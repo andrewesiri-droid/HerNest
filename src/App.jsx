@@ -405,12 +405,30 @@ function TripsScreen({uid,profile}){
     const tripData=t||trip;
     if(!tripData)return;
     setPlanning(true);
-    const who=(tripData.whosComing||[]).join(", ")||`${tripData.travellers||2} travellers`;
-    const kids=(profile?.kids||[]);
-    const kidsCtx=kids.length?`Kids: ${kids.map(k=>`${k.name} (${k.age||"?"})`).join(", ")}.`:"";
-    const sys=`You are Nora, expert family travel concierge. Return ONLY valid JSON:
-{"overview":"2 sentence exciting trip summary","familyTip":"one practical family travel tip","highlights":["","",""],"days":[{"day":1,"title":"","plan":"full day description in 2 sentences","highlight":"best moment of the day","kidsFriendly":"best activity for kids"}],"packing":{"Mum":["","","","",""],"Kids":["","","","",""],"Everyone":["","","",""]},"checklist":["","","","","",""],"budget":[{"cat":"","amount":"","tip":""}],"bookingTips":"one sentence on best way to book this trip"}`;
-    const prompt=`Plan a ${tripData.nights||7} night trip to ${tripData.dest} for ${who}. ${kidsCtx} Total budget: $${tripData.budget||5000}. Departure: ${tripData.departDate||"soon"}. Make it family-friendly, practical and exciting. Include specific local recommendations.`;
+
+    // Build detailed traveller context
+    const whosComing=tripData.whosComing||[];
+    const numTravellers=whosComing.length||tripData.travellers||1;
+    const kidsOnTrip=(profile?.kids||[]).filter(k=>whosComing.includes(k.name));
+    const hasKids=kidsOnTrip.length>0;
+    const hasPartner=profile?.partner&&whosComing.includes(profile.partner);
+    const isSolo=numTravellers===1;
+    const isCouple=numTravellers===2&&hasPartner&&!hasKids;
+    const isFamily=hasKids;
+
+    const tripType=isSolo?"SOLO TRIP — plan for one person. Focus on independence, flexibility, solo dining options, safety tips, meeting other travellers.":
+      isCouple?"COUPLE TRIP — romantic and adventurous. Include couple experiences, romantic dining, shared adventures, couple-friendly accommodation.":
+      isFamily?`FAMILY TRIP with kids — plan must be completely child-friendly. Kids on trip: ${kidsOnTrip.map(k=>k.name+" age "+(k.age||"?")).join(", ")}. Include: age-appropriate activities, nap schedules, kid-friendly restaurants, family rooms, stroller access.`:
+      `GROUP TRIP for ${numTravellers} people (${whosComing.join(", ")}). Plan group activities, shared accommodation options, group dining.`;
+
+    const packingNames=isSolo?[profile?.name?.split(" ")[0]||"Me"]:
+      isFamily?["Mum",...(hasPartner?["Dad"]:[]),...(kidsOnTrip.length?["Kids"]:[])]:
+      ["Everyone"];
+
+    const packingTemplate=packingNames.reduce((acc,name)=>({...acc,[name]:["","","",""]}),{});
+
+    const sys="You are Nora, expert travel concierge. Return ONLY valid JSON: {"overview":"","tripType":"","familyTip":"","highlights":["","",""],"days":[{"day":1,"title":"","plan":"","highlight":"","kidsFriendly":"","soloTip":""}],"packing":"+JSON.stringify(packingTemplate)+","checklist":["","","","","",""],"budget":[{"cat":"","amount":"","tip":""}],"bookingTips":""}";
+    const prompt="Plan a "+(tripData.nights||7)+" night trip to "+tripData.dest+". TRIP TYPE: "+tripType+" Total travellers: "+numTravellers+". Budget: $"+(tripData.budget||5000)+". Departure: "+(tripData.departDate||"soon")+". Make it specific, practical and exciting with real local recommendations tailored exactly to this group.";
     try{
       const raw=await claude(sys,prompt);
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());

@@ -2319,14 +2319,14 @@ function Step5({data,onChange,onNext,onBack}){
         <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Height</label>
         <select value={data.height||""} onChange={e=>onChange("height",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
           <option value="">Select</option>
-          {["Under 155cm","155-160cm","161-165cm","166-170cm","171-175cm","Over 175cm"].map(h=><option key={h}>{h}</option>)}
+          {["Under 5'1" (155cm)","5'1"-5'3" (155-160cm)","5'3"-5'5" (160-165cm)","5'5"-5'7" (165-170cm)","5'7"-5'9" (170-175cm)","Over 5'9" (175cm+)"].map(h=><option key={h}>{h}</option>)}
         </select>
       </div>
       <div>
         <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Clothing size</label>
         <select value={data.clothingSize||""} onChange={e=>onChange("clothingSize",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
           <option value="">Select</option>
-          {["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"].map(s=><option key={s}>{s}</option>)}
+          {["US 0 / AU 6","US 2 / AU 8","US 4 / AU 10","US 6 / AU 12","US 8 / AU 14","US 10 / AU 16","US 12 / AU 18","US 14+ / AU 20+"].map(s=><option key={s}>{s}</option>)}
         </select>
       </div>
     </div>
@@ -2659,14 +2659,14 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Height</label>
             <select value={local.height||""} onChange={e=>setLocal(p=>({...p,height:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
               <option value="">Select</option>
-              {["Under 155cm","155-160cm","161-165cm","166-170cm","171-175cm","Over 175cm"].map(h=><option key={h}>{h}</option>)}
+              {["Under 5'1" (155cm)","5'1"-5'3" (155-160cm)","5'3"-5'5" (160-165cm)","5'5"-5'7" (165-170cm)","5'7"-5'9" (170-175cm)","Over 5'9" (175cm+)"].map(h=><option key={h}>{h}</option>)}
             </select>
           </div>
           <div>
             <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Clothing size</label>
             <select value={local.clothingSize||""} onChange={e=>setLocal(p=>({...p,clothingSize:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
               <option value="">Select</option>
-              {["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"].map(s=><option key={s}>{s}</option>)}
+              {["US 0 / AU 6","US 2 / AU 8","US 4 / AU 10","US 6 / AU 12","US 8 / AU 14","US 10 / AU 16","US 12 / AU 18","US 14+ / AU 20+"].map(s=><option key={s}>{s}</option>)}
             </select>
           </div>
         </div>

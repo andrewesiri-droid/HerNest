@@ -2590,7 +2590,11 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const upd = (k,v) => setLocal(p=>({...p,[k]:v}));
   const addKid = () => { if(!kn.trim())return; setLocal(p=>({...p,kids:[...(p.kids||[]),{name:kn,age:ka}]})); setKn(""); setKa(""); };
   const removeKid = i => setLocal(p=>({...p,kids:(p.kids||[]).filter((_,idx)=>idx!==i)}));
-  const save = () => { onSave(local); setSaved(true); setTimeout(()=>setSaved(false),2000); };
+  const save = () => {
+    onSave(local);
+    setSaved(true);
+    setTimeout(()=>setSaved(false),2000);
+  };
 
   const AVATARS = ["👩","👩🏻","👩🏼","👩🏽","👩🏾","👩🏿"];
   const ROLES = ["Working Mum","Stay-at-Home Mum","Entrepreneur","Executive","Other"];

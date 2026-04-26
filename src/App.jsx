@@ -2103,7 +2103,7 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
 // ═══════════════════════════════════════════════════════════════════
 // HOME SCREEN
 // ═══════════════════════════════════════════════════════════════════
-function HomeScreen({go,aiTasks,profile,streak=1}){
+function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCalendar,calEvents}){
   const [water,setWater]=useState(()=>{try{return parseInt(sessionStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
   const [noraInp,setNoraInp]=useState("");
   const [noraResp,setNoraResp]=useState(null);

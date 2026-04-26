@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -2307,6 +2307,11 @@ function LoginScreen({onLogin}){
   const handleGoogle=async()=>{
     setLoading(true);setError("");
     try{
+      const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if(isMobile){
+        await signInWithRedirect(auth,googleProvider);
+        return;
+      }
       const result=await signInWithPopup(auth,googleProvider);
       const cred=GoogleAuthProvider.credentialFromResult(result);
       if(cred?.accessToken)sessionStorage.setItem("hn_gtoken",cred.accessToken);

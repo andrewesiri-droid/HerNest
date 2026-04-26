@@ -301,7 +301,8 @@ function PlanScreen({aiTasks,profile,uid,calEvents}){
       {/* Calendar events for today */}
       {(()=>{
         const today=new Date().toDateString();
-        const todayCal=(calEvents||[]).filter(e=>e.start&&new Date(e.start).toDateString()===today);
+        const now=new Date();const todayStr=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+        const todayCal=(calEvents||[]).filter(e=>{if(!e.start)return false;if(e.allDay)return e.start.startsWith(todayStr);return new Date(e.start).toDateString()===now.toDateString();});
         if(!todayCal.length)return null;
         return(
           <div style={{marginBottom:14}}>
@@ -1809,9 +1810,10 @@ function BriefingScreen({profile,onAddTask,calEvents}){
     setLoading(true);setCheckedPriorities([]);setCheckedReminders([]);setAskResp(null);
     const bdayCtx=upcomingBdays.length?`IMPORTANT — upcoming birthdays: ${upcomingBdays.map(b=>`${b.name} in ${b.days} day${b.days===1?"":"s"}`).join(", ")}. Include a reminder about this.`:"";
     const today=new Date().toDateString();
-    const todayEvents=(calEvents||[]).filter(e=>{
-      if(!e.start)return false;
-      return new Date(e.start).toDateString()===today;
+    const nowB=new Date();const todayStrB=nowB.getFullYear()+"-"+String(nowB.getMonth()+1).padStart(2,"0")+"-"+String(nowB.getDate()).padStart(2,"0");
+    const todayEvents=(calEvents||[]).filter(e=>{if(!e.start)return false;if(e.allDay)return e.start.startsWith(todayStrB);return new Date(e.start).toDateString()===nowB.toDateString();});
+
+
     });
     const calCtx=todayEvents.length?`CALENDAR EVENTS TODAY: ${todayEvents.map(e=>{const t=e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});return `${t} - ${e.title}${e.location?` at ${e.location}`:""}`;}).join(", ")}. Include these in priorities.`:"";
     const familyCtx=`Partner: ${profile?.partner||"none"}, kids: ${profile?.kids?.map(k=>`${k.name} (${k.age||"?"})`).join(",")||"none"}, parents: ${profile?.parents?.map(p=>p.name).join(",")||"none"}, in-laws: ${profile?.inlaws?.map(p=>p.name).join(",")||"none"}`;

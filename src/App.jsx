@@ -2319,7 +2319,7 @@ function Step5({data,onChange,onNext,onBack}){
         <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Height</label>
         <select value={data.height||""} onChange={e=>onChange("height",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
           <option value="">Select</option>
-          {["Under 5'1" (155cm)","5'1"-5'3" (155-160cm)","5'3"-5'5" (160-165cm)","5'5"-5'7" (165-170cm)","5'7"-5'9" (170-175cm)","Over 5'9" (175cm+)"].map(h=><option key={h}>{h}</option>)}
+            {["Under 5ft","5ft 1in-5ft 3in","5ft 3in-5ft 5in","5ft 5in-5ft 7in","5ft 7in-5ft 9in","Over 5ft 9in"].map(h=><option key={h}>{h}</option>)}
         </select>
       </div>
       <div>

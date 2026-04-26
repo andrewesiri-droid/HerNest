@@ -2297,6 +2297,143 @@ function Step4({data,onChange,onFinish,onBack}){
     <div style={{display:"flex",gap:10}}><button onClick={onBack} style={{flex:1,padding:"14px",borderRadius:16,fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",background:"transparent",color:T.esp,border:`1.5px solid ${T.linen}`}}>← Back</button><button onClick={onFinish} className="lift" style={{flex:2,padding:"14px",borderRadius:16,fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",background:`linear-gradient(135deg,${T.gold},#8B6914)`,color:"#fff",border:"none"}}>Meet Nora ✨</button></div>
   </div>);}
 
+function Step5({data,onChange,onNext,onBack}){
+  return(<div style={{animation:"slideRight .4s ease both"}}>
+    <div style={{textAlign:"center",marginBottom:24}}>
+      <div style={{fontSize:44,marginBottom:12}}>👗</div>
+      <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:T.esp,margin:"0 0 6px"}}>Your style</h2>
+      <p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:0}}>Nora will style you perfectly every time</p>
+    </div>
+
+    <div style={{marginBottom:16}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Body shape</label>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {["Hourglass","Pear","Apple","Rectangle","Petite","Plus size"].map(s=>(
+          <button key={s} onClick={()=>onChange("bodyShape",s)} style={{padding:"8px 14px",borderRadius:20,border:`1.5px solid ${data.bodyShape===s?T.blush:T.linen}`,background:data.bodyShape===s?T.blushP:"#fff",fontFamily:FB,fontSize:12,color:data.bodyShape===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+      <div>
+        <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Height</label>
+        <select value={data.height||""} onChange={e=>onChange("height",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+          <option value="">Select</option>
+          {["Under 155cm","155-160cm","161-165cm","166-170cm","171-175cm","Over 175cm"].map(h=><option key={h}>{h}</option>)}
+        </select>
+      </div>
+      <div>
+        <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Clothing size</label>
+        <select value={data.clothingSize||""} onChange={e=>onChange("clothingSize",e.target.value)} style={{width:"100%",fontFamily:FB,fontSize:13,padding:"10px 12px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+          <option value="">Select</option>
+          {["AU 6","AU 8","AU 10","AU 12","AU 14","AU 16","AU 18","AU 20+"].map(s=><option key={s}>{s}</option>)}
+        </select>
+      </div>
+    </div>
+
+    <div style={{marginBottom:16}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Style vibe</label>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {["Classic","Minimalist","Boho","Edgy","Preppy","Romantic","Sporty"].map(s=>(
+          <button key={s} onClick={()=>onChange("styleVibe",s)} style={{padding:"8px 14px",borderRadius:20,border:`1.5px solid ${data.styleVibe===s?T.lav:T.linen}`,background:data.styleVibe===s?T.lavP:"#fff",fontFamily:FB,fontSize:12,color:data.styleVibe===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{marginBottom:16}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Work dress code</label>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {["Corporate","Business casual","Smart casual","Creative","Casual","Uniform"].map(s=>(
+          <button key={s} onClick={()=>onChange("dresscode",s)} style={{padding:"8px 14px",borderRadius:20,border:`1.5px solid ${data.dresscode===s?T.sky:T.linen}`,background:data.dresscode===s?T.skyP:"#fff",fontFamily:FB,fontSize:12,color:data.dresscode===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{marginBottom:20}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Favourite colours</label>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {[{lb:"Neutrals",c:"#B8A898"},{lb:"Navy",c:"#1a2a4e"},{lb:"Black",c:"#2E1F14"},{lb:"Camel",c:"#C49A3C"},{lb:"Blush",c:"#D4826A"},{lb:"Forest",c:"#1a5a3a"},{lb:"White",c:"#f5f5f5"},{lb:"Bold colours",c:"#7a3aaa"}].map(({lb,c})=>(
+          <button key={lb} onClick={()=>{const cur=data.favColours||[];onChange("favColours",cur.includes(lb)?cur.filter(x=>x!==lb):[...cur,lb]);}} style={{padding:"7px 14px",borderRadius:20,border:`1.5px solid ${(data.favColours||[]).includes(lb)?c:T.linen}`,background:(data.favColours||[]).includes(lb)?c+"22":"#fff",fontFamily:FB,fontSize:12,color:(data.favColours||[]).includes(lb)?T.esp:T.bark,cursor:"pointer"}}>{lb}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{display:"flex",gap:10}}>
+      <button onClick={onBack} style={{flex:1,padding:"14px",borderRadius:16,fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",background:"transparent",color:T.esp,border:`1.5px solid ${T.linen}`}}>← Back</button>
+      <button onClick={onNext} className="lift" style={{flex:2,padding:"14px",borderRadius:16,fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",background:`linear-gradient(135deg,${T.esp},#4a2e18)`,color:"#fff",border:"none"}}>Continue →</button>
+    </div>
+  </div>);
+}
+
+function Step6({data,onChange,onFinish,onBack}){
+  return(<div style={{animation:"slideRight .4s ease both"}}>
+    <div style={{textAlign:"center",marginBottom:24}}>
+      <div style={{fontSize:44,marginBottom:12}}>💚</div>
+      <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:T.esp,margin:"0 0 6px"}}>Health & finances</h2>
+      <p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:0}}>The more Nora knows, the better she helps</p>
+    </div>
+
+    <div style={{marginBottom:16}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Dietary preferences</label>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {["No restrictions","Vegetarian","Vegan","Gluten free","Dairy free","Halal","Kosher"].map(s=>(
+          <button key={s} onClick={()=>onChange("diet",s)} style={{padding:"8px 14px",borderRadius:20,border:`1.5px solid ${data.diet===s?T.sage:T.linen}`,background:data.diet===s?T.sageP:"#fff",fontFamily:FB,fontSize:12,color:data.diet===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{marginBottom:16}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Current fitness routine</label>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {["Just starting","1-2x per week","3-4x per week","5+ per week","Very active"].map(s=>(
+          <button key={s} onClick={()=>onChange("fitnessLevel",s)} style={{padding:"8px 14px",borderRadius:20,border:`1.5px solid ${data.fitnessLevel===s?T.teal:T.linen}`,background:data.fitnessLevel===s?T.tealP:"#fff",fontFamily:FB,fontSize:12,color:data.fitnessLevel===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{marginBottom:16}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Sleep goal (hours)</label>
+      <div style={{display:"flex",gap:8}}>
+        {["6","7","8","9"].map(h=>(
+          <button key={h} onClick={()=>onChange("sleepGoal",parseInt(h))} style={{flex:1,padding:"10px",borderRadius:12,border:`1.5px solid ${data.sleepGoal===parseInt(h)?T.lav:T.linen}`,background:data.sleepGoal===parseInt(h)?T.lavP:"#fff",fontFamily:FD,fontSize:18,fontWeight:700,color:data.sleepGoal===parseInt(h)?T.esp:T.bark,cursor:"pointer"}}>{h}h</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{marginBottom:16}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Monthly household budget</label>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {["Under $3k","$3-5k","$5-8k","$8-12k","$12k+"].map(s=>(
+          <button key={s} onClick={()=>onChange("monthlyBudget",s)} style={{padding:"8px 14px",borderRadius:20,border:`1.5px solid ${data.monthlyBudget===s?T.gold:T.linen}`,background:data.monthlyBudget===s?T.goldP:"#fff",fontFamily:FB,fontSize:12,color:data.monthlyBudget===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{marginBottom:16}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Clothing budget per month</label>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {["Under $100","$100-200","$200-400","$400-600","$600+"].map(s=>(
+          <button key={s} onClick={()=>onChange("styleBudget",s)} style={{padding:"8px 14px",borderRadius:20,border:`1.5px solid ${data.styleBudget===s?T.blush:T.linen}`,background:data.styleBudget===s?T.blushP:"#fff",fontFamily:FB,fontSize:12,color:data.styleBudget===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{marginBottom:20}}>
+      <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Energy pattern</label>
+      <div style={{display:"flex",gap:8}}>
+        {["🌅 Morning person","☀️ Mid-day","🌙 Night owl"].map(s=>(
+          <button key={s} onClick={()=>onChange("energyPattern",s)} style={{flex:1,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${data.energyPattern===s?T.gold:T.linen}`,background:data.energyPattern===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:data.energyPattern===s?T.esp:T.bark,cursor:"pointer",textAlign:"center"}}>{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <div style={{display:"flex",gap:10}}>
+      <button onClick={onBack} style={{flex:1,padding:"14px",borderRadius:16,fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",background:"transparent",color:T.esp,border:`1.5px solid ${T.linen}`}}>← Back</button>
+      <button onClick={onFinish} className="lift" style={{flex:2,padding:"14px",borderRadius:16,fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",background:`linear-gradient(135deg,${T.gold},#8B6914)`,color:"#fff",border:"none"}}>Meet Nora ✨</button>
+    </div>
+  </div>);
+}
+
 function NoraIntro({profile,onEnter}){
   const [vis,setVis]=useState(false);
   useEffect(()=>{setTimeout(()=>setVis(true),400);},[]);
@@ -2918,7 +3055,9 @@ export default function HerNest(){
           {screen==="step1"&&<Step1 data={profile} onChange={upd} onNext={()=>setScreen("step2")}/>}
           {screen==="step2"&&<Step2 data={profile} onChange={upd} onNext={()=>setScreen("step3")} onBack={()=>setScreen("step1")}/>}
           {screen==="step3"&&<Step3 data={profile} onChange={upd} onNext={()=>setScreen("step4")} onBack={()=>setScreen("step2")}/>}
-          {screen==="step4"&&<Step4 data={profile} onChange={upd} onFinish={()=>setScreen("intro")} onBack={()=>setScreen("step3")}/>}
+          {screen==="step4"&&<Step4 data={profile} onChange={upd} onFinish={()=>setScreen("step5")} onBack={()=>setScreen("step3")}/>}
+          {screen==="step5"&&<Step5 data={profile} onChange={upd} onNext={()=>setScreen("step6")} onBack={()=>setScreen("step4")}/>}
+          {screen==="step6"&&<Step6 data={profile} onChange={upd} onFinish={()=>setScreen("intro")} onBack={()=>setScreen("step5")}/>}
         </div>
       </div>
     );

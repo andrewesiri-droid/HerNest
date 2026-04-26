@@ -3040,7 +3040,7 @@ export default function HerNest(){
   if(screen==="splash") return <SplashScreen onDone={()=>setScreen("login")}/>;
   if(screen==="login")  return <LoginScreen onLogin={handleLogin}/>;
 
-  const STEPS=["step1","step2","step3","step4"];
+  const STEPS=["step1","step2","step3","step4","step5","step6"];
   if(STEPS.includes(screen)){
     const idx=STEPS.indexOf(screen);
     return(

@@ -2016,6 +2016,14 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
   };
   return(
     <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 130px)",animation:"fadeUp .4s ease both"}}>
+      {/* Morning Briefing toggle */}
+      <div onClick={()=>setShowBriefing(!showBriefing)} style={{background:"linear-gradient(135deg,#2d1a00,#5a3a10)",borderRadius:16,padding:"13px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
+        <div style={{width:38,height:38,borderRadius:11,background:"rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Ic.Sun s={20} c="#F0E2B8" w={1.4}/></div>
+        <div style={{flex:1}}><div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Morning Briefing</div><div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.5)"}}>Tap to {showBriefing?"hide":"open"} your daily brief ☀️</div></div>
+        <span style={{color:"rgba(255,255,255,.4)",fontSize:18}}>{showBriefing?"▲":"▼"}</span>
+      </div>
+      {showBriefing&&<div style={{marginBottom:12}}><BriefingScreen profile={profile} onAddTask={onAddTask} calEvents={calEvents}/></div>}
+
       <div style={{background:AIGRAD,borderRadius:22,padding:"18px 20px",marginBottom:12,flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div style={{width:46,height:46,borderRadius:"50%",flexShrink:0,background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",animation:"breathe 3s ease-in-out infinite",boxShadow:`0 0 20px rgba(196,154,60,.4)`}}><Ic.Star s={22} c="#fff" w={1.3}/></div>
@@ -3233,7 +3241,7 @@ export default function HerNest(){
 
   const screens={
     home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>,
-    brief:   <BriefingScreen profile={profile}/>,
+
     nora:    <NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAITasks}/>,
     plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>,
     trips:   <TripsScreen uid={user?.uid} profile={profile}/>,

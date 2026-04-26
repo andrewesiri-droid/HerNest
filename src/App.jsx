@@ -1048,7 +1048,7 @@ function StyleScreen({profile}){
     setLoading(true);setResult(null);
     const profileCtx=profile?`User is a ${profile.role||"working mum"}, has ${(profile.kids||[]).length} kids.`:"";
     const finalPrompt=autoPrompt||((occasion?"Occasion: "+occasion+". ":"")+(mood?"Mood: "+mood+". ":"")+prompt+" "+profileCtx).trim();
-      const sys=`You are Nora, AI personal stylist for modern mums. Return ONLY valid JSON:{"intro":"","outfits":[{"name":"","occasion":"","mood":"","items":[{"piece":"","brand":"","priceRange":"","why":"","searchQuery":""}],"totalEstimate":"","note":"","whyThisWorks":""}],"styleInsight":""}. 2-3 outfits, 3-4 items each. Include specific real brands and realistic prices.`;
+      const sys=`You are a personal stylist. Return ONLY valid JSON with no extra text: {"styleInsight":"one sentence","outfits":[{"name":"outfit name","occasion":"","mood":"","whyThisWorks":"","totalEstimate":"","note":"","items":[{"piece":"","brand":"","priceRange":"","why":"","searchQuery":""}]}]}. Return 2 outfits with 3 items each.`;
     try{
       const raw=await claude(sys,finalPrompt);
       const cleaned=raw.replace(/```json|```/g,"").trim();

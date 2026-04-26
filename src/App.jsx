@@ -3195,13 +3195,11 @@ export default function HerNest(){
   // Watch auth state
   useEffect(()=>{
     // Safety timeout — never get stuck on blank screen
-    // Handle mobile redirect result
+    // Handle mobile redirect result — just save token, let onAuthStateChanged handle navigation
     getRedirectResult(auth).then(result=>{
       if(result?.user){
         const cred=GoogleAuthProvider.credentialFromResult(result);
         if(cred?.accessToken)sessionStorage.setItem("hn_gtoken",cred.accessToken);
-        const u=result.user;
-        handleLogin({uid:u.uid,email:u.email,name:u.displayName?.split(" ")[0]||"",isGoogle:true});
       }
     }).catch(()=>{});
 

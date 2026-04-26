@@ -709,13 +709,51 @@ function FieldEditor({value,onChange,dark,inline}){
   );
 }
 
+function DestSearch({value,onChange}){
+  const POPULAR=["Bali, Indonesia","Tokyo, Japan","Paris, France","New York, USA","London, UK","Sydney, Australia","Maldives","Santorini, Greece","Dubai, UAE","Barcelona, Spain","Singapore","Phuket, Thailand","Rome, Italy","Bora Bora, French Polynesia","Cape Town, South Africa","Queenstown, New Zealand","Amalfi Coast, Italy","Kyoto, Japan","New Zealand","Hawaii, USA","Cancun, Mexico","Lisbon, Portugal","Amsterdam, Netherlands","Vienna, Austria","Prague, Czech Republic"];
+  const [suggestions,setSuggestions]=useState([]);
+  const [open,setOpen]=useState(false);
+
+  const handleChange=(val)=>{
+    onChange(val);
+    if(val.length>1){
+      const filtered=POPULAR.filter(d=>d.toLowerCase().includes(val.toLowerCase())).slice(0,6);
+      setSuggestions(filtered);
+      setOpen(filtered.length>0);
+    } else {
+      setSuggestions([]);
+      setOpen(false);
+    }
+  };
+
+  return(
+    <div style={{position:"relative",marginBottom:0}}>
+      <input
+        value={value}
+        onChange={e=>handleChange(e.target.value)}
+        onFocus={()=>value.length>1&&setOpen(true)}
+        placeholder="e.g. Bali, Indonesia"
+        style={{width:"100%",fontFamily:FB,fontSize:15,padding:"12px 14px",borderRadius:12,border:`1.5px solid ${open?T.gold:T.linen}`,color:T.esp,background:"#fff"}}
+      />
+      {open&&suggestions.length>0&&<div style={{position:"absolute",top:"100%",left:0,right:0,background:"#fff",borderRadius:12,border:`1.5px solid ${T.gold}`,boxShadow:"0 8px 24px rgba(0,0,0,.12)",zIndex:100,overflow:"hidden",marginTop:4}}>
+        {suggestions.map((s,i)=>(
+          <div key={i} onClick={()=>{onChange(s);setSuggestions([]);setOpen(false);}} style={{padding:"11px 14px",fontFamily:FB,fontSize:13,color:T.esp,cursor:"pointer",borderBottom:i<suggestions.length-1?`1px solid ${T.linen}`:"none",display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:16}}>✈️</span>
+            <span>{s}</span>
+          </div>
+        ))}
+      </div>}
+    </div>
+  );
+}
+
 function NewTripForm({profile,familyMembers,onAdd,onCancel,newDest,setNewDest,newDate,setNewDate,newNights,setNewNights,newBudget,setNewBudget,newStatus,setNewStatus,newTravellers,setNewTravellers}){
   return(
     <div style={{background:"#fff",borderRadius:18,padding:"18px",marginBottom:14,border:`1.5px solid ${T.gold}`,animation:"pop .2s ease both"}}>
       <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp,margin:"0 0 16px"}}>Plan a new trip ✈️</p>
       <div style={{marginBottom:12}}>
         <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Where to?</label>
-        <input value={newDest} onChange={e=>setNewDest(e.target.value)} placeholder="e.g. Bali, Indonesia" style={{width:"100%",fontFamily:FB,fontSize:15,padding:"12px 14px",borderRadius:12,border:`1.5px solid ${T.linen}`,color:T.esp}}/>
+        <DestSearch value={newDest} onChange={setNewDest}/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
         <div>
@@ -2996,7 +3034,6 @@ const TABS=[
   {id:"circle",  lb:"Circle", IC:Ic.People},
   {id:"brief",   lb:"Morning",IC:Ic.Sun,  ai:true},
   {id:"wellness",lb:"Thrive", IC:Ic.Leaf},
-  {id:"profile", lb:"Me",     IC:Ic.User},
 ];
 
 // ═══════════════════════════════════════════════════════════════════

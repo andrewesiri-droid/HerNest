@@ -2665,7 +2665,7 @@ function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               <label style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:6}}>Height</label>
               <select value={local.height||""} onChange={e=>setLocal(p=>({...p,height:e.target.value}))} style={{width:"100%",fontFamily:FB,fontSize:12,padding:"9px 10px",borderRadius:11,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
                 <option value="">Select</option>
-                {{US:['Under 5'0"',"5'0\"-5'2\"","5'2\"-5'4\"","5'4\"-5'6\"","5'6\"-5'8\"","5'8\"-5'10\"","Over 5'10\""],UK:["Under 152cm","152-157cm","158-162cm","163-167cm","168-172cm","173-177cm","Over 177cm"],AU:["Under 152cm","152-157cm","158-162cm","163-167cm","168-172cm","173-177cm","Over 177cm"]}[local.sizeRegion||"US"].map(h=><option key={h}>{h}</option>)}
+                  {(local.sizeRegion||"US")==="US"?["Under 5ft","5ft-5ft2","5ft2-5ft4","5ft4-5ft6","5ft6-5ft8","5ft8-5ft10","Over 5ft10"].map(h=><option key={h}>{h}</option>):["Under 152cm","152-157cm","158-162cm","163-167cm","168-172cm","173-177cm","Over 177cm"].map(h=><option key={h}>{h}</option>)}
               </select>
             </div>
             <div>

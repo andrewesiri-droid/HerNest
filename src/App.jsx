@@ -719,8 +719,8 @@ function TripsScreen({uid,profile}){
 
                 {/* Add custom item */}
                 {(()=>{
-                  const [newItem,setNewItem]=React.useState("");
-                  const [newPerson,setNewPerson]=React.useState(packingPersons[0]||"Everyone");
+                  const [newItem,setNewItem]=useState("");
+                  const [newPerson,setNewPerson]=useState(packingPersons[0]||"Everyone");
                   return(
                     <div style={{background:T.sand,borderRadius:14,padding:"12px",marginTop:8}}>
                       <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.bark,marginBottom:8}}>+ Add item</div>

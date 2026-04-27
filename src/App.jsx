@@ -676,17 +676,24 @@ function TripsScreen({uid,profile}){
         </Section>
 
         {/* Packing */}
-        <Section id="packing" title={`Packing List · ${(planData[trip.id]?.packedItems||[]).length}/${Object.values(plan.packing||{}).flat().filter(Boolean).length} packed`} emoji="🎒">
+        <Section id="packing" title={`Packing List · ${(planData[trip.id]?.packedItems||[]).length}/${Object.values(plan.packing||{}).flat().filter(Boolean).length+(planData[trip.id]?.customItems||[]).length} packed`} emoji="🎒">
           <div style={{paddingTop:14}}>
             {(()=>{
-              const allItems=Object.entries(plan.packing||{}).flatMap(([person,items])=>items.filter(Boolean).map(item=>({person,item,key:person+"-"+item})));
+              const customItems=planData[trip.id]?.customItems||[];
+              const allNormaItems=Object.entries(plan.packing||{}).flatMap(([person,items])=>items.filter(Boolean).map(item=>({person,item,key:person+"-"+item})));
+              const totalItems=allNormaItems.length+customItems.length;
               const packed=planData[trip.id]?.packedItems||[];
-              const pct=allItems.length?Math.round((packed.length/allItems.length)*100):0;
+              const pct=totalItems?Math.round((packed.length/totalItems)*100):0;
               const togglePacked=(key)=>{const cur=planData[trip.id]?.packedItems||[];const upd=cur.includes(key)?cur.filter(k=>k!==key):[...cur,key];setPlanData(p=>({...p,[trip.id]:{...p[trip.id],packedItems:upd}}));};
+              const addCustomItem=(item,person)=>{if(!item.trim())return;const key=person+"-"+item+"-custom";setPlanData(p=>({...p,[trip.id]:{...p[trip.id],customItems:[...(p[trip.id]?.customItems||[]),{item,person,key}]}}));};
+              const removeCustomItem=(key)=>{setPlanData(p=>({...p,[trip.id]:{...p[trip.id],customItems:(p[trip.id]?.customItems||[]).filter(i=>i.key!==key),packedItems:(p[trip.id]?.packedItems||[]).filter(k=>k!==key)}}));};
+              const packingPersons=[...Object.keys(plan.packing||{})];
+
               return(<>
                 <div style={{background:T.linen,borderRadius:10,height:6,marginBottom:14}}>
                   <div style={{background:pct===100?T.sage:T.gold,borderRadius:10,height:6,width:pct+"%",transition:"width .3s"}}/>
                 </div>
+
                 {Object.entries(plan.packing||{}).map(([person,items])=>(
                   <div key={person} style={{marginBottom:14}}>
                     <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",color:T.bark,marginBottom:8}}>{person==="Mum"?"👩":person==="Dad"?"👨":person==="Kids"?"👧":"👜"} {person}</div>
@@ -695,12 +702,46 @@ function TripsScreen({uid,profile}){
                       const isPacked=packed.includes(key);
                       return(<div key={i} onClick={()=>togglePacked(key)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<items.length-1?`1px solid ${T.linen}`:"none",cursor:"pointer"}}>
                         <div style={{width:22,height:22,borderRadius:"50%",background:isPacked?T.sage:T.linen,border:`2px solid ${isPacked?T.sage:T.taupe}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>{isPacked&&<Ic.Check s={11} c="#fff" w={2.5}/>}</div>
-                        <span style={{fontFamily:FB,fontSize:13,color:isPacked?T.taupe:T.esp,textDecoration:isPacked?"line-through":"none"}}>{item}</span>
+                        <span style={{fontFamily:FB,fontSize:13,color:isPacked?T.taupe:T.esp,textDecoration:isPacked?"line-through":"none",flex:1}}>{item}</span>
+                      </div>);
+                    })}
+                    {/* Custom items for this person */}
+                    {customItems.filter(ci=>ci.person===person).map((ci,i)=>{
+                      const isPacked=packed.includes(ci.key);
+                      return(<div key={ci.key} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderTop:`1px solid ${T.linen}`}}>
+                        <div onClick={()=>togglePacked(ci.key)} style={{width:22,height:22,borderRadius:"50%",background:isPacked?T.sage:T.linen,border:`2px solid ${isPacked?T.sage:T.taupe}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,cursor:"pointer",transition:"all .15s"}}>{isPacked&&<Ic.Check s={11} c="#fff" w={2.5}/>}</div>
+                        <span onClick={()=>togglePacked(ci.key)} style={{fontFamily:FB,fontSize:13,color:isPacked?T.taupe:T.esp,textDecoration:isPacked?"line-through":"none",flex:1,cursor:"pointer"}}>{ci.item} <span style={{fontSize:10,color:T.taupe}}>✏️</span></span>
+                        <button onClick={()=>removeCustomItem(ci.key)} style={{background:"none",border:"none",cursor:"pointer",padding:4,flexShrink:0}}><Ic.Close s={12} c={T.taupe} w={2}/></button>
                       </div>);
                     })}
                   </div>
                 ))}
-                {pct===100&&<div style={{background:T.sageP,borderRadius:12,padding:"10px 14px",display:"flex",gap:8}}><Ic.Check s={16} c={T.sage} w={2.5}/><span style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.sage}}>All packed! Ready to go 🎉</span></div>}
+
+                {/* Add custom item */}
+                {(()=>{
+                  const [newItem,setNewItem]=React.useState("");
+                  const [newPerson,setNewPerson]=React.useState(packingPersons[0]||"Everyone");
+                  return(
+                    <div style={{background:T.sand,borderRadius:14,padding:"12px",marginTop:8}}>
+                      <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.bark,marginBottom:8}}>+ Add item</div>
+                      <div style={{display:"flex",gap:6,marginBottom:8}}>
+                        {packingPersons.map(p=>(
+                          <button key={p} onClick={()=>setNewPerson(p)} style={{flex:1,padding:"5px",borderRadius:10,border:`1.5px solid ${newPerson===p?T.gold:T.linen}`,background:newPerson===p?T.goldP:"#fff",fontFamily:FB,fontSize:10,fontWeight:700,color:newPerson===p?T.esp:T.bark,cursor:"pointer"}}>
+                            {p==="Mum"?"👩":p==="Dad"?"👨":p==="Kids"?"👧":"👜"} {p}
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{display:"flex",gap:8}}>
+                        <input value={newItem} onChange={e=>setNewItem(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&newItem.trim()){addCustomItem(newItem,newPerson);setNewItem("");}}} placeholder="e.g. Sunscreen SPF50" style={{flex:1,fontFamily:FB,fontSize:13,padding:"9px 12px",borderRadius:10,border:`1.5px solid ${T.linen}`,color:T.esp,background:"#fff"}}/>
+                        <button onClick={()=>{if(newItem.trim()){addCustomItem(newItem,newPerson);setNewItem("");}}} style={{background:T.esp,border:"none",borderRadius:10,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                          <Ic.Plus s={18} c="#fff" w={2}/>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {pct===100&&<div style={{background:T.sageP,borderRadius:12,padding:"10px 14px",display:"flex",gap:8,marginTop:10}}><Ic.Check s={16} c={T.sage} w={2.5}/><span style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.sage}}>All packed! Ready to go 🎉</span></div>}
               </>);
             })()}
           </div>

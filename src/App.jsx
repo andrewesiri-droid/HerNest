@@ -48,7 +48,10 @@ gs.textContent = `
   @keyframes slideRight{from{opacity:0;transform:translateX(28px);}to{opacity:1;transform:translateX(0);}}
   @keyframes pop{0%{transform:scale(.9);opacity:0;}100%{transform:scale(1);opacity:1;}}
   @keyframes tabIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-  .lift{transition:transform .18s,box-shadow .18s;}
+  .lift{transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease;}
+  .lift:active{transform:scale(.96);box-shadow:0 1px 6px rgba(0,0,0,.1);}
+  input:focus{border-color:#C49A3C !important;box-shadow:0 0 0 3px rgba(196,154,60,.12) !important;}
+  button{-webkit-tap-highlight-color:transparent;}
   .lift:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.12)!important;}
   .tab-content{animation:tabIn .22s ease both;}
   input:focus,textarea:focus{border-color:#C49A3C!important;outline:none;}
@@ -3634,7 +3637,7 @@ export default function HerNest(){
       <div key={tab} style={{padding:"14px 16px 110px",overflowY:"auto",maxHeight:"calc(100vh - 112px)"}} className="tab-content">
         {screens[tab]}
       </div>
-      <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(250,246,239,.97)",backdropFilter:"blur(20px)",borderTop:`1px solid ${T.linen}`,display:"flex",overflowX:"auto",padding:"8px 4px 16px",scrollbarWidth:"none",zIndex:100}}>
+      <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(255,252,248,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderTop:`1px solid rgba(229,217,201,.8)`,display:"flex",overflowX:"auto",padding:"8px 4px 16px",scrollbarWidth:"none",zIndex:100,boxShadow:"0 -4px 24px rgba(46,31,20,.06)"}}>
         {TABS.map(t=>{
           const active=tab===t.id;
           return(

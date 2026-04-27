@@ -724,11 +724,12 @@ function TripsScreen({uid,profile}){
                     {items.filter(Boolean).map((item,i)=>{
                       const key=person+"-"+item;
                       const isPacked=packed.includes(key);
-                      return(<div key={i} onClick={()=>togglePacked(key)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<items.length-1?`1px solid ${T.linen}`:"none",cursor:"pointer"}}>
-                        <div style={{width:22,height:22,borderRadius:"50%",background:isPacked?T.sage:T.linen,border:`2px solid ${isPacked?T.sage:T.taupe}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>{isPacked&&<Ic.Check s={11} c="#fff" w={2.5}/>}</div>
-                        <span style={{fontFamily:FB,fontSize:13,color:isPacked?T.taupe:T.esp,textDecoration:isPacked?"line-through":"none",flex:1}}>{item}</span>
+                      return(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<items.length-1?`1px solid ${T.linen}`:"none"}}>
+                        <div onClick={()=>togglePacked(key)} style={{width:22,height:22,borderRadius:"50%",background:isPacked?T.sage:T.linen,border:`2px solid ${isPacked?T.sage:T.taupe}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s",cursor:"pointer"}}>{isPacked&&<Ic.Check s={11} c="#fff" w={2.5}/>}</div>
+                        <span onClick={()=>togglePacked(key)} style={{fontFamily:FB,fontSize:13,color:isPacked?T.taupe:T.esp,textDecoration:isPacked?"line-through":"none",flex:1,cursor:"pointer"}}>{item}</span>
+                        <button onClick={()=>{const cur=planData[trip.id]?.removedItems||[];setPlanData(p=>({...p,[trip.id]:{...p[trip.id],removedItems:[...cur,key]}}));}} style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:.4}}><Ic.Close s={12} c={T.bark} w={2}/></button>
                       </div>);
-                    })}
+                    }).filter((_,i)=>!(planData[trip.id]?.removedItems||[]).includes(person+"-"+items.filter(Boolean)[i]))}
                     {/* Custom items for this person */}
                     {customItems.filter(ci=>ci.person===person).map((ci,i)=>{
                       const isPacked=packed.includes(ci.key);

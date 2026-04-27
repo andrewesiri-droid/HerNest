@@ -400,7 +400,7 @@ function PlanScreen({aiTasks,profile,uid,calEvents}){
         </div>
         <Card ch={
           <div>
-            {[["🌅","Breakfast",meals[mealDay]?.b||""],["☀️","Lunch",meals[mealDay]?.l||""],["🌙","Dinner",meals[mealDay]?.d||""]].map(([em,lb,val])=>(
+            {[["sunrise","Breakfast",meals[mealDay]?.b||""],["bowl","Lunch",meals[mealDay]?.l||""],["candle","Dinner",meals[mealDay]?.d||""]].map(([em,lb,val])=>(
               <div key={lb} style={{display:"flex",gap:12,alignItems:"center",padding:"10px 0",borderBottom:lb!=="Dinner"?`1px solid ${T.linen}`:"none"}}>
                 <span style={{fontSize:18,flexShrink:0}}>{em}</span>
                 <div style={{flex:1}}>
@@ -535,7 +535,7 @@ function TripsScreen({uid,profile}){
     <div style={{animation:"fadeUp .45s ease both"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
         <div>
-          <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:T.esp,margin:0,fontWeight:400}}>My Trips ✈️</h2>
+          <div style={{display:"flex",alignItems:"center",gap:8}}><Ic.Plane s={20} c={T.esp} w={1.5}/><h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:T.esp,margin:0,fontWeight:400}}>My Trips</h2></div>
           <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"4px 0 0"}}>{trips.length} {trips.length===1?"trip":"trips"} planned</p>
         </div>
         <button onClick={()=>setShowNewTrip(true)} style={{background:`linear-gradient(135deg,${T.gold},#8B6914)`,color:"#fff",border:"none",borderRadius:13,padding:"10px 16px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
@@ -558,7 +558,7 @@ function TripsScreen({uid,profile}){
         return(
           <div key={t.id} onClick={()=>{setActiveTrip(i);setOpenSection("overview");}} style={{background:"#fff",borderRadius:18,padding:"16px",marginBottom:12,border:`1px solid ${T.linen}`,cursor:"pointer",boxShadow:"0 2px 12px rgba(0,0,0,.06)",transition:"all .15s"}}>
             <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
-              <div style={{width:52,height:52,borderRadius:14,background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:24}}>{t.flag||"🌍"}</div>
+              <div style={{width:52,height:52,borderRadius:14,background:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Ic.Globe s={26} c="rgba(255,255,255,.9)" w={1.3}/></div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                   <h3 style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp,margin:0,fontWeight:400}}>{t.dest}</h3>
@@ -586,7 +586,7 @@ function TripsScreen({uid,profile}){
   const Section=({id,title,emoji,children})=>(
     <div style={{background:"#fff",borderRadius:18,marginBottom:10,border:`1px solid ${T.linen}`,overflow:"hidden"}}>
       <div onClick={()=>setOpenSection(openSection===id?null:id)} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",cursor:"pointer"}}>
-        <span style={{fontSize:20}}>{emoji}</span>
+        <div style={{width:32,height:32,borderRadius:9,background:T.sand,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{typeof emoji==="string"?<span style={{fontSize:16}}>{emoji}</span>:emoji}</div>
         <span style={{fontFamily:FB,fontSize:14,fontWeight:700,color:T.esp,flex:1}}>{title}</span>
         <span style={{fontSize:18,color:T.taupe,transform:openSection===id?"rotate(180deg)":"rotate(0)",transition:"transform .2s"}}>⌄</span>
       </div>
@@ -689,7 +689,7 @@ function TripsScreen({uid,profile}){
       {/* Collapsible sections */}
       {plan&&!planning&&<>
         {/* Overview */}
-        <Section id="overview" title="Trip Overview" emoji="🗺️">
+        <Section id="overview" title="Trip Overview" emoji={<Ic.Map s={18} c={T.esp} w={1.5}/>}>
           <div style={{paddingTop:14}}>
             <p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"0 0 12px",lineHeight:1.7}}>{plan.overview}</p>
             {plan.familyTip&&<div style={{background:T.sageP,borderRadius:12,padding:"10px 14px",display:"flex",gap:8,marginBottom:12}}>
@@ -1419,14 +1419,14 @@ function StyleScreen({profile}){
   useEffect(()=>{try{sessionStorage.setItem("hn_outfits",JSON.stringify(savedOutfits));}catch(e){};},[savedOutfits]);
 
   const OCCASIONS=[
-    {lb:"Board meeting",emoji:"👔"},
-    {lb:"School run",emoji:"🚗"},
-    {lb:"Date night",emoji:"✨"},
-    {lb:"Weekend casual",emoji:"☀️"},
-    {lb:"Gym",emoji:"💪"},
-    {lb:"Girls dinner",emoji:"🥂"},
-    {lb:"Holiday",emoji:"🌴"},
-    {lb:"Working from home",emoji:"💻"},
+    {lb:"Board meeting",ic:<Ic.Budget s={14} c="currentColor" w={1.5}/>},
+    {lb:"School run",ic:<Ic.People s={14} c="currentColor" w={1.5}/>},
+    {lb:"Date night",ic:<Ic.Star s={14} c="currentColor" w={1.5}/>},
+    {lb:"Weekend casual",ic:<Ic.Leaf s={14} c="currentColor" w={1.5}/>},
+    {lb:"Gym",ic:<Ic.Dumbbell s={14} c="currentColor" w={1.5}/>},
+    {lb:"Girls dinner",ic:<Ic.Fork s={14} c="currentColor" w={1.5}/>},
+    {lb:"Holiday",ic:<Ic.Compass s={14} c="currentColor" w={1.5}/>},
+    {lb:"Working from home",ic:<Ic.Plan s={14} c="currentColor" w={1.5}/>},
   ];
   const MOODS=["Powerful","Relaxed","Playful","Elegant","Sporty","Romantic"];
 
@@ -1480,9 +1480,9 @@ function StyleScreen({profile}){
           <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:10}}>What's the occasion?</div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
             {OCCASIONS.map(o=>(
-              <button key={o.lb} onClick={()=>{setOccasion(occasion===o.lb?"":o.lb);}} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 12px",borderRadius:20,border:`1.5px solid ${occasion===o.lb?T.blush:T.linen}`,background:occasion===o.lb?T.blushP:"#fff",cursor:"pointer",transition:"all .15s"}}>
-                <span style={{fontSize:14}}>{o.emoji}</span>
-                <span style={{fontFamily:FB,fontSize:12,color:occasion===o.lb?T.esp:T.bark,fontWeight:occasion===o.lb?700:400}}>{o.lb}</span>
+              <button key={o.lb} onClick={()=>{setOccasion(occasion===o.lb?"":o.lb);}} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 12px",borderRadius:20,border:`1.5px solid ${occasion===o.lb?T.blush:T.linen}`,background:occasion===o.lb?T.blushP:"#fff",cursor:"pointer",transition:"all .15s",color:occasion===o.lb?T.esp:T.bark}}>
+                {o.ic}
+                <span style={{fontFamily:FB,fontSize:12,fontWeight:occasion===o.lb?700:400}}>{o.lb}</span>
               </button>
             ))}
           </div>

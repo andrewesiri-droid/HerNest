@@ -406,7 +406,7 @@ function PlanScreen({aiTasks,profile,uid,calEvents}){
         </div>
         <Card ch={
           <div>
-            {[["sunrise","Breakfast",meals[mealDay]?.b||""],["bowl","Lunch",meals[mealDay]?.l||""],["candle","Dinner",meals[mealDay]?.d||""]].map(([em,lb,val])=>(
+            {[["b","Breakfast",meals[mealDay]?.b||""],["l","Lunch",meals[mealDay]?.l||""],["d","Dinner",meals[mealDay]?.d||""]].map(([em,lb,val])=>(
               <div key={lb} style={{display:"flex",gap:12,alignItems:"center",padding:"10px 0",borderBottom:lb!=="Dinner"?`1px solid ${T.linen}`:"none"}}>
                 <span style={{fontSize:18,flexShrink:0}}>{em}</span>
                 <div style={{flex:1}}>

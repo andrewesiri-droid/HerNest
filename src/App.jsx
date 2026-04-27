@@ -187,8 +187,8 @@ function PlanScreen({aiTasks,profile,uid,calEvents}){
     setGeneratingMeals(true);
     const diet=profile?.diet||"No restrictions";
     const kids=(profile?.kids||[]).length;
-    const sys=`You are a nutritionist and meal planner. Return ONLY valid JSON: {"meals":{"Mon":{"b":"","l":"","d":""},"Tue":{"b":"","l":"","d":""},"Wed":{"b":"","l":"","d":""},"Thu":{"b":"","l":"","d":""},"Fri":{"b":"","l":"","d":""},"Sat":{"b":"","l":"","d":""},"Sun":{"b":"","l":"","d":""}},"shoppingList":["item 1","item 2"]}. b=breakfast, l=lunch, d=dinner. Keep meals practical for a busy mum.`;
-    const prompt=`Create a practical 7-day meal plan. Diet: ${diet}. ${kids>0?`Family with ${kids} kids — include kid-friendly options.`:""} Focus on quick, nutritious meals. Include a consolidated shopping list of all ingredients needed.`;
+    const sys=`Meal planner. Return ONLY valid JSON, no extra text: {"meals":{"Mon":{"b":"","l":"","d":""},"Tue":{"b":"","l":"","d":""},"Wed":{"b":"","l":"","d":""},"Thu":{"b":"","l":"","d":""},"Fri":{"b":"","l":"","d":""},"Sat":{"b":"","l":"","d":""},"Sun":{"b":"","l":"","d":""}},"shoppingList":[""]}. Keep each meal name under 5 words. Shopping list max 20 items.`;
+    const prompt=`7-day meal plan. Diet: ${diet}. ${kids>0?`Has ${kids} kids.`:""} Quick practical meals. Short meal names only.`;
     try{
       const raw=await claude(sys,prompt);
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());

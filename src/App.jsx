@@ -176,9 +176,27 @@ function PlanScreen({aiTasks,profile,uid,calEvents}){
   const [filter,setFilter]=useState("All");
   const [showAdd,setShowAdd]=useState(false);
   const [selRecur,setSelRecur]=useState("none");
-  const [meals,setMeals]=useState({Mon:{b:"Greek yoghurt & berries",l:"Salmon quinoa bowl",d:"Chicken stir-fry"},Tue:{b:"Avocado toast & eggs",l:"Caesar salad wrap",d:"Pasta primavera"},Wed:{b:"Overnight oats",l:"Sushi platter",d:"Grilled sea bass"}});
+  const [meals,setMeals]=useState({Mon:{b:"",l:"",d:""},Tue:{b:"",l:"",d:""},Wed:{b:"",l:"",d:""},Thu:{b:"",l:"",d:""},Fri:{b:"",l:"",d:""},Sat:{b:"",l:"",d:""},Sun:{b:"",l:"",d:""}});
   const [editMeal,setEditMeal]=useState(null);
   const [mealDay,setMealDay]=useState("Mon");
+  const [generatingMeals,setGeneratingMeals]=useState(false);
+  const [shoppingList,setShoppingList]=useState([]);
+  const [showShopping,setShowShopping]=useState(false);
+
+  const generateMealPlan=async()=>{
+    setGeneratingMeals(true);
+    const diet=profile?.diet||"No restrictions";
+    const kids=(profile?.kids||[]).length;
+    const sys=`You are a nutritionist and meal planner. Return ONLY valid JSON: {"meals":{"Mon":{"b":"","l":"","d":""},"Tue":{"b":"","l":"","d":""},"Wed":{"b":"","l":"","d":""},"Thu":{"b":"","l":"","d":""},"Fri":{"b":"","l":"","d":""},"Sat":{"b":"","l":"","d":""},"Sun":{"b":"","l":"","d":""}},"shoppingList":["item 1","item 2"]}. b=breakfast, l=lunch, d=dinner. Keep meals practical for a busy mum.`;
+    const prompt=`Create a practical 7-day meal plan. Diet: ${diet}. ${kids>0?`Family with ${kids} kids — include kid-friendly options.`:""} Focus on quick, nutritious meals. Include a consolidated shopping list of all ingredients needed.`;
+    try{
+      const raw=await claude(sys,prompt);
+      const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
+      if(data.meals)setMeals(data.meals);
+      if(data.shoppingList)setShoppingList(data.shoppingList);
+    }catch(e){console.log("Meal plan error:",e);}
+    setGeneratingMeals(false);
+  };
 
   // Save tasks to session storage whenever they change
   useEffect(()=>{
@@ -350,7 +368,29 @@ function PlanScreen({aiTasks,profile,uid,calEvents}){
 
       {/* Meal Planner */}
       <div style={{marginTop:20}}>
-        <H2 t="Meal Planner" sub="Tap any meal to edit"/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <H2 t="Meal Planner" sub="Tap any meal to edit"/>
+          <div style={{display:"flex",gap:6}}>
+            {shoppingList.length>0&&<button onClick={()=>setShowShopping(!showShopping)} style={{background:T.sageP,border:`1px solid ${T.sage}30`,borderRadius:10,padding:"6px 10px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.sage,cursor:"pointer"}}>🛒 List</button>}
+            <button onClick={generateMealPlan} disabled={generatingMeals} style={{background:`linear-gradient(135deg,${T.esp},#4a2e18)`,border:"none",borderRadius:10,padding:"6px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer",opacity:generatingMeals?.7:1}}>
+              {generatingMeals?"Planning...":"✨ Plan week"}
+            </button>
+          </div>
+        </div>
+        {showShopping&&shoppingList.length>0&&<div style={{background:"#fff",borderRadius:14,padding:"14px",marginBottom:14,border:`1.5px solid ${T.sage}`}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <span style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>🛒 Shopping List</span>
+            <button onClick={()=>{const txt=shoppingList.join("\n");if(navigator.share){navigator.share({title:"Shopping List",text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{});alert("Copied!");}}} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"4px 10px",fontFamily:FB,fontSize:10,fontWeight:700,color:T.gold,cursor:"pointer"}}>Share</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+            {shoppingList.map((item,i)=>(
+              <div key={i} style={{fontFamily:FB,fontSize:12,color:T.bark,padding:"4px 0",display:"flex",alignItems:"center",gap:6}}>
+                <span style={{width:6,height:6,borderRadius:"50%",background:T.sage,flexShrink:0,display:"inline-block"}}/>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>}
         <div style={{display:"flex",gap:6,marginBottom:12,overflowX:"auto"}}>
           {Object.keys(meals).map(d=><Pill key={d} ch={d} active={mealDay===d} on={()=>setMealDay(d)}/>)}
           <button onClick={()=>{const days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];const next=days[days.indexOf(mealDay)+1]||days[0];if(!meals[next])setMeals(p=>({...p,[next]:{b:"",l:"",d:""}}));setMealDay(next);}} style={{flexShrink:0,border:`1px dashed ${T.linen}`,background:"transparent",borderRadius:20,padding:"7px 14px",fontFamily:FB,fontSize:12,color:T.taupe,cursor:"pointer"}}>+ Day</button>
@@ -864,6 +904,19 @@ function BudgetScreen({uid}){
     ];
   });
   const [savingsGoal,setSavingsGoal]=useState({name:"Bali Trip",target:6400,saved:3200});
+  const [monthHistory,setMonthHistory]=useState(()=>{
+    try{const s=localStorage.getItem("hn_month_history");return s?JSON.parse(s):[];}catch(e){return [];}
+  });
+
+  const saveMonthSnapshot=()=>{
+    const month=new Date().toLocaleDateString("en-AU",{month:"short",year:"numeric"});
+    const snapshot={month,categories:categories.map(c=>({lb:c.lb,spent:c.spent,budget:c.budget})),totalSpent:categories.reduce((a,c)=>a+c.spent,0),totalBudget:categories.reduce((a,c)=>a+c.budget,0)};
+    setMonthHistory(p=>{
+      const updated=[snapshot,...p.filter(m=>m.month!==month)].slice(0,6);
+      try{localStorage.setItem("hn_month_history",JSON.stringify(updated));}catch(e){}
+      return updated;
+    });
+  };
   const [inp,setInp]=useState("");
   const [hist,setHist]=useState([]);
   const [loading,setLoading]=useState(false);
@@ -1022,7 +1075,7 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
 
       {/* Tabs */}
       <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:14}}>
-        {["overview","expenses","savings","coach"].map(t=><Pill key={t} ch={t.charAt(0).toUpperCase()+t.slice(1)} active={activeTab===t} on={()=>setActiveTab(t)} color={T.gold}/>)}
+        {["overview","expenses","trends","savings","coach"].map(t=><Pill key={t} ch={t.charAt(0).toUpperCase()+t.slice(1)} active={activeTab===t} on={()=>setActiveTab(t)} color={T.gold}/>)}
       </div>
 
       {/* Overview */}
@@ -1054,7 +1107,7 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
         <Card sx={{background:`linear-gradient(135deg,${T.esp},#5a3a22)`,border:"none"}} ch={<div>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><Ic.Bulb s={16} c={T.gold} w={1.5}/><span style={{fontFamily:FB,fontSize:10,color:T.gold,letterSpacing:2,textTransform:"uppercase",fontWeight:700}}>Nora Says</span></div>
           <p style={{fontFamily:FD,fontStyle:"italic",fontSize:14,color:"rgba(255,255,255,.8)",margin:"0 0 14px",lineHeight:1.75}}>"You are doing better than you think. ${totalSpent>0?`You have tracked $${totalSpent.toLocaleString()} this month — that awareness alone puts you ahead of most people.`:`Start tracking your spending and watch your financial confidence grow.`}"</p>
-          <button onClick={()=>{if(window.confirm("Reset budget for a new month? This will clear your expenses."))setExpenses([]);}} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",borderRadius:10,padding:"7px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:"rgba(255,255,255,.6)",cursor:"pointer"}}>Start fresh month →</button>
+          <button onClick={()=>{if(window.confirm("Reset budget for a new month? This will save this month's data and clear expenses.")){saveMonthSnapshot();setExpenses([]);setCategories(p=>p.map(c=>({...c,spent:0})));}}} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",borderRadius:10,padding:"7px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:"rgba(255,255,255,.6)",cursor:"pointer"}}>Start fresh month →</button>
         </div>}/>
       </div>}
 
@@ -1220,6 +1273,80 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
       </div>}
 
       {/* Coach */}
+      {activeTab==="trends"&&<div style={{animation:"slideRight .3s ease both"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <H2 t="Monthly Trends" sub="How you are tracking over time"/>
+          <button onClick={()=>{saveMonthSnapshot();alert("This month saved!");}} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:10,padding:"6px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.gold,cursor:"pointer"}}>Save month</button>
+        </div>
+
+        {monthHistory.length<2?(
+          <div style={{textAlign:"center",padding:"28px 20px",background:T.sand,borderRadius:16}}>
+            <div style={{fontSize:36,marginBottom:10}}>📊</div>
+            <p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.esp,margin:"0 0 8px"}}>No trends yet</p>
+            <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"0 0 16px",lineHeight:1.6}}>At the end of each month tap "Save month" to start tracking your trends.</p>
+          </div>
+        ):<>
+          {/* Month vs month total */}
+          {monthHistory.length>=2&&(()=>{
+            const cur=monthHistory[0];
+            const prev=monthHistory[1];
+            const diff=cur.totalSpent-prev.totalSpent;
+            const pct=Math.round(Math.abs(diff)/prev.totalSpent*100);
+            return(
+              <Card ch={<div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+                  <div>
+                    <div style={{fontFamily:FB,fontSize:12,color:T.taupe,marginBottom:4}}>{cur.month} vs {prev.month}</div>
+                    <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:diff<0?T.sage:T.blush}}>{diff<0?"▼":"▲"} ${Math.abs(diff).toLocaleString()}</div>
+                    <div style={{fontFamily:FB,fontSize:12,color:diff<0?T.sage:T.blush,marginTop:2}}>{diff<0?`${pct}% less than last month 🎉`:`${pct}% more than last month`}</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontFamily:FB,fontSize:11,color:T.taupe}}>This month</div>
+                    <div style={{fontFamily:FD,fontSize:20,fontWeight:700,color:T.esp}}>${cur.totalSpent.toLocaleString()}</div>
+                    <div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:4}}>Last month</div>
+                    <div style={{fontFamily:FD,fontSize:16,color:T.bark}}>${prev.totalSpent.toLocaleString()}</div>
+                  </div>
+                </div>
+                {/* Category comparison */}
+                {cur.categories.map((cat,i)=>{
+                  const prevCat=prev.categories.find(c=>c.lb===cat.lb);
+                  if(!prevCat)return null;
+                  const catDiff=cat.spent-prevCat.spent;
+                  if(Math.abs(catDiff)<5)return null;
+                  return(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderTop:`1px solid ${T.linen}`}}>
+                      <span style={{fontFamily:FB,fontSize:12,color:T.bark}}>{cat.lb}</span>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontFamily:FB,fontSize:11,color:T.taupe}}>${prevCat.spent} → ${cat.spent}</span>
+                        <span style={{fontFamily:FB,fontSize:11,fontWeight:700,color:catDiff<0?T.sage:T.blush}}>{catDiff<0?"▼":"▲"}${Math.abs(catDiff)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>}/>
+            );
+          })()}
+
+          {/* Last 6 months bar chart */}
+          <Card ch={<div>
+            <H2 t="Last 6 months" sub="Total spending"/>
+            <div style={{display:"flex",alignItems:"flex-end",gap:6,height:100,marginTop:14}}>
+              {[...monthHistory].reverse().map((m,i)=>{
+                const maxSpent=Math.max(...monthHistory.map(h=>h.totalSpent));
+                const h=maxSpent?Math.round((m.totalSpent/maxSpent)*80):20;
+                return(
+                  <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                    <span style={{fontFamily:FB,fontSize:9,color:T.taupe}}>${Math.round(m.totalSpent/1000)}k</span>
+                    <div style={{width:"100%",height:h,background:i===monthHistory.length-1?T.gold:T.linen,borderRadius:"4px 4px 0 0",transition:"height .3s"}}/>
+                    <span style={{fontFamily:FB,fontSize:9,color:T.bark,textAlign:"center"}}>{m.month.split(" ")[0]}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>}/>
+        </>}
+      </div>}
+
       {activeTab==="coach"&&<div style={{animation:"slideRight .3s ease both"}}>
 
         {/* Guilt-free spending card */}

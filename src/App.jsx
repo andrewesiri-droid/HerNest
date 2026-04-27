@@ -381,6 +381,30 @@ function PlanScreen({aiTasks,profile,uid,calEvents}){
 // ═══════════════════════════════════════════════════════════════════
 // 2. TRIP PLANNER — fully interactive with AI
 // ═══════════════════════════════════════════════════════════════════
+function PackingAddItem({packingPersons,onAdd}){
+  const [newItem,setNewItem]=useState("");
+  const [newPerson,setNewPerson]=useState(packingPersons[0]||"Everyone");
+  const doAdd=()=>{if(!newItem.trim())return;onAdd(newItem,newPerson);setNewItem("");};
+  return(
+    <div style={{background:T.sand,borderRadius:14,padding:"12px",marginTop:8}}>
+      <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.bark,marginBottom:8}}>+ Add your own item</div>
+      <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+        {packingPersons.map(p=>(
+          <button key={p} onClick={()=>setNewPerson(p)} style={{padding:"5px 10px",borderRadius:10,border:`1.5px solid ${newPerson===p?T.gold:T.linen}`,background:newPerson===p?T.goldP:"#fff",fontFamily:FB,fontSize:10,fontWeight:700,color:newPerson===p?T.esp:T.bark,cursor:"pointer"}}>
+            {p==="Mum"?"👩":p==="Dad"?"👨":p==="Kids"?"👧":"👜"} {p}
+          </button>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:8}}>
+        <input value={newItem} onChange={e=>setNewItem(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")doAdd();}} placeholder="e.g. Sunscreen SPF50" style={{flex:1,fontFamily:FB,fontSize:13,padding:"9px 12px",borderRadius:10,border:`1.5px solid ${T.linen}`,color:T.esp,background:"#fff"}}/>
+        <button onClick={doAdd} style={{background:T.esp,border:"none",borderRadius:10,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <Ic.Plus s={18} c="#fff" w={2}/>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function TripsScreen({uid,profile}){
   const [trips,setTrips]=useState([]);
   const [activeTrip,setActiveTrip]=useState(null); // null = list view
@@ -717,29 +741,8 @@ function TripsScreen({uid,profile}){
                   </div>
                 ))}
 
-                {/* Add custom item */}
-                {(()=>{
-                  const [newItem,setNewItem]=useState("");
-                  const [newPerson,setNewPerson]=useState(packingPersons[0]||"Everyone");
-                  return(
-                    <div style={{background:T.sand,borderRadius:14,padding:"12px",marginTop:8}}>
-                      <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.bark,marginBottom:8}}>+ Add item</div>
-                      <div style={{display:"flex",gap:6,marginBottom:8}}>
-                        {packingPersons.map(p=>(
-                          <button key={p} onClick={()=>setNewPerson(p)} style={{flex:1,padding:"5px",borderRadius:10,border:`1.5px solid ${newPerson===p?T.gold:T.linen}`,background:newPerson===p?T.goldP:"#fff",fontFamily:FB,fontSize:10,fontWeight:700,color:newPerson===p?T.esp:T.bark,cursor:"pointer"}}>
-                            {p==="Mum"?"👩":p==="Dad"?"👨":p==="Kids"?"👧":"👜"} {p}
-                          </button>
-                        ))}
-                      </div>
-                      <div style={{display:"flex",gap:8}}>
-                        <input value={newItem} onChange={e=>setNewItem(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&newItem.trim()){addCustomItem(newItem,newPerson);setNewItem("");}}} placeholder="e.g. Sunscreen SPF50" style={{flex:1,fontFamily:FB,fontSize:13,padding:"9px 12px",borderRadius:10,border:`1.5px solid ${T.linen}`,color:T.esp,background:"#fff"}}/>
-                        <button onClick={()=>{if(newItem.trim()){addCustomItem(newItem,newPerson);setNewItem("");}}} style={{background:T.esp,border:"none",borderRadius:10,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                          <Ic.Plus s={18} c="#fff" w={2}/>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })()}
+                {/* Add custom item — using refs to avoid hooks-in-IIFE */}
+                <PackingAddItem packingPersons={packingPersons} onAdd={addCustomItem}/>
 
                 {pct===100&&<div style={{background:T.sageP,borderRadius:12,padding:"10px 14px",display:"flex",gap:8,marginTop:10}}><Ic.Check s={16} c={T.sage} w={2.5}/><span style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.sage}}>All packed! Ready to go 🎉</span></div>}
               </>);

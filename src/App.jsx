@@ -823,6 +823,75 @@ function BudgetScreen({uid}){
   const [editVal,setEditVal]=useState("");
   const [showAddExp,setShowAddExp]=useState(false);
   const [newExp,setNewExp]=useState({cat:"Groceries",amount:"",note:""});
+  const [importing,setImporting]=useState(false);
+  const [importMode,setImportMode]=useState(null); // "photo" or "csv"
+  const [importResult,setImportResult]=useState(null);
+
+  const CATS=["Groceries","Dining","Kids","Shopping","Travel","Fitness","Health","Transport","Entertainment","Bills","Other"];
+
+  const processReceipt=async(base64,mediaType)=>{
+    setImporting(true);
+    try{
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:500,
+          messages:[{role:"user",content:[
+            {type:"image",source:{type:"base64",media_type:mediaType,data:base64}},
+            {type:"text",text:`Extract expense data from this receipt. Return ONLY valid JSON: {"merchant":"","amount":0,"category":"Groceries|Dining|Kids|Shopping|Travel|Fitness|Health|Transport|Entertainment|Bills|Other","date":"","items":["",""]}. If you cannot read the receipt return {"error":"cannot read"}`}
+          ]}]
+        })
+      });
+      const data=await res.json();
+      const text=data.content?.[0]?.text||"{}";
+      const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
+      if(parsed.error)throw new Error(parsed.error);
+      setImportResult(parsed);
+    }catch(e){alert("Could not read receipt. Please try a clearer photo.");}
+    setImporting(false);
+  };
+
+  const processCSV=async(text)=>{
+    setImporting(true);
+    try{
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:2000,
+          messages:[{role:"user",content:`Analyse this bank statement CSV and extract transactions. Return ONLY valid JSON: {"transactions":[{"merchant":"","amount":0,"category":"Groceries|Dining|Kids|Shopping|Travel|Fitness|Health|Transport|Entertainment|Bills|Other","date":""}]} Only include debit/outgoing transactions. Here is the CSV:
+
+${text.slice(0,3000)}`}]
+        })
+      });
+      const data=await res.json();
+      const txt=data.content?.[0]?.text||"{}";
+      const parsed=JSON.parse(txt.replace(/```json|```/g,"").trim());
+      setImportResult(parsed);
+    }catch(e){alert("Could not process CSV. Please check the file format.");}
+    setImporting(false);
+  };
+
+  const confirmImport=()=>{
+    if(!importResult)return;
+    if(importResult.amount){
+      // Single receipt
+      const exp={id:Date.now(),cat:importResult.category||"Other",amount:importResult.amount,note:importResult.merchant||"Receipt scan",date:importResult.date||"Today"};
+      setExpenses(p=>[exp,...p]);
+      setCategories(p=>p.map(c=>c.lb===exp.cat?{...c,spent:c.spent+exp.amount}:c));
+    } else if(importResult.transactions){
+      // CSV import
+      const newExps=importResult.transactions.map((t,i)=>({id:Date.now()+i,cat:t.category||"Other",amount:Math.abs(t.amount),note:t.merchant||"Import",date:t.date||"Imported"}));
+      setExpenses(p=>[...newExps,...p]);
+      newExps.forEach(exp=>setCategories(p=>p.map(c=>c.lb===exp.cat?{...c,spent:c.spent+exp.amount}:c)));
+    }
+    setImportResult(null);
+    setImportMode(null);
+    alert("Imported successfully!");
+  };
   const [expenses,setExpenses]=useState(()=>{
     try{const s=sessionStorage.getItem("hn_expenses");return s?JSON.parse(s):[];}catch(e){return [];}
   });
@@ -942,6 +1011,93 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
             <button onClick={addExpense} style={{width:"100%",background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer"}}>Log Expense</button>
           </div>
         )}
+        {/* Import buttons */}
+        <div style={{display:"flex",gap:8,marginBottom:14}}>
+          <button onClick={()=>setImportMode("photo")} style={{flex:1,background:"linear-gradient(135deg,#1a2a4e,#1a4a8e)",color:"#fff",border:"none",borderRadius:13,padding:"11px 8px",fontFamily:FB,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+            📷 Scan Receipt
+          </button>
+          <button onClick={()=>setImportMode("csv")} style={{flex:1,background:`linear-gradient(135deg,${T.esp},#4a2e18)`,color:"#fff",border:"none",borderRadius:13,padding:"11px 8px",fontFamily:FB,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+            📊 Import Statement
+          </button>
+        </div>
+
+        {/* Photo receipt scanner */}
+        {importMode==="photo"&&<div style={{background:"#fff",borderRadius:16,padding:"16px",marginBottom:14,border:`1.5px solid ${T.sky}`}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <span style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>📷 Scan Receipt</span>
+            <button onClick={()=>{setImportMode(null);setImportResult(null);}} style={{background:"none",border:"none",cursor:"pointer"}}><Ic.Close s={14} c={T.taupe} w={2}/></button>
+          </div>
+          {!importResult&&<div>
+            <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"0 0 12px",lineHeight:1.6}}>Take a photo of any receipt and Nora will extract the amount and category automatically.</p>
+            <input type="file" accept="image/*" capture="environment" onChange={async e=>{
+              const file=e.target.files?.[0];
+              if(!file)return;
+              const reader=new FileReader();
+              reader.onload=async ev=>{
+                const base64=ev.target.result.split(",")[1];
+                const mediaType=file.type;
+                await processReceipt(base64,mediaType);
+              };
+              reader.readAsDataURL(file);
+            }} style={{display:"none"}} id="receipt-input"/>
+            <label htmlFor="receipt-input" style={{display:"block",width:"100%",background:"linear-gradient(135deg,#1a2a4e,#1a4a8e)",color:"#fff",border:"none",borderRadius:12,padding:"12px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",textAlign:"center"}}>
+              {importing?"Reading receipt...":"📷 Take Photo or Choose Image"}
+            </label>
+          </div>}
+          {importResult&&importResult.amount&&<div>
+            <div style={{background:T.sageP,borderRadius:12,padding:"14px",marginBottom:12}}>
+              <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp,marginBottom:4}}>{importResult.merchant||"Receipt"}</div>
+              <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:T.gold,marginBottom:4}}>${importResult.amount}</div>
+              <div style={{fontFamily:FB,fontSize:12,color:T.bark}}>{importResult.category} · {importResult.date||"Today"}</div>
+              {importResult.items?.length>0&&<div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:4}}>{importResult.items.slice(0,3).join(", ")}</div>}
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setImportResult(null)} style={{flex:1,background:T.sand,border:`1px solid ${T.linen}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Retake</button>
+              <button onClick={confirmImport} style={{flex:2,background:T.sage,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>Add to Budget ✓</button>
+            </div>
+          </div>}
+        </div>}
+
+        {/* CSV import */}
+        {importMode==="csv"&&<div style={{background:"#fff",borderRadius:16,padding:"16px",marginBottom:14,border:`1.5px solid ${T.gold}`}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <span style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>📊 Import Bank Statement</span>
+            <button onClick={()=>{setImportMode(null);setImportResult(null);}} style={{background:"none",border:"none",cursor:"pointer"}}><Ic.Close s={14} c={T.taupe} w={2}/></button>
+          </div>
+          {!importResult&&<div>
+            <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"0 0 8px",lineHeight:1.6}}>Download your bank statement as CSV and upload it. Nora will categorise every transaction automatically.</p>
+            <div style={{background:T.sand,borderRadius:10,padding:"10px 12px",marginBottom:12}}>
+              <p style={{fontFamily:FB,fontSize:11,color:T.bark,margin:0,fontWeight:700}}>How to get your CSV:</p>
+              <p style={{fontFamily:FB,fontSize:11,color:T.taupe,margin:"4px 0 0",lineHeight:1.6}}>Login to your bank → Statements → Download as CSV</p>
+            </div>
+            <input type="file" accept=".csv,.txt" onChange={async e=>{
+              const file=e.target.files?.[0];
+              if(!file)return;
+              const text=await file.text();
+              await processCSV(text);
+            }} style={{display:"none"}} id="csv-input"/>
+            <label htmlFor="csv-input" style={{display:"block",width:"100%",background:`linear-gradient(135deg,${T.esp},#4a2e18)`,color:"#fff",border:"none",borderRadius:12,padding:"12px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer",textAlign:"center"}}>
+              {importing?"Analysing transactions...":"📊 Upload Bank Statement CSV"}
+            </label>
+          </div>}
+          {importResult?.transactions&&<div>
+            <div style={{background:T.goldP,borderRadius:12,padding:"12px",marginBottom:12}}>
+              <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp,marginBottom:8}}>{importResult.transactions.length} transactions found</div>
+              {importResult.transactions.slice(0,5).map((t,i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:i<4?`1px solid ${T.linen}`:"none"}}>
+                  <span style={{fontFamily:FB,fontSize:12,color:T.bark}}>{t.merchant}</span>
+                  <span style={{fontFamily:FB,fontSize:12,color:T.esp,fontWeight:700}}>${Math.abs(t.amount)}</span>
+                </div>
+              ))}
+              {importResult.transactions.length>5&&<p style={{fontFamily:FB,fontSize:11,color:T.taupe,margin:"6px 0 0"}}>+{importResult.transactions.length-5} more transactions</p>}
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setImportResult(null)} style={{flex:1,background:T.sand,border:`1px solid ${T.linen}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Cancel</button>
+              <button onClick={confirmImport} style={{flex:2,background:T.sage,border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>Import All ✓</button>
+            </div>
+          </div>}
+        </div>}
+
         <H2 t="Recent Expenses"/>
         {expenses.length===0&&<div style={{textAlign:"center",padding:"28px 20px",background:T.sand,borderRadius:16,marginBottom:12}}>
           <div style={{fontSize:36,marginBottom:10}}>💳</div>

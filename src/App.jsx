@@ -806,14 +806,18 @@ function NewTripForm({profile,familyMembers,onAdd,onCancel,newDest,setNewDest,ne
 // 3. BUDGET COACH — fully interactive
 // ═══════════════════════════════════════════════════════════════════
 function BudgetScreen({uid}){
-  const [categories,setCategories]=useState([
-    {lb:"Groceries",spent:620,budget:700,IC:Ic.Bag,c:T.sage,month:"Apr"},
-    {lb:"Kids",spent:380,budget:400,IC:Ic.Kids,c:T.sky,month:"Apr"},
-    {lb:"Fitness",spent:95,budget:120,IC:Ic.Dumbbell,c:T.blush,month:"Apr"},
-    {lb:"Travel",spent:2100,budget:6400,IC:Ic.Suitcase,c:T.teal,month:"Apr"},
-    {lb:"Shopping",spent:340,budget:500,IC:Ic.Hanger,c:T.lav,month:"Apr"},
-    {lb:"Dining",spent:215,budget:300,IC:Ic.Fork,c:T.gold,month:"Apr"},
-  ]);
+  const CAT_META={Groceries:{IC:Ic.Bag,c:T.sage,budget:700},Kids:{IC:Ic.Kids,c:T.sky,budget:400},Fitness:{IC:Ic.Dumbbell,c:T.blush,budget:120},Travel:{IC:Ic.Suitcase,c:T.teal,budget:2000},Shopping:{IC:Ic.Hanger,c:T.lav,budget:500},Dining:{IC:Ic.Fork,c:T.gold,budget:300},Health:{IC:Ic.Leaf,c:T.sage,budget:200},Transport:{IC:Ic.Compass,c:T.sky,budget:300},Entertainment:{IC:Ic.Star,c:T.lav,budget:200},Bills:{IC:Ic.Budget,c:T.bark,budget:1000},Other:{IC:Ic.Bag,c:T.taupe,budget:200}};
+  const [categories,setCategories]=useState(()=>{
+    try{const s=localStorage.getItem("hn_budget_cats");if(s){const saved=JSON.parse(s);return saved.map(c=>({...c,IC:CAT_META[c.lb]?.IC||Ic.Bag}));}}catch(e){}
+    return [
+      {lb:"Groceries",spent:0,budget:700,IC:Ic.Bag,c:T.sage},
+      {lb:"Kids",spent:0,budget:400,IC:Ic.Kids,c:T.sky},
+      {lb:"Fitness",spent:0,budget:120,IC:Ic.Dumbbell,c:T.blush},
+      {lb:"Travel",spent:0,budget:2000,IC:Ic.Suitcase,c:T.teal},
+      {lb:"Shopping",spent:0,budget:500,IC:Ic.Hanger,c:T.lav},
+      {lb:"Dining",spent:0,budget:300,IC:Ic.Fork,c:T.gold},
+    ];
+  });
   const [savingsGoal,setSavingsGoal]=useState({name:"Bali Trip",target:6400,saved:3200});
   const [inp,setInp]=useState("");
   const [hist,setHist]=useState([]);
@@ -875,32 +879,45 @@ ${text.slice(0,3000)}`}]
     setImporting(false);
   };
 
+  const ensureCategory=(catName)=>{
+    setCategories(p=>{
+      if(p.find(c=>c.lb===catName))return p;
+      const meta=CAT_META[catName]||{IC:Ic.Bag,c:T.taupe,budget:200};
+      return [...p,{lb:catName,spent:0,budget:meta.budget,IC:meta.IC,c:meta.c}];
+    });
+  };
+
   const confirmImport=()=>{
     if(!importResult)return;
     if(importResult.amount){
-      // Single receipt
-      const exp={id:Date.now(),cat:importResult.category||"Other",amount:importResult.amount,note:importResult.merchant||"Receipt scan",date:importResult.date||"Today"};
+      const cat=importResult.category||"Other";
+      ensureCategory(cat);
+      const exp={id:Date.now(),cat,amount:importResult.amount,note:importResult.merchant||"Receipt scan",date:importResult.date||"Today"};
       setExpenses(p=>[exp,...p]);
-      setCategories(p=>p.map(c=>c.lb===exp.cat?{...c,spent:c.spent+exp.amount}:c));
+      setCategories(p=>p.map(c=>c.lb===cat?{...c,spent:c.spent+exp.amount}:c));
     } else if(importResult.transactions){
-      // CSV import
       const newExps=importResult.transactions.map((t,i)=>({id:Date.now()+i,cat:t.category||"Other",amount:Math.abs(t.amount),note:t.merchant||"Import",date:t.date||"Imported"}));
+      const uniqueCats=[...new Set(newExps.map(e=>e.cat))];
+      uniqueCats.forEach(ensureCategory);
       setExpenses(p=>[...newExps,...p]);
       newExps.forEach(exp=>setCategories(p=>p.map(c=>c.lb===exp.cat?{...c,spent:c.spent+exp.amount}:c)));
     }
     setImportResult(null);
     setImportMode(null);
-    alert("Imported successfully!");
+    alert("Imported successfully! "+( importResult.transactions?importResult.transactions.length+" transactions added.":"Receipt added."));
   };
   const [expenses,setExpenses]=useState(()=>{
     try{const s=sessionStorage.getItem("hn_expenses");return s?JSON.parse(s):[];}catch(e){return [];}
   });
 
-  // Save expenses to session on change
+  // Save expenses + categories on change
   useEffect(()=>{
-    try{sessionStorage.setItem("hn_expenses",JSON.stringify(expenses));}catch(e){}
-    if(uid) saveData(uid,"budget",{expenses,categories,savingsGoal}).catch(()=>{});
-  },[expenses,uid]);
+    try{
+      sessionStorage.setItem("hn_expenses",JSON.stringify(expenses));
+      localStorage.setItem("hn_budget_cats",JSON.stringify(categories.map(c=>({lb:c.lb,spent:c.spent,budget:c.budget,c:c.c}))));
+    }catch(e){}
+    if(uid) saveData(uid,"budget",{expenses,categories:categories.map(c=>({...c,ICname:Object.keys(Ic).find(k=>Ic[k]===c.IC)||"Bag"})),savingsGoal}).catch(()=>{});
+  },[expenses,categories,uid]);
 
   // Load budget from Firebase
   useEffect(()=>{
@@ -1649,12 +1666,22 @@ function WellnessScreen({profile}){
     {id:3,lb:"Evening Run",mins:40,IC:Ic.Run,done:false,kcal:340},
     {id:4,lb:"Upper Body",mins:35,IC:Ic.Dumbbell,done:false,kcal:220},
   ]);
-  const [habits,setHabits]=useState([
-    {id:1,lb:"Mindfulness",streak:12,IC:Ic.Leaf,done:false},
-    {id:2,lb:"8hrs sleep",streak:4,IC:Ic.Moon,done:false},
-    {id:3,lb:"Clean eating",streak:7,IC:Ic.Flower,done:false},
-    {id:4,lb:"Daily walk",streak:3,IC:Ic.Run,done:false},
-  ]);
+  const [habits,setHabits]=useState(()=>{
+    try{
+      const s=localStorage.getItem("hn_habits");
+      if(s){
+        const saved=JSON.parse(s);
+        const ICONS={1:Ic.Leaf,2:Ic.Moon,3:Ic.Flower,4:Ic.Run};
+        return saved.map(h=>({...h,IC:ICONS[h.id]||Ic.Leaf,done:false}));
+      }
+    }catch(e){}
+    return [
+      {id:1,lb:"Mindfulness",streak:0,IC:Ic.Leaf,done:false},
+      {id:2,lb:"8hrs sleep",streak:0,IC:Ic.Moon,done:false},
+      {id:3,lb:"Clean eating",streak:0,IC:Ic.Flower,done:false},
+      {id:4,lb:"Daily walk",streak:0,IC:Ic.Run,done:false},
+    ];
+  });
   const [activeTab,setActiveTab]=useState("today");
   const [chatInp,setChatInp]=useState("");
   const [chatHist,setChatHist]=useState([]);
@@ -1667,7 +1694,13 @@ function WellnessScreen({profile}){
   const doneMins=workouts.filter(w=>w.done).reduce((a,w)=>a+w.mins,0);
 
   const toggleWorkout=id=>setWorkouts(p=>p.map(w=>w.id===id?{...w,done:!w.done}:w));
-  const toggleHabit=id=>setHabits(p=>p.map(h=>h.id===id?{...h,done:!h.done,streak:h.done?h.streak-1:h.streak+1}:h));
+  const toggleHabit=id=>{
+    setHabits(p=>{
+      const updated=p.map(h=>h.id===id?{...h,done:!h.done,streak:h.done?Math.max(0,h.streak-1):h.streak+1}:h);
+      try{localStorage.setItem("hn_habits",JSON.stringify(updated.map(h=>({id:h.id,lb:h.lb,streak:h.streak,done:h.done}))));}catch(e){}
+      return updated;
+    });
+  };
   const todayMood=moods[6];
 
   const askCoach=async()=>{
@@ -2113,15 +2146,18 @@ function BriefingScreen({profile,onAddTask,calEvents}){
 function NoraScreen({onTasks,profile,calEvents,onAddTask}){
   const [showBriefing,setShowBriefing]=useState(false);
   const [msgs,setMsgs]=useState(()=>{
-    try{const s=sessionStorage.getItem("hn_nora_msgs");return s?JSON.parse(s):[{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];}
-    catch(e){return [{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];}
+    try{
+      const s=sessionStorage.getItem("hn_nora_msgs")||localStorage.getItem("hn_nora_msgs");
+      if(s)return JSON.parse(s);
+    }catch(e){}
+    return [{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];
   });
   const [inp,setInp]=useState(""); const [loading,setLoading]=useState(false);
   const [listening,setListening]=useState(false);
   const recogRef=useRef(null);
   const ref=useRef(null);
   useEffect(()=>{
-    try{const save=msgs.slice(-20).map(m=>({role:m.role,content:m.content}));sessionStorage.setItem("hn_nora_msgs",JSON.stringify(save));}catch(e){}
+    try{const save=msgs.slice(-20).map(m=>({role:m.role,content:m.content}));sessionStorage.setItem("hn_nora_msgs",JSON.stringify(save));localStorage.setItem("hn_nora_msgs",JSON.stringify(save));}catch(e){}
   },[msgs]);
 
   const startVoice=()=>{

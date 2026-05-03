@@ -7,17 +7,71 @@ import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar 
 
 export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
   const [showBriefing,setShowBriefing]=useState(false);
-  // Persistent Nora memory — things she should always remember
+  // Nora Memory v2 — structured facts with types and expiration
+  const FACT_TYPES = {
+    dietary: {expires:false,label:"Diet"},
+    medical: {expires:false,label:"Health"},
+    family: {expires:false,label:"Family"},
+    preference: {expires:false,label:"Preference"},
+    goal: {expires:false,label:"Goal"},
+    schedule: {expires:"3months",label:"Schedule"},
+    event: {expires:"1day_after",label:"Event"},
+    temporary: {expires:"7days",label:"Temporary"},
+  };
+
   const [noraMemory,setNoraMemory]=useState(()=>{
-    try{const s=localStorage.getItem("hn_nora_memory");return s?JSON.parse(s):[];}catch(e){return [];}
+    try{
+      const s=localStorage.getItem("hn_nora_memory_v2");
+      if(s) return JSON.parse(s);
+      // Migrate from old format
+      const old=localStorage.getItem("hn_nora_memory");
+      if(old){
+        const oldFacts=JSON.parse(old);
+        return oldFacts.map((f,i)=>({id:`legacy_${i}`,fact:f,type:"preference",confidence:0.9,createdAt:new Date().toISOString(),expiresAt:null,useCount:0}));
+      }
+      return [];
+    }catch(e){return [];}
   });
 
-  const addMemory=(fact)=>{
-    const updated=[...noraMemory.filter(m=>m!==fact),fact].slice(-30);
-    setNoraMemory(updated);
-    try{localStorage.setItem("hn_nora_memory",JSON.stringify(updated));}catch(e){ /* silent */ }
-    if(uid)saveData(uid,"nora_memory",{facts:updated}).catch(()=>{ /* silent */ });
+  const saveMemory=(facts)=>{
+    setNoraMemory(facts);
+    try{localStorage.setItem("hn_nora_memory_v2",JSON.stringify(facts));}catch(e){ /* silent */ }
+    if(uid)saveData(uid,"nora_memory",{facts}).catch(()=>{ /* silent */ });
   };
+
+  const addMemory=(factText,type="preference")=>{
+    // Check for contradictions (same type, similar content)
+    const existing=noraMemory.find(f=>f.type===type&&f.fact.toLowerCase().includes(factText.toLowerCase().slice(0,10)));
+    let updated;
+    if(existing){
+      // Update existing fact
+      updated=noraMemory.map(f=>f.id===existing.id?{...f,fact:factText,confidence:0.95,updatedAt:new Date().toISOString()}:f);
+    } else {
+      const newFact={
+        id:`fact_${Date.now()}`,
+        fact:factText,
+        type,
+        confidence:0.9,
+        createdAt:new Date().toISOString(),
+        expiresAt:null,
+        useCount:0,
+        source:"user_explicit"
+      };
+      updated=[...noraMemory,newFact].slice(-30);
+    }
+    saveMemory(updated);
+  };
+
+  const forgetMemory=(factId)=>{
+    const updated=noraMemory.filter(f=>f.id!==factId);
+    saveMemory(updated);
+  };
+
+  // Filter out expired facts
+  const activeMemory=noraMemory.filter(f=>{
+    if(!f.expiresAt)return true;
+    return new Date(f.expiresAt)>new Date();
+  });
 
   const [msgs,setMsgs]=useState(()=>{
     try{
@@ -99,19 +153,41 @@ You are not alone. 💛`,parsed:null}]);
     const isFinancial = financialWords.some(w => msg.toLowerCase().includes(w));
 
     // Detect memory commands
-    const memoryTriggers = ["remember that","don't forget that","nora remember","always remember","note that","keep in mind"];
-    const isMemoryCmd = memoryTriggers.some(t => msg.toLowerCase().includes(t));
-    if(isMemoryCmd){
-      const fact = msg.replace(/nora,?\s*/i,"").replace(/remember that\s*/i,"").replace(/don't forget that\s*/i,"").replace(/always remember\s*/i,"").replace(/note that\s*/i,"").replace(/keep in mind\s*/i,"").trim();
-      if(fact) addMemory(fact);
+    const rememberTriggers = ["remember that","don't forget that","nora remember","always remember","note that","keep in mind"];
+    const forgetTriggers = ["forget that","don't remember","remove from memory","that's wrong","not anymore"];
+    const isRememberCmd = rememberTriggers.some(t => msg.toLowerCase().includes(t));
+    const isForgetCmd = forgetTriggers.some(t => msg.toLowerCase().includes(t));
+
+    if(isForgetCmd){
+      const factHint = msg.replace(/nora,?\s*/i,"").replace(/forget that\s*/i,"").replace(/don't remember\s*/i,"").trim().toLowerCase();
+      const toForget = activeMemory.find(f=>f.fact.toLowerCase().includes(factHint.slice(0,15)));
+      if(toForget){
+        forgetMemory(toForget.id);
+        setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:`Got it — I've forgotten that. 💛`,parsed:null}]);
+        setLoading(false);
+        return;
+      }
     }
 
-    const memoryCtx = noraMemory.length ? `IMPORTANT — things she has specifically asked Nora to always remember: ${noraMemory.map((m,i)=>`${i+1}. ${m}`).join("; ")}. Always factor these into every response.` : "";
+    if(isRememberCmd){
+      const clean = msg.replace(/nora,?\s*/i,"").replace(/remember that\s*/i,"").replace(/don't forget that\s*/i,"").replace(/always remember\s*/i,"").replace(/note that\s*/i,"").replace(/keep in mind\s*/i,"").trim();
+      // Detect fact type from content
+      let type = "preference";
+      if(/eat|diet|food|gluten|dairy|vegan|vegetarian|allergic/i.test(clean)) type = "dietary";
+      else if(/medical|condition|medication|health|doctor/i.test(clean)) type = "medical";
+      else if(/kid|child|son|daughter|husband|wife|partner|mum|dad/i.test(clean)) type = "family";
+      else if(/goal|want to|trying to|working on/i.test(clean)) type = "goal";
+      else if(/every morning|every day|routine|schedule/i.test(clean)) type = "schedule";
+      if(clean) addMemory(clean, type);
+    }
+
+    const memoryCtx = activeMemory.length ? `IMPORTANT — things she has specifically asked Nora to always remember:\n${activeMemory.map((f,i)=>`${i+1}. [${f.type}] ${f.fact}`).join("\n")}\nAlways factor these into every response. If a fact seems outdated, gently check.` : "";
 
     const sys=`You are Nora, a warm, intelligent AI Mental Load Manager inside HerNest. ${profileCtx} ${memoryCtx}
 You know this mum personally. Use her name, reference her kids by name, mention her real goals.
 ${isMedical?"IMPORTANT: If the question involves medical advice, symptoms or medication — acknowledge warmly then recommend she consult her GP or a healthcare professional. Never diagnose or prescribe.":""}
 ${isFinancial?"IMPORTANT: If the question involves investment, stocks, crypto or specific financial decisions — acknowledge warmly then recommend she consult a qualified financial advisor. Never recommend specific investments.":""}
+PROGRESSIVE PROFILING: If the user mentions their partner by name but you don't know it, note it. If they mention a child's age or birthday, note it. Surface gaps naturally in conversation — never ask for a form. Examples: "What's his name? I'll remember." or "How old is she? I'd love to keep track."
 SELF-CORRECTION RULES: If you are not certain about a specific fact, local business, law, or statistic — say "I believe" or "worth checking" before stating it. Never invent specific names, addresses, prices or medical facts. Only reference information the user has actually shared with you. If a question is outside your knowledge, say so warmly and suggest where she can find accurate help.
 Respond with 2-3 warm, specific, empathetic sentences that show you KNOW her. Then output:
 <ND>{"tasks":[{"text":"","tag":"Work|Family|Me|Home|Travel","priority":"high|medium|low"}],"reminders":[{"text":""}],"insight":"a short, warm, personal observation about what she shared"}</ND>

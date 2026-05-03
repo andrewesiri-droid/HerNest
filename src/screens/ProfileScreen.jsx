@@ -354,8 +354,26 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       <button onClick={()=>setShowPrivacy(true)} style={{width:"100%",background:"none",border:`1.5px solid ${T.linen}`,borderRadius:14,padding:"13px",fontFamily:FB,fontSize:13,fontWeight:700,color:T.bark,cursor:"pointer",marginBottom:8}}>
         🔒 Privacy & Data
       </button>
-      <button onClick={onSignOut} style={{width:"100%",padding:"14px",borderRadius:16,border:`1.5px solid ${T.blushP}`,cursor:"pointer",background:"#fff",color:T.blush,fontFamily:FB,fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:24}}>
+      <button onClick={onSignOut} style={{width:"100%",padding:"14px",borderRadius:16,border:`1.5px solid ${T.blushP}`,cursor:"pointer",background:"#fff",color:T.blush,fontFamily:FB,fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:8}}>
         <Ic.LogOut s={18} c={T.blush} w={1.5}/> Sign Out
+      </button>
+      <button onClick={async()=>{
+        if(!window.confirm("Delete your HerNest account and all data permanently? This cannot be undone."))return;
+        if(!window.confirm("Are you sure? All your profile, tasks, budget, wellness and school data will be deleted."))return;
+        try{
+          const keys=["hn_tasks","hn_expenses","hn_moods","hn_water","hn_sleep","hn_habits","hn_wishlist","hn_outfits","hn_school_events","hn_nora_msgs","hn_nora_memory","hn_nora_memory_v2","hn_weekly_score","hn_streak","hn_trips","hn_gtoken","hn_brief_hour","hn_brief_min"];
+          keys.forEach(k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k);}catch(e){}});
+          if(user?.uid){
+            const {db}=await import("../utils/firebase");
+            const {doc,deleteDoc,collection,getDocs}=await import("firebase/firestore");
+            const collections=["profile","tasks","trips","budget","wellness","style","school","nora_memory"];
+            for(const col of collections){try{await deleteDoc(doc(db,"users",user.uid,"data",col));}catch(e){}}
+          }
+          alert("Your data has been deleted. You will now be signed out.");
+          onSignOut();
+        }catch(e){alert("Error deleting data. Please contact privacy@hernest.app");}
+      }} style={{width:"100%",padding:"12px",borderRadius:16,border:"1px solid #ffcccc",cursor:"pointer",background:"#fff",color:"#cc4444",fontFamily:FB,fontSize:12,fontWeight:700,marginBottom:24}}>
+        Delete my account & all data
       </button>
     </div>
   );

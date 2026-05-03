@@ -52,7 +52,7 @@ export function StyleScreen({profile,uid}){
     const finalPrompt=autoPrompt||((occasion?"Occasion: "+occasion+". ":"")+(mood?"Mood: "+mood+". ":"")+prompt+" "+profileCtx).trim();
       const sys=`You are a personal stylist. Return ONLY valid JSON with no extra text. SELF-CORRECTION: Only suggest real brands and products that exist. All prices are estimates — flag them as such. Never invent specific product SKUs or guarantee availability. If suggesting a brand you are uncertain about, use a well-known alternative. {"styleInsight":"one sentence","outfits":[{"name":"outfit name","occasion":"","mood":"","whyThisWorks":"","totalEstimate":"","note":"","items":[{"piece":"","brand":"","priceRange":"","why":"","searchQuery":""}]}]}. Return 2 outfits with 3 items each.`;
     try{
-      const raw=await claude(sys,finalPrompt);
+      const raw=await claude(sys,finalPrompt,[],"style_stylist");
       const cleaned=raw.replace(/```json|```/g,"").trim();
       const parsed = JSON.parse(cleaned);
       if(parsed?.outfits) setResult(parsed);

@@ -271,10 +271,7 @@ export default function App() {
           </div>
           {screen==="step1"&&<Step1 data={profile} onChange={upd} onNext={()=>setScreen("step2")}/>}
           {screen==="step2"&&<Step2 data={profile} onChange={upd} onNext={()=>setScreen("step3")} onBack={()=>setScreen("step1")}/>}
-          {screen==="step3"&&<Step3 data={profile} onChange={upd} onNext={()=>setScreen("step4")} onBack={()=>setScreen("step2")}/>}
-          {screen==="step4"&&<Step4 data={profile} onChange={upd} onFinish={()=>{if(user?.uid)saveData(user.uid,"profile",profile);setScreen("step5");}} onBack={()=>setScreen("step3")}/>}
-          {screen==="step5"&&<Step5 data={profile} onChange={upd} onNext={()=>setScreen("step6")} onBack={()=>setScreen("step4")}/>}
-          {screen==="step6"&&<Step6 data={profile} onChange={upd} onFinish={()=>{if(user?.uid)saveData(user.uid,"profile",profile);setScreen("intro");}} onBack={()=>setScreen("step5")}/>}
+          {screen==="step3"&&<Step3 data={profile} onChange={upd} onNext={()=>{if(user?.uid)saveData(user.uid,"profile",profile);setScreen("intro");}} onBack={()=>setScreen("step2")}/>}
         </div>
       </div>
     );

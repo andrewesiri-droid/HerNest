@@ -75,7 +75,7 @@ export function TripsScreen({uid,profile}){
     const sys=`You are Nora, expert travel concierge. Return ONLY valid JSON. All suggestions must be real, well-known places that actually exist. NEVER invent restaurant names, hotel names, or attractions. If unsure whether something exists, use general descriptions instead. All prices, opening hours and availability must be flagged as estimates that need verification. Say "worth checking" before any specific operational detail. {"overview":"","tripType":"","familyTip":"","highlights":["","",""],"days":[{"day":1,"title":"","plan":"","highlight":"","kidsFriendly":"","soloTip":""}],"packing":${JSON.stringify(packingTemplate)},"checklist":["","","","","",""],"budget":[{"cat":"","amount":"","tip":""}],"bookingTips":""}`;
     const prompt="Plan a "+(tripData.nights||7)+" night trip to "+tripData.dest+". TRIP TYPE: "+tripType+" Total: "+numTravellers+" travellers. Budget: $"+(tripData.budget||5000)+". Departure: "+(tripData.departDate||"soon")+". Be specific with real local recommendations.";
     try{
-      const raw=await claude(sys,prompt);
+      const raw=await claude(sys,prompt,[],"trip_planner");
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
       setPlanData(p=>({...p,[tripData.id]:data}));
     }catch(e){

@@ -39,7 +39,7 @@ export function SchoolCalendar({profile,uid}){
 
 ${text.slice(0,4000)}`;
     try{
-      const raw=await claude(sys,prompt);
+      const raw=await claude(sys,prompt,[],"school_calendar");
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
       if(data.events?.length){
         const newEvents=[...schoolEvents,...data.events].sort((a,b)=>new Date(a.date)-new Date(b.date));

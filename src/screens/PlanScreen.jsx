@@ -35,7 +35,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
     const sys=`Meal planner. Return ONLY valid JSON, no extra text: {"meals":{"Mon":{"b":"","l":"","d":""},"Tue":{"b":"","l":"","d":""},"Wed":{"b":"","l":"","d":""},"Thu":{"b":"","l":"","d":""},"Fri":{"b":"","l":"","d":""},"Sat":{"b":"","l":"","d":""},"Sun":{"b":"","l":"","d":""}},"shoppingList":[""]}. Keep each meal name under 5 words. Shopping list max 20 items.`;
     const prompt=`7-day meal plan. Diet: ${diet}. ${kids>0?`Has ${kids} kids.`:""} Quick practical meals. Short meal names only.`;
     try{
-      const raw=await claude(sys,prompt);
+      const raw=await claude(sys,prompt,[],"meal_planner");
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
       if(data.meals)setMeals(data.meals);
       if(data.shoppingList)setShoppingList(data.shoppingList);

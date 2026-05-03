@@ -118,7 +118,7 @@ Respond with 2-3 warm, specific, empathetic sentences that show you KNOW her. Th
 Min 3 tasks. Make tasks specific and actionable. The insight should feel like it came from a close friend who truly gets her life.`;
     const hist=msgs.map(m=>({role:m.role,content:m.content}));
     try{
-      const raw=await claude(sys,msg,hist);
+      const raw=await claude(sys,msg,hist,"nora_chat");
       const match=raw.match(/<ND>([\s\S]*?)<\/ND>/);
       let parsed=null;if(match){try{parsed=JSON.parse(match[1].trim());}catch(e){ /* silent */ }}
       const display=raw.replace(/<ND>[\s\S]*?<\/ND>/g,"").trim();

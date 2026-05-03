@@ -95,7 +95,7 @@ export function WellnessScreen({profile,uid}){
     const sys=`You are Nora, a warm wellness coach. Return ONLY valid JSON: {"score":0,"headline":"one punchy sentence about this week","wins":["",""],"focus":"one gentle suggestion for next week","affirmation":"one warm personal sentence"}. Score must be calculated honestly from the data provided — do not default to any number. Only reference wellness metrics the user has actually tracked. Never invent data points. If data is limited, say so in the headline and score conservatively. A tough week might score 4-5. A great week might score 8-9.`;
     const prompt=`Weekly wellness data: mood average ${avgMoodLocal}/5, sleep ${sleep}hrs (goal ${profile?.sleepGoal||8}hrs), water ${water}/8 glasses today, habits completed ${habitsDone}/${habits.length}, longest streak ${topStreakLocal} days. Fitness level: ${profile?.fitnessLevel||"not set"}. Generate a warm personal weekly score out of 10.`;
     try{
-      const raw=await claude(sys,prompt);
+      const raw=await claude(sys,prompt,[],"wellness_score");
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
       const scoreData={...data,generatedAt:new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})};
       setWeeklyScore(scoreData);

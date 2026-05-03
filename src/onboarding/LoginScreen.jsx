@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
-import { saveData, loadData } from "../utils/firebase";
+import { saveData, loadData, app } from "../utils/firebase";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope("https://www.googleapis.com/auth/calendar.readonly");
 
 export function LoginScreen({onLogin}){
   const [email,setEmail]=useState(""); const [pass,setPass]=useState(""); const [loading,setLoading]=useState(false); const [mode,setMode]=useState("login"); const [error,setError]=useState("");

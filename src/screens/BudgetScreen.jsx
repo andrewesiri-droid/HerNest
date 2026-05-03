@@ -61,19 +61,7 @@ export function BudgetScreen({uid}){
   const processCSV=async(text)=>{
     setImporting(true);
     try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:2000,
-          messages:[{role:"user",content:`Analyse this bank statement CSV and extract transactions. Return ONLY valid JSON: {"transactions":[{"merchant":"","amount":0,"category":"Groceries|Dining|Kids|Shopping|Travel|Fitness|Health|Transport|Entertainment|Bills|Other","date":""}]} Only include debit/outgoing transactions. Here is the CSV:
-
-${text.slice(0,3000)}`}]
-        })
-      });
-      const data=await res.json();
-      const txt=data.content?.[0]?.text||"{}";
+      const txt=await claude(null,`Analyse this bank statement CSV and extract transactions. Return ONLY valid JSON: {"transactions":[{"merchant":"","amount":0,"category":"Groceries|Dining|Kids|Shopping|Travel|Fitness|Health|Transport|Entertainment|Bills|Other","date":""}]} Only include debit/outgoing transactions. Here is the CSV:\n\n${text.slice(0,3000)}`);
       const parsed=JSON.parse(txt.replace(/```json|```/g,"").trim());
       setImportResult(parsed);
     }catch(e){alert("Could not process CSV. Please check the file format.");}

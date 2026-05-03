@@ -6,7 +6,7 @@ import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCalendar,calEvents}){
-  const [water,setWater]=useState(()=>{try{return parseInt(sessionStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
+  const [water,setWater]=useState(()=>{try{return parseInt(localStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
   const [noraInp,setNoraInp]=useState("");
   const [noraResp,setNoraResp]=useState(null);
   const [noraLoad,setNoraLoad]=useState(false);
@@ -24,7 +24,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
     {id:"circle",lb:"Circle",sub:"Your people",bg:"linear-gradient(135deg,#0e1428,#1a2a4e)",IC:Ic.People,ic:"#C4DCEA"},
     {id:"wellness",lb:"Thrive",sub:"Mind & body",bg:"linear-gradient(135deg,#0e2218,#1a4a2e)",IC:Ic.Leaf,ic:"#C8E0CE"},
   ];
-  useEffect(()=>{try{sessionStorage.setItem("hn_hw",String(water));}catch(e){};},[water]);
+  useEffect(()=>{try{localStorage.setItem("hn_hw",String(water));}catch(e){};},[water]);
   const askNora=async()=>{
     if(!noraInp.trim()||noraLoad)return;
     const msg=noraInp.trim();setNoraInp("");setNoraLoad(true);

@@ -120,13 +120,13 @@ ${text.slice(0,3000)}`}]
     alert("Imported successfully! "+( importResult.transactions?importResult.transactions.length+" transactions added.":"Receipt added."));
   };
   const [expenses,setExpenses]=useState(()=>{
-    try{const s=sessionStorage.getItem("hn_expenses");return s?JSON.parse(s):[];}catch(e){return [];}
+    try{const s=localStorage.getItem("hn_expenses");return s?JSON.parse(s):[];}catch(e){return [];}
   });
 
   // Save expenses + categories on change
   useEffect(()=>{
     try{
-      sessionStorage.setItem("hn_expenses",JSON.stringify(expenses));
+      localStorage.setItem("hn_expenses",JSON.stringify(expenses));
       localStorage.setItem("hn_budget_cats",JSON.stringify(categories.map(c=>({lb:c.lb,spent:c.spent,budget:c.budget,c:c.c}))));
     }catch(e){}
     if(uid) saveData(uid,"budget",{expenses,categories:categories.map(c=>({...c,ICname:Object.keys(Ic).find(k=>Ic[k]===c.IC)||"Bag"})),savingsGoal}).catch(()=>{});

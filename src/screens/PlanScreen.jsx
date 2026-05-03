@@ -12,7 +12,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
   const [selectedDay,setSelectedDay]=useState(today.getDay());
   const DEFAULT_TASKS=[];
   const [tasks,setTasks]=useState(()=>{
-    try{const s=sessionStorage.getItem("hn_tasks");return s?JSON.parse(s):DEFAULT_TASKS;}catch(e){return DEFAULT_TASKS;}
+    try{const s=localStorage.getItem("hn_tasks");return s?JSON.parse(s):DEFAULT_TASKS;}catch(e){return DEFAULT_TASKS;}
   });
   const [inp,setInp]=useState("");
   const [selTag,setSelTag]=useState("Family");
@@ -44,7 +44,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
 
   // Save tasks to session storage whenever they change
   useEffect(()=>{
-    try{sessionStorage.setItem("hn_tasks",JSON.stringify(tasks));}catch(e){}
+    try{localStorage.setItem("hn_tasks",JSON.stringify(tasks));}catch(e){}
     if(uid) saveData(uid,"tasks",{tasks}).catch(()=>{});
   },[tasks]);
 

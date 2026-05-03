@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
-import { claude } from "../utils/claude";
+import { claude, claudeVision } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function SchoolCalendar({profile,uid}){
@@ -55,20 +55,8 @@ ${text.slice(0,4000)}`;
     setUploading(true);
     const kidName=child||selectedChild||kids[0]||"your child";
     try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:1000,
-          messages:[{role:"user",content:[
-            {type:"image",source:{type:"base64",media_type:mediaType,data:base64}},
-            {type:"text",text:`Extract all school calendar events for ${kidName}. Return ONLY valid JSON: {"events":[{"title":"","date":"YYYY-MM-DD","type":"holiday|early_dismissal|parent_meeting|exam|trip|performance|sport|closure|academic|other","priority":"critical|medium|low","requiresAction":true,"prep":"brief prep tip","child":"${kidName}"}],"insight":"one warm sentence about this school year"}. Assume year ${new Date().getFullYear()} if missing.`}
-          ]}]
-        })
-      });
-      const data=await res.json();
-      const text=data.content?.[0]?.text||"{}";
+      const prompt=`Extract all school calendar events for ${kidName}. Return ONLY valid JSON: {"events":[{"title":"","date":"YYYY-MM-DD","type":"holiday|early_dismissal|parent_meeting|exam|trip|performance|sport|closure|academic|other","priority":"critical|medium|low","requiresAction":true,"prep":"brief prep tip","child":"${kidName}"}],"insight":"one warm sentence about this school year"}. Assume year ${new Date().getFullYear()} if missing.`;
+      const text=await claudeVision(base64,mediaType,prompt);
       const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
       if(parsed.events?.length){
         const newEvents=[...schoolEvents,...parsed.events].sort((a,b)=>new Date(a.date)-new Date(b.date));

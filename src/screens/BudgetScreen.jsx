@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
-import { claude } from "../utils/claude";
+import { claude, claudeVision } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function BudgetScreen({uid}){
@@ -49,20 +49,7 @@ export function BudgetScreen({uid}){
   const processReceipt=async(base64,mediaType)=>{
     setImporting(true);
     try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:500,
-          messages:[{role:"user",content:[
-            {type:"image",source:{type:"base64",media_type:mediaType,data:base64}},
-            {type:"text",text:`Extract expense data from this receipt. Return ONLY valid JSON: {"merchant":"","amount":0,"category":"Groceries|Dining|Kids|Shopping|Travel|Fitness|Health|Transport|Entertainment|Bills|Other","date":"","items":["",""]}. If you cannot read the receipt return {"error":"cannot read"}`}
-          ]}]
-        })
-      });
-      const data=await res.json();
-      const text=data.content?.[0]?.text||"{}";
+      const text=await claudeVision(base64,mediaType,`Extract expense data from this receipt. Return ONLY valid JSON: {"merchant":"","amount":0,"category":"Groceries|Dining|Kids|Shopping|Travel|Fitness|Health|Transport|Entertainment|Bills|Other","date":"","items":["",""]}. If you cannot read the receipt return {"error":"cannot read"}`);
       const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
       if(parsed.error)throw new Error(parsed.error);
       setImportResult(parsed);

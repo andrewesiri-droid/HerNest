@@ -267,6 +267,7 @@ export default function App() {
   const screens={
     home:    wrap(<HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>, "home"),
     nora:    wrap(<NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAI}/>, "nora"),
+    brief:   wrap(<BriefingScreen profile={profile}/>, "brief"),
     plan:    wrap(<PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>, "plan"),
     trips:   wrap(<TripsScreen uid={user?.uid} profile={profile}/>, "trips"),
     budget:  wrap(<BudgetScreen uid={user?.uid}/>, "budget"),

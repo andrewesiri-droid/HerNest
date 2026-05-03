@@ -16,7 +16,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
   const firstName=profile?.name?.split(" ")[0]||"lovely";
   const tripGoal=profile?.tripGoal;
   const FEATS=[
-    {id:"brief",lb:"Briefing",sub:"Your morning",bg:"linear-gradient(135deg,#2d1a00,#5a3a10)",IC:Ic.Sun,ic:"#F0E2B8"},
+    {id:"nora",lb:"Briefing",sub:"Your morning",bg:"linear-gradient(135deg,#2d1a00,#5a3a10)",IC:Ic.Sun,ic:"#F0E2B8"},
     {id:"plan",lb:"Plan",sub:"Tasks & meals",bg:"linear-gradient(135deg,#0e1a2e,#1a3a5a)",IC:Ic.Plan,ic:"#C4DCEA"},
     {id:"trips",lb:"Trips",sub:"Plan & pack",bg:"linear-gradient(135deg,#0e2a1e,#1a5a3a)",IC:Ic.Compass,ic:"#C8E0CE"},
     {id:"budget",lb:"Budget",sub:"CFO insights",bg:"linear-gradient(135deg,#1a1400,#3a2e00)",IC:Ic.Budget,ic:"#F0E2B8"},

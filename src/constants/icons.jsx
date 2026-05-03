@@ -45,5 +45,7 @@ export const Ic={
   Run:     p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><circle cx="13" cy="4" r="2" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/><path d="M7 22l2-6 3 3 4-8" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/><path d="M14 9l2-3 3 1" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Pin:     p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/><circle cx="12" cy="9" r="2.5" stroke={p.c||T.esp} strokeWidth={p.w||1.5}/></svg>,
   Arrow:   p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><polyline points="9,18 15,12 9,6" stroke={p.c||T.esp} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  Check:  p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke={p.c||"currentColor"} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  Arrow:  p=><svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke={p.c||"currentColor"} strokeWidth={p.w||1.5} strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 

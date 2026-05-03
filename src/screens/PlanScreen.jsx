@@ -4,6 +4,7 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+import { SchoolCalendar } from "./SchoolCalendar";
 
 export function PlanScreen({aiTasks,profile,uid,calEvents}){
   const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];

@@ -78,10 +78,6 @@ export function BriefingScreen({profile,onAddTask,calEvents}){
     setData(null);setLoading(true);setCachedDate("");
   };
 
-  const refreshBriefing=()=>{
-    try{localStorage.removeItem("hn_brief_cache");localStorage.removeItem("hn_brief_date");}catch(e){}
-    setData(null);setLoading(true);setCachedDate("");
-  };
 
   const speakBriefing=()=>{
     if(!data||!window.speechSynthesis)return;

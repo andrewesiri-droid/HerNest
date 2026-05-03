@@ -3,3 +3,5 @@ export const T={cream:"#FAF6EF",sand:"#F2EBE0",linen:"#E5D9C9",taupe:"#B8A898",b
 export const FD="'Cormorant Garamond','Georgia',serif";
 export const FB="'DM Sans','Helvetica Neue',sans-serif";
 export const AIGRAD="linear-gradient(135deg,#1a0e28,#2d1654,#0e1e28)";
+
+export const APP_VERSION = "1.0.1";

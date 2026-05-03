@@ -244,6 +244,49 @@ export function WellnessScreen({profile,uid}){
         ))}
       </div>}
 
+      {/* Weekly Score */}
+      <Card ch={<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <H2 t="Weekly Score" sub="How did you do this week?"/>
+          <button onClick={generateWeeklyScore} disabled={generatingScore} style={{background:`linear-gradient(135deg,${T.sage},#4a7a5a)`,border:"none",borderRadius:12,padding:"7px 14px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer",opacity:generatingScore?.7:1}}>
+            {generatingScore?"Scoring...":"✨ Score my week"}
+          </button>
+        </div>
+        {weeklyScore?(
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:14}}>
+              <div style={{width:72,height:72,borderRadius:"50%",background:`linear-gradient(135deg,${T.sage},#4a7a5a)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:"#fff"}}>{weeklyScore.score}</div>
+              </div>
+              <div style={{flex:1}}>
+                <p style={{fontFamily:FD,fontStyle:"italic",fontSize:15,color:T.esp,margin:"0 0 4px",lineHeight:1.5}}>{weeklyScore.headline}</p>
+                <p style={{fontFamily:FB,fontSize:10,color:T.taupe,margin:0}}>{weeklyScore.generatedAt}</p>
+              </div>
+            </div>
+            {weeklyScore.wins?.length>0&&<div style={{marginBottom:10}}>
+              <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:6}}>This week wins</div>
+              {weeklyScore.wins.map((w,i)=>(<div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:4}}><Ic.Check s={14} c={T.sage} w={2.5}/><span style={{fontFamily:FB,fontSize:12,color:T.bark}}>{w}</span></div>))}
+            </div>}
+            {weeklyScore.focus&&<div style={{background:T.sageP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
+              <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.sage,marginBottom:3}}>Next week focus</div>
+              <p style={{fontFamily:FB,fontSize:12,color:T.esp,margin:0}}>{weeklyScore.focus}</p>
+            </div>}
+            {weeklyScore.affirmation&&<p style={{fontFamily:FD,fontStyle:"italic",fontSize:13,color:T.taupe,margin:"0 0 10px",lineHeight:1.6}}>"{weeklyScore.affirmation}"</p>}
+            <button onClick={()=>{const txt=`My HerNest wellness score: ${weeklyScore.score}/10
+${weeklyScore.headline}
+
+${weeklyScore.affirmation}`;if(navigator.share){navigator.share({title:"My Weekly Score",text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{});alert("Copied!");}}} style={{width:"100%",background:"none",border:`1.5px solid ${T.linen}`,borderRadius:12,padding:"9px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.bark,cursor:"pointer"}}>Share my score 📤</button>
+          </div>
+        ):(
+          <div style={{textAlign:"center",padding:"20px",background:T.sand,borderRadius:14}}>
+            <div style={{fontSize:32,marginBottom:8}}>🌿</div>
+            <p style={{fontFamily:FD,fontStyle:"italic",fontSize:14,color:T.esp,margin:"0 0 4px"}}>Ready for your weekly review?</p>
+            <p style={{fontFamily:FB,fontSize:11,color:T.taupe,margin:0}}>Nora scores your week based on mood, sleep, habits and water</p>
+          </div>
+        )}
+      </div>}/>
+
+
       {/* Habits */}
       {activeTab==="habits"&&<div style={{animation:"slideRight .3s ease both"}}>
         <H2 t="Daily Habits" sub="Tap to check off for today"/>

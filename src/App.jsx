@@ -3887,17 +3887,17 @@ export default function HerNest(){
     if(user?.uid) saveProfile(user.uid, updated);
   };
 
+  const wrap=(screen)=><ErrorBoundary key={tab}>{screen}</ErrorBoundary>;
   const screens={
-    home:    <HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>,
-
-    nora:    <NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAI}/>,
-    plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>,
-    trips:   <TripsScreen uid={user?.uid} profile={profile}/>,
-    budget:  <BudgetScreen uid={user?.uid}/>,
-    style:   <StyleScreen profile={profile} uid={user?.uid}/>,
-    circle:  <CircleScreen profile={profile}/>,
-    wellness:<WellnessScreen profile={profile} uid={user?.uid}/>,
-    profile: <ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>,
+    home:    wrap(<HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>),
+    nora:    wrap(<NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAI}/>),
+    plan:    wrap(<PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>),
+    trips:   wrap(<TripsScreen uid={user?.uid} profile={profile}/>),
+    budget:  wrap(<BudgetScreen uid={user?.uid}/>),
+    style:   wrap(<StyleScreen profile={profile} uid={user?.uid}/>),
+    circle:  wrap(<CircleScreen profile={profile}/>),
+    wellness:wrap(<WellnessScreen profile={profile} uid={user?.uid}/>),
+    profile: wrap(<ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>),
   };
 
   return(

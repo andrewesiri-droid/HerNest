@@ -3,9 +3,11 @@ import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
+import { db } from "../utils/firebase";
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
-export function CircleScreen({profile}){
+export function CircleScreen({profile,uid}){
   const [activeTab,setActiveTab]=useState("myCircle");
   const [myCircle,setMyCircle]=useState([
     {id:1,name:"Priya M",av:"👩🏽",role:"Marketing Director",kids:"Arjun 5, Isla 8",sharedInterests:["Working mums","Family travel","Pilates"],status:"online",lastMsg:"Just dropped the kids — finally some quiet!",time:"2m"},
@@ -16,6 +18,15 @@ export function CircleScreen({profile}){
   const [activeMember,setActiveMember]=useState(null);
   const [chatMsg,setChatMsg]=useState("");
   const [chats,setChats]=useState({});
+  const [realtimeMsgs,setRealtimeMsgs]=useState([]);
+  const [activeRoom,setActiveRoom]=useState("general");
+  const ROOMS=[
+    {id:"general",name:"General 💬",desc:"Anything and everything"},
+    {id:"career",name:"Career 💼",desc:"Work, ambition, balance"},
+    {id:"parenting",name:"Parenting 👶",desc:"School, kids, the chaos"},
+    {id:"wellness",name:"Wellness 🌿",desc:"Self-care, health, habits"},
+    {id:"travel",name:"Travel ✈️",desc:"Trips, tips, adventures"},
+  ];
   const [aiMatch,setAiMatch]=useState(null);
   const [matchLoading,setMatchLoading]=useState(false);
   const [weeklyQ,setWeeklyQ]=useState({q:"What is one thing you did just for YOU this week?",answers:[{av:"👩🏽",name:"Priya",txt:"Booked a massage — first one in 6 months!"},{av:"👩🏼",name:"Sophie",txt:"Read an actual book. Not a kids book. A real one."}]});

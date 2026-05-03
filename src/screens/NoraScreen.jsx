@@ -5,8 +5,20 @@ import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
-export function NoraScreen({onTasks,profile,calEvents,onAddTask}){
+export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
   const [showBriefing,setShowBriefing]=useState(false);
+  // Persistent Nora memory — things she should always remember
+  const [noraMemory,setNoraMemory]=useState(()=>{
+    try{const s=localStorage.getItem("hn_nora_memory");return s?JSON.parse(s):[];}catch(e){return [];}
+  });
+
+  const addMemory=(fact)=>{
+    const updated=[...noraMemory.filter(m=>m!==fact),fact].slice(-30);
+    setNoraMemory(updated);
+    try{localStorage.setItem("hn_nora_memory",JSON.stringify(updated));}catch(e){ /* silent */ }
+    if(uid)saveData(uid,"nora_memory",{facts:updated}).catch(()=>{ /* silent */ });
+  };
+
   const [msgs,setMsgs]=useState(()=>{
     try{
       const s=sessionStorage.getItem("hn_nora_msgs")||localStorage.getItem("hn_nora_msgs");
@@ -18,6 +30,17 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask}){
   const [listening,setListening]=useState(false);
   const recogRef=useRef(null);
   const ref=useRef(null);
+  useEffect(()=>{
+    if(uid){
+      loadData(uid,"nora_memory").then(d=>{
+        if(d?.facts?.length){
+          setNoraMemory(d.facts);
+          try{localStorage.setItem("hn_nora_memory",JSON.stringify(d.facts));}catch(e){ /* silent */ }
+        }
+      }).catch(()=>{ /* silent */ });
+    }
+  },[uid]);
+
   useEffect(()=>{
     try{const save=msgs.slice(-20).map(m=>({role:m.role,content:m.content}));sessionStorage.setItem("hn_nora_msgs",JSON.stringify(save));localStorage.setItem("hn_nora_msgs",JSON.stringify(save));}catch(e){ /* silent */ }
   },[msgs]);
@@ -75,7 +98,17 @@ You are not alone. 💛`,parsed:null}]);
     const financialWords = ["should i invest","buy stocks","buy crypto","which stock","investment advice","should i buy shares","portfolio","trade"];
     const isFinancial = financialWords.some(w => msg.toLowerCase().includes(w));
 
-    const sys=`You are Nora, a warm, intelligent AI Mental Load Manager inside HerNest. ${profileCtx}
+    // Detect memory commands
+    const memoryTriggers = ["remember that","don't forget that","nora remember","always remember","note that","keep in mind"];
+    const isMemoryCmd = memoryTriggers.some(t => msg.toLowerCase().includes(t));
+    if(isMemoryCmd){
+      const fact = msg.replace(/nora,?\s*/i,"").replace(/remember that\s*/i,"").replace(/don't forget that\s*/i,"").replace(/always remember\s*/i,"").replace(/note that\s*/i,"").replace(/keep in mind\s*/i,"").trim();
+      if(fact) addMemory(fact);
+    }
+
+    const memoryCtx = noraMemory.length ? `IMPORTANT — things she has specifically asked Nora to always remember: ${noraMemory.map((m,i)=>`${i+1}. ${m}`).join("; ")}. Always factor these into every response.` : "";
+
+    const sys=`You are Nora, a warm, intelligent AI Mental Load Manager inside HerNest. ${profileCtx} ${memoryCtx}
 You know this mum personally. Use her name, reference her kids by name, mention her real goals.
 ${isMedical?"IMPORTANT: If the question involves medical advice, symptoms or medication — acknowledge warmly then recommend she consult her GP or a healthcare professional. Never diagnose or prescribe.":""}
 ${isFinancial?"IMPORTANT: If the question involves investment, stocks, crypto or specific financial decisions — acknowledge warmly then recommend she consult a qualified financial advisor. Never recommend specific investments.":""}
@@ -109,6 +142,7 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
           <div style={{width:46,height:46,borderRadius:"50%",flexShrink:0,background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",animation:"breathe 3s ease-in-out infinite",boxShadow:`0 0 20px rgba(196,154,60,.4)`}}><Ic.Star s={22} c="#fff" w={1.3}/></div>
           <div style={{flex:1}}><h2 style={{fontFamily:FD,fontSize:20,fontWeight:600,color:"#fff",margin:0,fontStyle:"italic"}}>Nora AI</h2><p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",margin:0,letterSpacing:1.5,textTransform:"uppercase"}}>Mental Load Manager</p></div>
           <button onClick={()=>{setMsgs([{role:"assistant",content:`Hello again ${profile?.name||"lovely"} 💛 Fresh start — what's on your mind?`,parsed:null}]);try{sessionStorage.removeItem("hn_nora_msgs");}catch(e){ /* silent */ }}} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.5)",cursor:"pointer"}}>Clear</button>
+          {noraMemory.length>0&&<button onClick={()=>setShowMemory(p=>!p)} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:10,color:T.gold,cursor:"pointer"}}>🧠 {noraMemory.length}</button>}
         </div>
       </div>
       <div style={{flex:1,overflowY:"auto",paddingBottom:8}}>

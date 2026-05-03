@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRe
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
+import { requestNotificationPermission, scheduleMorningBriefing } from "./utils/notifications";
 import { Ic } from "./constants/icons.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
@@ -17,6 +18,7 @@ import { BudgetScreen } from "./screens/BudgetScreen";
 import { StyleScreen } from "./screens/StyleScreen";
 import { CircleScreen } from "./screens/CircleScreen";
 import { WellnessScreen } from "./screens/WellnessScreen";
+import { PartnerView } from "./screens/PartnerView";
 import { ProfileScreen } from "./screens/ProfileScreen";
 import { OfflineBanner } from "./screens/OfflineBanner";
 import { NotificationCard } from "./screens/NotificationCard";
@@ -196,6 +198,18 @@ export default function App() {
     if(user?.uid&&profile.name) saveData(user.uid,"profile",profile).catch(()=>{});
   },[profile,user]);
 
+  // Push notifications — request permission and schedule briefing
+  useEffect(()=>{
+    if(screen!=="app") return;
+    requestNotificationPermission().then(granted=>{
+      if(granted){
+        const schoolRaw=localStorage.getItem("hn_school_events");
+        const schoolEvents=schoolRaw?JSON.parse(schoolRaw):[];
+        scheduleMorningBriefing(profile,schoolEvents,calEvents);
+      }
+    });
+  },[screen]);
+
   // Streak
   useEffect(()=>{
     if(screen!=="app") return;
@@ -223,6 +237,11 @@ export default function App() {
 
   // Splash
   // Show splash only on first load before auth check
+  // Partner view — shared family calendar
+  const urlParams = new URLSearchParams(window.location.search);
+  const partnerUid = urlParams.get("family");
+  if(partnerUid) return <PartnerView uid={partnerUid}/>;
+
   if(!authChecked) return(
     <div style={{minHeight:"100vh",background:AIGRAD,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center"}}>
@@ -267,13 +286,13 @@ export default function App() {
   // Main app
   const screens={
     home:    wrap(<HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>, "home"),
-    nora:    wrap(<NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAI}/>, "nora"),
+    nora:    wrap(<NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAI} uid={user?.uid}/>, "nora"),
     brief:   wrap(<BriefingScreen profile={profile}/>, "brief"),
     plan:    wrap(<PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>, "plan"),
     trips:   wrap(<TripsScreen uid={user?.uid} profile={profile}/>, "trips"),
     budget:  wrap(<BudgetScreen uid={user?.uid}/>, "budget"),
     style:   wrap(<StyleScreen profile={profile} uid={user?.uid}/>, "style"),
-    circle:  wrap(<CircleScreen profile={profile}/>, "circle"),
+    circle:  wrap(<CircleScreen profile={profile} uid={user?.uid}/>, "circle"),
     wellness:wrap(<WellnessScreen profile={profile} uid={user?.uid}/>, "wellness"),
     profile: wrap(<ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>, "profile"),
   };

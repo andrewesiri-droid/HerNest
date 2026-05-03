@@ -26,7 +26,7 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
     }catch(e){ /* silent */ }
     return [{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];
   });
-  const [inp,setInp]=useState(""); const [loading,setLoading]=useState(false);
+  const [inp,setInp]=useState(""); const [loading,setLoading]=useState(false); const [showMemory,setShowMemory]=useState(false);
   const [listening,setListening]=useState(false);
   const recogRef=useRef(null);
   const ref=useRef(null);
@@ -146,6 +146,22 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
         </div>
       </div>
       <div style={{flex:1,overflowY:"auto",paddingBottom:8}}>
+        {/* Memory panel */}
+        {showMemory&&<div style={{background:"rgba(196,154,60,.08)",border:"1px solid rgba(196,154,60,.2)",borderRadius:14,padding:"12px 14px",marginBottom:10,flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <span style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.gold,letterSpacing:1}}>🧠 NORA REMEMBERS</span>
+            <button onClick={()=>setShowMemory(false)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,.4)",fontSize:12}}>✕</button>
+          </div>
+          {noraMemory.map((m,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:6}}>
+              <span style={{fontFamily:FB,fontSize:10,color:T.gold,flexShrink:0}}>·</span>
+              <span style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.75)",flex:1}}>{m}</span>
+              <button onClick={()=>{const updated=noraMemory.filter((_,idx)=>idx!==i);setNoraMemory(updated);try{localStorage.setItem("hn_nora_memory",JSON.stringify(updated));}catch(e){};if(uid)saveData(uid,"nora_memory",{facts:updated}).catch(()=>{});}} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,.3)",fontSize:11,padding:"0 2px",flexShrink:0}}>✕</button>
+            </div>
+          ))}
+          <p style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.3)",margin:"8px 0 0",fontStyle:"italic"}}>Say "Nora, remember that..." to add</p>
+        </div>}
+
         {msgs.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:12,animation:"fadeUp .3s ease both"}}>
             {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:"50%",flexShrink:0,marginRight:8,background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",alignSelf:"flex-end"}}><Ic.Star s={13} c="#fff" w={1.5}/></div>}

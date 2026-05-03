@@ -4,6 +4,8 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+import { NewTripForm } from "./NewTripForm";
+import { PackingAddItem } from "./PackingAddItem";
 
 export function TripsScreen({uid,profile}){
   const [trips,setTrips]=useState([]);

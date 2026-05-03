@@ -4,6 +4,9 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+import { GiftButton } from "./GiftButton";
+import { EventAdder } from "./EventAdder";
+import { NotificationCard } from "./NotificationCard";
 
 export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const [local, setLocal] = useState({...profile});

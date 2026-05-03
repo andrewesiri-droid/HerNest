@@ -4,6 +4,7 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+import { DestSearch } from "./DestSearch";
 
 export function NewTripForm({profile,familyMembers,onAdd,onCancel,newDest,setNewDest,newDate,setNewDate,newNights,setNewNights,newBudget,setNewBudget,newStatus,setNewStatus,newTravellers,setNewTravellers}){
   return(

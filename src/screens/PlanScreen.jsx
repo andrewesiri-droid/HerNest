@@ -89,7 +89,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
       {/* Header */}
-      <div style={{background:ESPG,borderRadius:22,padding:"20px 20px 18px",marginBottom:14,position:"relative",overflow:"hidden"}}>
+      <div style={{background:AIGRAD,borderRadius:22,padding:"20px 20px 18px",marginBottom:14,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-20,right:-20,width:100,height:100,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <div>

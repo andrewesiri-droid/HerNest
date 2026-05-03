@@ -28,7 +28,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
       {/* Hero */}
-      <div style={{background:ESPG,borderRadius:22,padding:"24px 22px",marginBottom:16,position:"relative",overflow:"hidden",textAlign:"center"}}>
+      <div style={{background:AIGRAD,borderRadius:22,padding:"24px 22px",marginBottom:16,position:"relative",overflow:"hidden",textAlign:"center"}}>
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.03)"}}/>
         <div style={{fontSize:56,marginBottom:8}}>{local.avatar||"👩"}</div>
         <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:22,color:"#fff",margin:"0 0 4px",fontWeight:400}}>{local.name||"Your Profile"}</h2>

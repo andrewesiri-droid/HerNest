@@ -19,7 +19,7 @@ export function LoginScreen({onLogin}){
   };
   const handle=()=>{if(!email||!pass)return;setLoading(true);setTimeout(()=>{setLoading(false);onLogin({uid:email,email,name:email.split("@")[0]});},1200);};
   return(
-    <div style={{minHeight:"100vh",background:ESPG,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
+    <div style={{minHeight:"100vh",background:AIGRAD,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-60,right:-60,width:220,height:220,borderRadius:"50%",background:"rgba(196,154,60,.06)"}}/>
       <div style={{padding:"60px 32px 40px",textAlign:"center",animation:"fadeUp .5s ease both"}}>
         <div style={{width:64,height:64,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",boxShadow:`0 0 30px rgba(196,154,60,.35)`}}><Ic.Star s={28} c="#fff" w={1.3}/></div>

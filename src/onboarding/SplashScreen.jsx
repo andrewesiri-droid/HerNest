@@ -6,7 +6,7 @@ import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function SplashScreen({onDone}){useEffect(()=>{const t=setTimeout(onDone,2800);return()=>clearTimeout(t);},[]);return(
-  <div style={{minHeight:"100vh",background:ESPG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",position:"relative",overflow:"hidden"}}>
+  <div style={{minHeight:"100vh",background:AIGRAD,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",position:"relative",overflow:"hidden"}}>
     <div style={{position:"absolute",top:-80,right:-80,width:300,height:300,borderRadius:"50%",background:"rgba(196,154,60,.06)"}}/>
     <div style={{animation:"float 3s ease-in-out infinite",marginBottom:32}}>
       <div style={{width:90,height:90,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 0 40px rgba(196,154,60,.4)`}}><Ic.Star s={40} c="#fff" w={1.2}/></div>

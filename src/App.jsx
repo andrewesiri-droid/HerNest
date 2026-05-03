@@ -62,6 +62,28 @@ gs.textContent = `
 document.head.appendChild(gs);
 
 // ─── TOKENS ──────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// ERROR BOUNDARY
+// ═══════════════════════════════════════════════════════════════════
+class ErrorBoundary extends React.Component{
+  constructor(props){super(props);this.state={hasError:false,error:null};}
+  static getDerivedStateFromError(error){return{hasError:true,error};}
+  componentDidCatch(error,info){console.error("HerNest screen error:",error,info);}
+  render(){
+    if(this.state.hasError){
+      return(
+        <div style={{padding:"24px 20px",textAlign:"center",background:"#FAF6EF",borderRadius:20,margin:"12px 0"}}>
+          <div style={{fontSize:36,marginBottom:12}}>✦</div>
+          <p style={{fontFamily:"'Cormorant Garamond','Georgia',serif",fontStyle:"italic",fontSize:18,color:"#2E1F14",margin:"0 0 8px"}}>Something went quiet</p>
+          <p style={{fontFamily:"'DM Sans','Helvetica Neue',sans-serif",fontSize:13,color:"#B8A898",margin:"0 0 16px"}}>Nora hit a snag. Tap below to try again.</p>
+          <button onClick={()=>this.setState({hasError:false,error:null})} style={{background:"#2E1F14",color:"#fff",border:"none",borderRadius:12,padding:"10px 20px",fontFamily:"'DM Sans','Helvetica Neue',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}}>Try again</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const T={cream:"#FAF6EF",sand:"#F2EBE0",linen:"#E5D9C9",taupe:"#B8A898",bark:"#7A6A5A",esp:"#2E1F14",sage:"#6B9E7A",sageP:"#C8E0CE",gold:"#C49A3C",goldP:"#F0E2B8",blush:"#D4826A",blushP:"#F2D4CA",sky:"#5E9AB8",skyP:"#C4DCEA",teal:"#4A9E9E",tealP:"#C4E8E8",lav:"#8B7EC8",lavP:"#E0DCF5"};
 const FD="'Cormorant Garamond','Georgia',serif";
 const FB="'DM Sans','Helvetica Neue',sans-serif";
@@ -1629,7 +1651,7 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
 // ═══════════════════════════════════════════════════════════════════
 // 4. STYLE STYLIST — fully interactive
 // ═══════════════════════════════════════════════════════════════════
-function StyleScreen({profile}){
+function StyleScreen({profile,uid}){
   const [prompt,setPrompt]=useState("");
   const [result,setResult]=useState(null);
   const [loading,setLoading]=useState(false);
@@ -1638,18 +1660,24 @@ function StyleScreen({profile}){
   const [mood,setMood]=useState("");
   const [occasion,setOccasion]=useState("");
   const [wishlist,setWishlist]=useState(()=>{
-    try{const s=sessionStorage.getItem("hn_wishlist");return s?JSON.parse(s):[
+    try{const s=localStorage.getItem("hn_wishlist");return s?JSON.parse(s):[
       {id:1,name:"Lululemon Align HR",cat:"Activewear",price:128,color:T.sage},
       {id:2,name:"Reformation Linen Slip",cat:"Style",price:195,color:T.blush},
       {id:3,name:"Bala Bangles 1lb",cat:"Fitness",price:55,color:T.sky},
     ];}catch(e){return [];}
   });
   const [savedOutfits,setSavedOutfits]=useState(()=>{
-    try{const s=sessionStorage.getItem("hn_outfits");return s?JSON.parse(s):[];}catch(e){return [];}
+    try{const s=localStorage.getItem("hn_outfits");return s?JSON.parse(s):[];}catch(e){return [];}
   });
 
-  useEffect(()=>{try{sessionStorage.setItem("hn_wishlist",JSON.stringify(wishlist));}catch(e){};},[wishlist]);
-  useEffect(()=>{try{sessionStorage.setItem("hn_outfits",JSON.stringify(savedOutfits));}catch(e){};},[savedOutfits]);
+  useEffect(()=>{
+    try{localStorage.setItem("hn_wishlist",JSON.stringify(wishlist));}catch(e){}
+    if(uid)saveData(uid,"style",{wishlist,savedOutfits}).catch(()=>{});
+  },[wishlist,uid]);
+  useEffect(()=>{
+    try{localStorage.setItem("hn_outfits",JSON.stringify(savedOutfits));}catch(e){}
+    if(uid)saveData(uid,"style",{wishlist,savedOutfits}).catch(()=>{});
+  },[savedOutfits,uid]);
 
   const OCCASIONS=[
     {lb:"Board meeting",ic:<Ic.Budget s={14} c="currentColor" w={1.5}/>},
@@ -2059,15 +2087,24 @@ function CircleScreen({profile}){
 // ═══════════════════════════════════════════════════════════════════
 // 6. WELLNESS COACH — fully interactive
 // ═══════════════════════════════════════════════════════════════════
-function WellnessScreen({profile}){
-  const [moods,setMoods]=useState(()=>{try{const s=sessionStorage.getItem("hn_moods");return s?JSON.parse(s):[2,1,2,3,2,4,3];}catch(e){return [2,1,2,3,2,4,3];}});
-  const [water,setWater]=useState(()=>{try{return parseInt(sessionStorage.getItem("hn_water")||"4");}catch(e){return 4;}});
-  const [sleep,setSleep]=useState(()=>{try{return parseFloat(sessionStorage.getItem("hn_sleep")||"6.5");}catch(e){return 6.5;}});
+function WellnessScreen({profile,uid}){
+  const [moods,setMoods]=useState(()=>{try{const s=localStorage.getItem("hn_moods");return s?JSON.parse(s):[2,1,2,3,2,4,3];}catch(e){return [2,1,2,3,2,4,3];}});
+  const [water,setWater]=useState(()=>{try{return parseInt(localStorage.getItem("hn_water")||"4");}catch(e){return 4;}});
+  const [sleep,setSleep]=useState(()=>{try{return parseFloat(localStorage.getItem("hn_sleep")||"6.5");}catch(e){return 6.5;}});
 
   // Save wellness data to session
-  useEffect(()=>{try{sessionStorage.setItem("hn_moods",JSON.stringify(moods));}catch(e){};},[moods]);
-  useEffect(()=>{try{sessionStorage.setItem("hn_water",String(water));}catch(e){};},[water]);
-  useEffect(()=>{try{sessionStorage.setItem("hn_sleep",String(sleep));}catch(e){};},[sleep]);
+  useEffect(()=>{
+    try{localStorage.setItem("hn_moods",JSON.stringify(moods));}catch(e){}
+    if(uid)saveData(uid,"wellness",{moods,water,sleep}).catch(()=>{});
+  },[moods,uid]);
+  useEffect(()=>{
+    try{localStorage.setItem("hn_water",String(water));}catch(e){}
+    if(uid)saveData(uid,"wellness",{moods,water,sleep}).catch(()=>{});
+  },[water,uid]);
+  useEffect(()=>{
+    try{localStorage.setItem("hn_sleep",String(sleep));}catch(e){}
+    if(uid)saveData(uid,"wellness",{moods,water,sleep}).catch(()=>{});
+  },[sleep,uid]);
   const [workouts,setWorkouts]=useState([
     {id:1,lb:"Morning HIIT",mins:25,IC:Ic.Dumbbell,done:true,kcal:280},
     {id:2,lb:"Pilates Core",mins:30,IC:Ic.Leaf,done:false,kcal:180},
@@ -2076,6 +2113,12 @@ function WellnessScreen({profile}){
   ]);
   const [habits,setHabits]=useState(()=>{
     try{
+      // Load wellness from Firebase
+      if(uid){loadData(uid,"wellness").then(d=>{
+        if(d?.moods)setMoods(d.moods);
+        if(d?.water)setWater(d.water);
+        if(d?.sleep)setSleep(d.sleep);
+      }).catch(()=>{});}
       const s=localStorage.getItem("hn_habits");
       if(s){
         const saved=JSON.parse(s);
@@ -3851,9 +3894,9 @@ export default function HerNest(){
     plan:    <PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>,
     trips:   <TripsScreen uid={user?.uid} profile={profile}/>,
     budget:  <BudgetScreen uid={user?.uid}/>,
-    style:   <StyleScreen profile={profile}/>,
+    style:   <StyleScreen profile={profile} uid={user?.uid}/>,
     circle:  <CircleScreen profile={profile}/>,
-    wellness:<WellnessScreen profile={profile}/>,
+    wellness:<WellnessScreen profile={profile} uid={user?.uid}/>,
     profile: <ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>,
   };
 

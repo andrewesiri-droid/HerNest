@@ -22,7 +22,7 @@ export function BriefingScreen({profile,onAddTask,calEvents}){
   // Upcoming birthdays in next 7 days
   const upcomingBdays=[];
   const today=new Date();
-  [...(profile?.kids||[]),...(profile?.parents||[]),...(profile?.inlaws||[])].forEach(p=>{
+  [...(profile?.kids||[]),...(profile?.parents||[]),...(profile?.inlaws||[]),...(profile?.friends||[])].forEach(p=>{
     if(p?.bday){
       const parts=p.bday.split("/");
       if(parts.length===2){

@@ -77,7 +77,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
         {noraResp&&<button onClick={()=>go("nora")} style={{width:"100%",background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:12,padding:"9px",fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.7)",cursor:"pointer",marginTop:4}}>Continue with Nora →</button>}
       </div>
       {/* Proactive birthday alerts */}
-      {[...(profile?.kids||[]),...(profile?.parents||[]),...(profile?.inlaws||[])].filter(p=>{
+      {[...(profile?.kids||[]),...(profile?.parents||[]),...(profile?.inlaws||[]),...(profile?.friends||[])].filter(p=>{
         if(!p?.bday)return false;
         const parts=p.bday.split("/");
         if(parts.length!==2)return false;

@@ -42,7 +42,7 @@ export function CircleScreen({profile}){
       const raw=await claude(sys,`Find a perfect Circle match: ${userCtx}. Create a realistic mum profile.`);
       setAiMatch(JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,"").trim()));
     }catch(e){
-      setAiMatch({match:{name:"Rachel T",avatar:"👩🏻",role:"CFO",kids:"2 kids aged 6 & 9",sharedInterests:["Executive mums","Family travel","Wellness"],icebreaker:"You both balance C-suite careers with school runs!",whyMatch:"Rachel gets exactly what it is like to be the most senior person in the room AND the one doing the school run."},reason:"Perfect match."});
+      setAiMatch({match:{name:"Amara K",avatar:"👩🏽",role:"Marketing Director",kids:"3 kids aged 4, 7 & 10",sharedInterests:["Working mums","Family wellness","Career growth"],icebreaker:"You both know what it feels like to run a team AND a household simultaneously.",whyMatch:"Amara understands the pull between ambition and presence better than anyone."},reason:"Strong match based on your profile."});
     }
     setMatchLoading(false);
   };

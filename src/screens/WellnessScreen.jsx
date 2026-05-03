@@ -92,7 +92,7 @@ export function WellnessScreen({profile,uid}){
     const avgMoodLocal=moods.length?Math.round((moods.reduce((a,b)=>a+b,0)/moods.length)*10)/10:0;
     const habitsDone=habits.filter(h=>h.done).length;
     const topStreakLocal=habits.reduce((a,h)=>h.streak>a?h.streak:a,0);
-    const sys=`You are Nora, a warm wellness coach. Return ONLY valid JSON: {"score":7.2,"headline":"one punchy sentence about this week","wins":["win 1","win 2"],"focus":"one gentle suggestion for next week","affirmation":"one warm personal sentence"}`;
+    const sys=`You are Nora, a warm wellness coach. Return ONLY valid JSON: {"score":0,"headline":"one punchy sentence about this week","wins":["",""],"focus":"one gentle suggestion for next week","affirmation":"one warm personal sentence"}. Score must be calculated honestly from the data — do not default to 7. A tough week might score 4-5. A great week might score 8-9. Be accurate and kind.`;
     const prompt=`Weekly wellness data: mood average ${avgMoodLocal}/5, sleep ${sleep}hrs (goal ${profile?.sleepGoal||8}hrs), water ${water}/8 glasses today, habits completed ${habitsDone}/${habits.length}, longest streak ${topStreakLocal} days. Fitness level: ${profile?.fitnessLevel||"not set"}. Generate a warm personal weekly score out of 10.`;
     try{
       const raw=await claude(sys,prompt);

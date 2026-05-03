@@ -52,8 +52,33 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask}){
     if(!inp.trim()||loading)return;
     const msg=inp.trim();setInp("");setLoading(true);
     const profileCtx=profile?`User profile: name ${profile.name||"her"}, role ${profile.role||"mum"}, kids: ${profile.kids?.map(k=>`${k.name} (${k.age})`).join(",")||"none listed"}, partner: ${profile.partner||"none"}, parents: ${profile.parents?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, in-laws: ${profile.inlaws?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, trip goal: ${profile.tripGoal||"none"}, priorities: ${profile.priorities?.join(",")||"family"}, challenge: ${profile.challenge||"mental load"}.`:"";
+    // Crisis detection — check before sending to AI
+    const crisisWords = ["end my life","kill myself","don't want to be here","want to die","suicide","self harm","hurt myself","give up on life","can't go on"];
+    const isCrisis = crisisWords.some(w => msg.toLowerCase().includes(w));
+    if(isCrisis){
+      setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:`I hear you, and I'm really glad you reached out. What you're feeling matters deeply. Please reach out to someone who can truly support you right now:
+
+🆘 **Crisis Text Line** — Text HOME to 741741
+📞 **988 Suicide & Crisis Lifeline** — Call or text 988
+📞 **Samaritans UK** — 116 123
+
+You are not alone. 💛`,parsed:null}]);
+      setLoading(false);
+      return;
+    }
+
+    // Medical advice guardrail
+    const medicalWords = ["should i take","what medication","dosage","prescription","diagnose","do i have","medical advice","should i see a doctor"];
+    const isMedical = medicalWords.some(w => msg.toLowerCase().includes(w));
+
+    // Financial advice guardrail  
+    const financialWords = ["should i invest","buy stocks","buy crypto","which stock","investment advice","should i buy shares","portfolio","trade"];
+    const isFinancial = financialWords.some(w => msg.toLowerCase().includes(w));
+
     const sys=`You are Nora, a warm, intelligent AI Mental Load Manager inside HerNest. ${profileCtx}
 You know this mum personally. Use her name, reference her kids by name, mention her real goals.
+${isMedical?"IMPORTANT: If the question involves medical advice, symptoms or medication — acknowledge warmly then recommend she consult her GP or a healthcare professional. Never diagnose or prescribe.":""}
+${isFinancial?"IMPORTANT: If the question involves investment, stocks, crypto or specific financial decisions — acknowledge warmly then recommend she consult a qualified financial advisor. Never recommend specific investments.":""}
 Respond with 2-3 warm, specific, empathetic sentences that show you KNOW her. Then output:
 <ND>{"tasks":[{"text":"","tag":"Work|Family|Me|Home|Travel","priority":"high|medium|low"}],"reminders":[{"text":""}],"insight":"a short, warm, personal observation about what she shared"}</ND>
 Min 3 tasks. Make tasks specific and actionable. The insight should feel like it came from a close friend who truly gets her life.`;

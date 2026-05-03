@@ -336,6 +336,13 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       <NotificationCard/>
 
       {/* Sign out */}
+      <button onClick={()=>{
+        const url=window.location.origin+"?family="+user?.uid;
+        if(navigator.share){navigator.share({title:"Our Family Calendar",text:"Here is our family this week",url}).catch(()=>{});}
+        else{navigator.clipboard.writeText(url).then(()=>alert("Link copied! Share with your partner.")).catch(()=>alert("Copy this link: "+url));}
+      }} style={{width:"100%",background:`linear-gradient(135deg,${T.sage},#4a7a5a)`,border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+        👨‍👩‍👧 Share family view with partner
+      </button>
       <button onClick={onSignOut} style={{width:"100%",padding:"14px",borderRadius:16,border:`1.5px solid ${T.blushP}`,cursor:"pointer",background:"#fff",color:T.blush,fontFamily:FB,fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:24}}>
         <Ic.LogOut s={18} c={T.blush} w={1.5}/> Sign Out
       </button>

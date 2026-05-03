@@ -1,7 +1,7 @@
 import React from "react";
 import { T, FD, FB } from "../constants/theme";
 
-class ErrorBoundary extends React.Component{
+export class ErrorBoundary extends React.Component{
   constructor(props){super(props);this.state={hasError:false,error:null};}
   static getDerivedStateFromError(error){return{hasError:true,error};}
   componentDidCatch(error,info){console.error("HerNest screen error:",error,info);}

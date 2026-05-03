@@ -54,7 +54,9 @@ export function StyleScreen({profile,uid}){
     try{
       const raw=await claude(sys,finalPrompt);
       const cleaned=raw.replace(/```json|```/g,"").trim();
-      setResult(JSON.parse(cleaned));
+      const parsed = JSON.parse(cleaned);
+      if(parsed?.outfits) setResult(parsed);
+      else throw new Error("Invalid response");
     }catch(e){
             setResult({error:true});
     }

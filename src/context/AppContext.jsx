@@ -54,7 +54,7 @@ export function AppProvider({ children }) {
       setCalEvents(events);
       setCalConnected(true);
       sessionStorage.setItem("hn_cal_connected", "1");
-    } catch (e) { console.log("Calendar error:", e); }
+    } catch (e) {  }
   };
 
   const reset = async () => {

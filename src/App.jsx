@@ -48,7 +48,7 @@ googleProvider.addScope("https://www.googleapis.com/auth/calendar.readonly");
 
 const saveData = async (uid, key, data) => {
   if (!uid) return;
-  try { await setDoc(doc(db,"users",uid,"data",key), data, {merge:true}); } catch(e) { console.log("Save error:",e); }
+  try { await setDoc(doc(db,"users",uid,"data",key), data, {merge:true}); } catch(e) {  }
 };
 const loadData = async (uid, key) => {
   if (!uid) return null;

@@ -53,7 +53,7 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask}){
     const msg=inp.trim();setInp("");setLoading(true);
     const profileCtx=profile?`User profile: name ${profile.name||"her"}, role ${profile.role||"mum"}, kids: ${profile.kids?.map(k=>`${k.name} (${k.age})`).join(",")||"none listed"}, partner: ${profile.partner||"none"}, parents: ${profile.parents?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, in-laws: ${profile.inlaws?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, trip goal: ${profile.tripGoal||"none"}, priorities: ${profile.priorities?.join(",")||"family"}, challenge: ${profile.challenge||"mental load"}.`:"";
     // Crisis detection — check before sending to AI
-    const crisisWords = ["end my life","kill myself","don't want to be here","want to die","suicide","self harm","hurt myself","give up on life","can't go on"];
+    const crisisWords = ["end my life","kill myself","don't want to be here","want to die","suicide","self harm","hurt myself","give up on life","can't go on","not worth living","disappear forever","everyone would be better without me","can't do this anymore","feeling hopeless","no reason to live","end it all","take my own life"];
     const isCrisis = crisisWords.some(w => msg.toLowerCase().includes(w));
     if(isCrisis){
       setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:`I hear you, and I'm really glad you reached out. What you're feeling matters deeply. Please reach out to someone who can truly support you right now:

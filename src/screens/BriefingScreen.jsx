@@ -78,6 +78,11 @@ export function BriefingScreen({profile,onAddTask,calEvents}){
     setData(null);setLoading(true);setCachedDate("");
   };
 
+  const refreshBriefing=()=>{
+    try{localStorage.removeItem("hn_brief_cache");localStorage.removeItem("hn_brief_date");}catch(e){}
+    setData(null);setLoading(true);setCachedDate("");
+  };
+
   const speakBriefing=()=>{
     if(!data||!window.speechSynthesis)return;
     if(speaking){window.speechSynthesis.cancel();setSpeaking(false);return;}
@@ -150,6 +155,7 @@ export function BriefingScreen({profile,onAddTask,calEvents}){
               <div style={{fontFamily:FD,fontSize:16,fontWeight:700,color:T.gold}}>{data.focusWord}</div>
               <div style={{fontFamily:FB,fontSize:8,color:"rgba(255,255,255,.35)",letterSpacing:1,textTransform:"uppercase"}}>today</div>
             </div>}
+          <button onClick={()=>{try{localStorage.removeItem("hn_brief_cache");localStorage.removeItem("hn_brief_date");}catch(e){}setData(null);setLoading(true);}} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.15)",borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.5)",cursor:"pointer"}}>↻ Refresh</button>
             {"speechSynthesis" in window&&<button onClick={speakBriefing} style={{width:44,height:44,borderRadius:13,background:speaking?"rgba(196,154,60,.3)":"rgba(255,255,255,.1)",border:`1px solid ${speaking?"rgba(196,154,60,.5)":"rgba(255,255,255,.15)"}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}} title="Listen to briefing">
               {speaking?<div style={{display:"flex",gap:2,alignItems:"flex-end",height:16}}>{[10,16,12,18,10].map((h,i)=><div key={i} style={{width:3,height:h,background:T.gold,borderRadius:2,animation:`dot 1s ease-in-out ${i*.1}s infinite`}}/>)}</div>:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" stroke="rgba(255,255,255,.7)" strokeWidth="1.5" strokeLinejoin="round"/><path d="M15.54 8.46a5 5 0 010 7.07" stroke="rgba(255,255,255,.7)" strokeWidth="1.5" strokeLinecap="round"/><path d="M19.07 4.93a10 10 0 010 14.14" stroke="rgba(255,255,255,.4)" strokeWidth="1.5" strokeLinecap="round"/></svg>}
             </button>}

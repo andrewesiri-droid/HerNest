@@ -40,7 +40,8 @@ export function CircleScreen({profile}){
     const userCtx=`User: ${profile?.name||"Sarah"}, ${profile?.role||"Working Mum"}, kids: ${profile?.kids?.map(k=>k.name).join(",")||"2 kids"}, priorities: ${profile?.priorities?.join(",")||"family,career"}`;
     try{
       const raw=await claude(sys,`Find a perfect Circle match: ${userCtx}. Create a realistic mum profile.`);
-      setAiMatch(JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,"").trim()));
+      const parsed=JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,"").trim());
+      if(parsed?.match)setAiMatch(parsed);
     }catch(e){
       setAiMatch({match:{name:"Amara K",avatar:"👩🏽",role:"Marketing Director",kids:"3 kids aged 4, 7 & 10",sharedInterests:["Working mums","Family wellness","Career growth"],icebreaker:"You both know what it feels like to run a team AND a household simultaneously.",whyMatch:"Amara understands the pull between ambition and presence better than anyone."},reason:"Strong match based on your profile."});
     }

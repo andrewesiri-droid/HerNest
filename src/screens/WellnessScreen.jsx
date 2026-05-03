@@ -99,7 +99,7 @@ export function WellnessScreen({profile,uid}){
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
       const scoreData={...data,generatedAt:new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})};
       setWeeklyScore(scoreData);
-      try{localStorage.setItem("hn_weekly_score",JSON.stringify(scoreData));}catch(e){ /* silent */ }
+      try{localStorage.setItem("hn_weekly_score",JSON.stringify(scoreData));}catch(e){setWeeklyScore({score:6,headline:"You showed up this week — that counts for everything.",wins:["You kept going","You cared for your family"],focus:"Be gentle with yourself next week",affirmation:"Every small step forward is still progress.",generatedAt:new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})});}
     }catch(e){ /* silent */ }
     setGeneratingScore(false);
   };

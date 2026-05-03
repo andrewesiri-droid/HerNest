@@ -25,11 +25,11 @@ export function StyleScreen({profile,uid}){
   });
 
   useEffect(()=>{
-    try{localStorage.setItem("hn_wishlist",JSON.stringify(wishlist));}catch(e){}
+    try{localStorage.setItem("hn_wishlist",JSON.stringify(wishlist));}catch(e){ /* silent */ }
     if(uid)saveData(uid,"style",{wishlist,savedOutfits}).catch(()=>{});
   },[wishlist,uid]);
   useEffect(()=>{
-    try{localStorage.setItem("hn_outfits",JSON.stringify(savedOutfits));}catch(e){}
+    try{localStorage.setItem("hn_outfits",JSON.stringify(savedOutfits));}catch(e){ /* silent */ }
     if(uid)saveData(uid,"style",{wishlist,savedOutfits}).catch(()=>{});
   },[savedOutfits,uid]);
 
@@ -56,8 +56,7 @@ export function StyleScreen({profile,uid}){
       const cleaned=raw.replace(/```json|```/g,"").trim();
       setResult(JSON.parse(cleaned));
     }catch(e){
-      console.log("Style error:",e);
-      setResult({error:true});
+            setResult({error:true});
     }
     setLoading(false);
   };

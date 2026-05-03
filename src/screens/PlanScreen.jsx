@@ -38,13 +38,13 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
       if(data.meals)setMeals(data.meals);
       if(data.shoppingList)setShoppingList(data.shoppingList);
-    }catch(e){console.log("Meal plan error:",e);}
+    }catch(e){ /* silent */ }
     setGeneratingMeals(false);
   };
 
   // Save tasks to session storage whenever they change
   useEffect(()=>{
-    try{localStorage.setItem("hn_tasks",JSON.stringify(tasks));}catch(e){}
+    try{localStorage.setItem("hn_tasks",JSON.stringify(tasks));}catch(e){ /* silent */ }
     if(uid) saveData(uid,"tasks",{tasks}).catch(()=>{});
   },[tasks]);
 

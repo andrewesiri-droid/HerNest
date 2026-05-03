@@ -13,8 +13,7 @@ export const claude = async (sys, prompt, hist = []) => {
     const data = await res.json();
     return data.content?.[0]?.text || "";
   } catch (e) {
-    console.log("Claude error:", e);
-    return "";
+        return "";
   }
 };
 
@@ -39,7 +38,6 @@ export const claudeVision = async (base64, mediaType, prompt) => {
     const data = await res.json();
     return data.content?.[0]?.text || "";
   } catch (e) {
-    console.log("Vision error:", e);
-    return "";
+        return "";
   }
 };

@@ -11,7 +11,7 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask}){
     try{
       const s=sessionStorage.getItem("hn_nora_msgs")||localStorage.getItem("hn_nora_msgs");
       if(s)return JSON.parse(s);
-    }catch(e){}
+    }catch(e){ /* silent */ }
     return [{role:"assistant",content:`Hello${profile?.name?`, ${profile.name}`:", lovely"}. I'm Nora, your AI Mental Load Manager.\n\nTalk to me naturally — tell me what's on your mind and I'll organise everything for you.`,parsed:null}];
   });
   const [inp,setInp]=useState(""); const [loading,setLoading]=useState(false);
@@ -19,7 +19,7 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask}){
   const recogRef=useRef(null);
   const ref=useRef(null);
   useEffect(()=>{
-    try{const save=msgs.slice(-20).map(m=>({role:m.role,content:m.content}));sessionStorage.setItem("hn_nora_msgs",JSON.stringify(save));localStorage.setItem("hn_nora_msgs",JSON.stringify(save));}catch(e){}
+    try{const save=msgs.slice(-20).map(m=>({role:m.role,content:m.content}));sessionStorage.setItem("hn_nora_msgs",JSON.stringify(save));localStorage.setItem("hn_nora_msgs",JSON.stringify(save));}catch(e){ /* silent */ }
   },[msgs]);
 
   const startVoice=()=>{
@@ -61,7 +61,7 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
     try{
       const raw=await claude(sys,msg,hist);
       const match=raw.match(/<ND>([\s\S]*?)<\/ND>/);
-      let parsed=null;if(match){try{parsed=JSON.parse(match[1].trim());}catch(e){}}
+      let parsed=null;if(match){try{parsed=JSON.parse(match[1].trim());}catch(e){ /* silent */ }}
       const display=raw.replace(/<ND>[\s\S]*?<\/ND>/g,"").trim();
       setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:display,parsed}]);
       if(parsed&&onTasks)onTasks(parsed);
@@ -82,7 +82,7 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div style={{width:46,height:46,borderRadius:"50%",flexShrink:0,background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",animation:"breathe 3s ease-in-out infinite",boxShadow:`0 0 20px rgba(196,154,60,.4)`}}><Ic.Star s={22} c="#fff" w={1.3}/></div>
           <div style={{flex:1}}><h2 style={{fontFamily:FD,fontSize:20,fontWeight:600,color:"#fff",margin:0,fontStyle:"italic"}}>Nora AI</h2><p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",margin:0,letterSpacing:1.5,textTransform:"uppercase"}}>Mental Load Manager</p></div>
-          <button onClick={()=>{setMsgs([{role:"assistant",content:`Hello again ${profile?.name||"lovely"} 💛 Fresh start — what's on your mind?`,parsed:null}]);try{sessionStorage.removeItem("hn_nora_msgs");}catch(e){}}} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.5)",cursor:"pointer"}}>Clear</button>
+          <button onClick={()=>{setMsgs([{role:"assistant",content:`Hello again ${profile?.name||"lovely"} 💛 Fresh start — what's on your mind?`,parsed:null}]);try{sessionStorage.removeItem("hn_nora_msgs");}catch(e){ /* silent */ }}} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:10,padding:"5px 10px",fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.5)",cursor:"pointer"}}>Clear</button>
         </div>
       </div>
       <div style={{flex:1,overflowY:"auto",paddingBottom:8}}>

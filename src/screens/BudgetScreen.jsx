@@ -8,7 +8,7 @@ import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar 
 export function BudgetScreen({uid}){
   const CAT_META={Groceries:{IC:Ic.Bag,c:T.sage,budget:700},Kids:{IC:Ic.Kids,c:T.sky,budget:400},Fitness:{IC:Ic.Dumbbell,c:T.blush,budget:120},Travel:{IC:Ic.Suitcase,c:T.teal,budget:2000},Shopping:{IC:Ic.Hanger,c:T.lav,budget:500},Dining:{IC:Ic.Fork,c:T.gold,budget:300},Health:{IC:Ic.Leaf,c:T.sage,budget:200},Transport:{IC:Ic.Compass,c:T.sky,budget:300},Entertainment:{IC:Ic.Star,c:T.lav,budget:200},Bills:{IC:Ic.Budget,c:T.bark,budget:1000},Other:{IC:Ic.Bag,c:T.taupe,budget:200}};
   const [categories,setCategories]=useState(()=>{
-    try{const s=localStorage.getItem("hn_budget_cats");if(s){const saved=JSON.parse(s);return saved.map(c=>({...c,IC:CAT_META[c.lb]?.IC||Ic.Bag}));}}catch(e){}
+    try{const s=localStorage.getItem("hn_budget_cats");if(s){const saved=JSON.parse(s);return saved.map(c=>({...c,IC:CAT_META[c.lb]?.IC||Ic.Bag}));}}catch(e){ /* silent */ }
     return [
       {lb:"Groceries",spent:0,budget:700,IC:Ic.Bag,c:T.sage},
       {lb:"Kids",spent:0,budget:400,IC:Ic.Kids,c:T.sky},
@@ -18,7 +18,8 @@ export function BudgetScreen({uid}){
       {lb:"Dining",spent:0,budget:300,IC:Ic.Fork,c:T.gold},
     ];
   });
-  const [savingsGoal,setSavingsGoal]=useState({name:"Bali Trip",target:6400,saved:3200});
+  const [savingsGoal,setSavingsGoal]=useState({name:"",target:0,saved:0});
+  const [editingGoal,setEditingGoal]=useState(false);
   const [monthHistory,setMonthHistory]=useState(()=>{
     try{const s=localStorage.getItem("hn_month_history");return s?JSON.parse(s):[];}catch(e){return [];}
   });
@@ -28,7 +29,7 @@ export function BudgetScreen({uid}){
     const snapshot={month,categories:categories.map(c=>({lb:c.lb,spent:c.spent,budget:c.budget})),totalSpent:categories.reduce((a,c)=>a+c.spent,0),totalBudget:categories.reduce((a,c)=>a+c.budget,0)};
     setMonthHistory(p=>{
       const updated=[snapshot,...p.filter(m=>m.month!==month)].slice(0,6);
-      try{localStorage.setItem("hn_month_history",JSON.stringify(updated));}catch(e){}
+      try{localStorage.setItem("hn_month_history",JSON.stringify(updated));}catch(e){ /* silent */ }
       return updated;
     });
   };
@@ -115,7 +116,7 @@ ${text.slice(0,3000)}`}]
     try{
       localStorage.setItem("hn_expenses",JSON.stringify(expenses));
       localStorage.setItem("hn_budget_cats",JSON.stringify(categories.map(c=>({lb:c.lb,spent:c.spent,budget:c.budget,c:c.c}))));
-    }catch(e){}
+    }catch(e){ /* silent */ }
     if(uid) saveData(uid,"budget",{expenses,categories:categories.map(c=>({...c,ICname:Object.keys(Ic).find(k=>Ic[k]===c.IC)||"Bag"})),savingsGoal}).catch(()=>{});
   },[expenses,categories,uid]);
 
@@ -340,7 +341,18 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
       {/* Savings */}
       {activeTab==="savings"&&<div style={{animation:"slideRight .3s ease both"}}>
         <Card sx={{background:`linear-gradient(135deg,#1a1400,#3a2e00)`,border:"none"}} ch={<div>
-          <p style={{fontFamily:FB,fontSize:11,color:T.gold,letterSpacing:1.5,textTransform:"uppercase",fontWeight:700,margin:"0 0 6px"}}>Goal — {savingsGoal.name}</p>
+          {editingGoal?(
+            <div style={{marginBottom:8}}>
+              <input value={savingsGoal.name} onChange={e=>setSavingsGoal(p=>({...p,name:e.target.value}))} placeholder="Goal name e.g. Bali Trip" style={{width:"100%",fontFamily:FB,fontSize:12,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff",marginBottom:6}}/>
+              <div style={{display:"flex",gap:6}}>
+                <input type="number" value={savingsGoal.saved} onChange={e=>setSavingsGoal(p=>({...p,saved:Number(e.target.value)}))} placeholder="Saved $" style={{flex:1,fontFamily:FB,fontSize:12,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+                <input type="number" value={savingsGoal.target} onChange={e=>setSavingsGoal(p=>({...p,target:Number(e.target.value)}))} placeholder="Target $" style={{flex:1,fontFamily:FB,fontSize:12,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:"#fff"}}/>
+              </div>
+              <button onClick={()=>setEditingGoal(false)} style={{width:"100%",background:"rgba(255,255,255,.15)",border:"none",borderRadius:8,padding:"6px",fontFamily:FB,fontSize:11,color:"#fff",cursor:"pointer",marginTop:6}}>Save goal</button>
+            </div>
+          ):(
+            <p onClick={()=>setEditingGoal(true)} style={{fontFamily:FB,fontSize:11,color:T.gold,letterSpacing:1.5,textTransform:"uppercase",fontWeight:700,margin:"0 0 6px",cursor:"pointer"}}>Goal — {savingsGoal.name} ✏️</p>
+          )}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:12}}>
             <div style={{fontFamily:FD,fontSize:36,fontWeight:700,color:"#fff"}}>{savingsPct}%</div>
             <div style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.5)"}}>${savingsGoal.saved.toLocaleString()} / ${savingsGoal.target.toLocaleString()}</div>

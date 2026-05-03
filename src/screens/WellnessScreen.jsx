@@ -12,15 +12,15 @@ export function WellnessScreen({profile,uid}){
 
   // Save wellness data to session
   useEffect(()=>{
-    try{localStorage.setItem("hn_moods",JSON.stringify(moods));}catch(e){}
+    try{localStorage.setItem("hn_moods",JSON.stringify(moods));}catch(e){ /* silent */ }
     if(uid)saveData(uid,"wellness",{moods,water,sleep}).catch(()=>{});
   },[moods,uid]);
   useEffect(()=>{
-    try{localStorage.setItem("hn_water",String(water));}catch(e){}
+    try{localStorage.setItem("hn_water",String(water));}catch(e){ /* silent */ }
     if(uid)saveData(uid,"wellness",{moods,water,sleep}).catch(()=>{});
   },[water,uid]);
   useEffect(()=>{
-    try{localStorage.setItem("hn_sleep",String(sleep));}catch(e){}
+    try{localStorage.setItem("hn_sleep",String(sleep));}catch(e){ /* silent */ }
     if(uid)saveData(uid,"wellness",{moods,water,sleep}).catch(()=>{});
   },[sleep,uid]);
   const [workouts,setWorkouts]=useState([
@@ -43,7 +43,7 @@ export function WellnessScreen({profile,uid}){
         const ICONS={1:Ic.Leaf,2:Ic.Moon,3:Ic.Flower,4:Ic.Run};
         return saved.map(h=>({...h,IC:ICONS[h.id]||Ic.Leaf,done:false}));
       }
-    }catch(e){}
+    }catch(e){ /* silent */ }
     return [
       {id:1,lb:"Mindfulness",streak:0,IC:Ic.Leaf,done:false},
       {id:2,lb:"8hrs sleep",streak:0,IC:Ic.Moon,done:false},
@@ -66,7 +66,7 @@ export function WellnessScreen({profile,uid}){
   const toggleHabit=id=>{
     setHabits(p=>{
       const updated=p.map(h=>h.id===id?{...h,done:!h.done,streak:h.done?Math.max(0,h.streak-1):h.streak+1}:h);
-      try{localStorage.setItem("hn_habits",JSON.stringify(updated.map(h=>({id:h.id,lb:h.lb,streak:h.streak,done:h.done}))));}catch(e){}
+      try{localStorage.setItem("hn_habits",JSON.stringify(updated.map(h=>({id:h.id,lb:h.lb,streak:h.streak,done:h.done}))));}catch(e){ /* silent */ }
       return updated;
     });
   };
@@ -99,8 +99,8 @@ export function WellnessScreen({profile,uid}){
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
       const scoreData={...data,generatedAt:new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})};
       setWeeklyScore(scoreData);
-      try{localStorage.setItem("hn_weekly_score",JSON.stringify(scoreData));}catch(e){}
-    }catch(e){console.log("Score error:",e);}
+      try{localStorage.setItem("hn_weekly_score",JSON.stringify(scoreData));}catch(e){ /* silent */ }
+    }catch(e){ /* silent */ }
     setGeneratingScore(false);
   };
     const ctx=`Real wellness data: mood today ${todayMood}/5, weekly average ${avgMood}/5, low mood days this week: ${lowMoodDays}. Sleep last night: ${sleep}hrs (goal 8hrs, ${sleep>=8?"on track":"below target"}). Water today: ${water}/8 glasses. Workouts completed: ${workouts.filter(w=>w.done).length}/${workouts.length} (${totalKcal} kcal burned, ${doneMins} mins). Daily habits done today: ${doneHabits}/${habits.length}. Longest streak: ${topStreak} days. Active habits: ${habits.map(h=>`${h.lb} (${h.streak}d streak)`).join(", ")}.`;

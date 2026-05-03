@@ -11,7 +11,7 @@ export function ShareButton(){
     const url="https://her-nest.vercel.app/landing.html";
     const msg="Hey! I found this amazing AI app for mums — meet Nora, your personal AI that manages your mental load, plans trips, tracks your budget and keeps you thriving. Try it free 💛 "+url;
     if(navigator.share){
-      try{await navigator.share({title:"HerNest AI",text:msg,url});}catch(e){}
+      try{await navigator.share({title:"HerNest AI",text:msg,url});}catch(e){ /* silent */ }
     } else {
       try{await navigator.clipboard.writeText(url);}catch(e){
         const el=document.createElement("textarea");el.value=url;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el);

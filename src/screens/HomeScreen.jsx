@@ -24,7 +24,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
     {id:"circle",lb:"Circle",sub:"Your people",bg:"linear-gradient(135deg,#0e1428,#1a2a4e)",IC:Ic.People,ic:"#C4DCEA"},
     {id:"wellness",lb:"Thrive",sub:"Mind & body",bg:"linear-gradient(135deg,#0e2218,#1a4a2e)",IC:Ic.Leaf,ic:"#C8E0CE"},
   ];
-  useEffect(()=>{try{localStorage.setItem("hn_hw",String(water));}catch(e){};},[water]);
+  useEffect(()=>{try{localStorage.setItem("hn_hw",String(water));}catch(e){ /* silent */ };},[water]);
   const askNora=async()=>{
     if(!noraInp.trim()||noraLoad)return;
     const msg=noraInp.trim();setNoraInp("");setNoraLoad(true);

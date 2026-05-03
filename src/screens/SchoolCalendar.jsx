@@ -21,7 +21,7 @@ export function SchoolCalendar({profile,uid}){
 
   const saveEvents=(events)=>{
     setSchoolEvents(events);
-    try{localStorage.setItem("hn_school_events",JSON.stringify(events));}catch(e){}
+    try{localStorage.setItem("hn_school_events",JSON.stringify(events));}catch(e){ /* silent */ }
     if(uid)saveData(uid,"school",{events}).catch(()=>{});
   };
 
@@ -44,7 +44,7 @@ ${text.slice(0,4000)}`;
         saveEvents(newEvents);
         if(data.insight)setInsight(data.insight);
       }
-    }catch(e){console.log("School cal error:",e);}
+    }catch(e){ /* silent */ }
     setUploading(false);
     setShowUpload(false);
     setShowPaste(false);
@@ -63,7 +63,7 @@ ${text.slice(0,4000)}`;
         saveEvents(newEvents);
         if(parsed.insight)setInsight(parsed.insight);
       }
-    }catch(e){console.log("Image error:",e);}
+    }catch(e){ /* silent */ }
     setUploading(false);
     setShowUpload(false);
   };

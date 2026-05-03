@@ -123,7 +123,7 @@ const wrap = (screen, key) => <ErrorBoundaryClass key={key}>{screen}</ErrorBound
 
 // ─── MAIN APP ──────────────────────────────────────────────────────
 export default function App() {
-  const [screen, setScreen] = useState("splash");
+  const [screen, setScreen] = useState("loading");
   const [tab, setTab] = useState("home");
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -221,8 +221,16 @@ export default function App() {
   },[]);
 
   // Splash
-  if(!authChecked&&screen==="splash") return <SplashScreen onDone={()=>setScreen("login")}/>;
-  if(!authChecked) return <div style={{minHeight:"100vh",background:`linear-gradient(145deg,${T.esp},#1a0a04)`,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{width:44,height:44,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,animation:"breathe 2s ease-in-out infinite"}}/></div>;
+  // Show splash only on first load before auth check
+  if(!authChecked) return(
+    <div style={{minHeight:"100vh",background:AIGRAD,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center"}}>
+        <div style={{fontFamily:FD,fontSize:42,fontWeight:600,color:"#fff",fontStyle:"italic",marginBottom:8}}>HerNest</div>
+        <div style={{width:36,height:36,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,animation:"breathe 2s ease-in-out infinite",margin:"0 auto"}}/>
+      </div>
+    </div>
+  );
+
 
   // Onboarding
   const STEPS=["step1","step2","step3","step4","step5","step6"];

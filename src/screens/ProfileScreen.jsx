@@ -167,6 +167,45 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         </div>
       </div>}/>
 
+      {/* Close Friends */}
+      <Card ch={<div>
+        <H2 t="Close Friends" sub="Nora will remember their birthdays"/>
+        {(local.friends||[]).map((f,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.blushP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
+            <div style={{flex:1}}>
+              <span style={{fontFamily:FD,fontSize:15,fontWeight:600,color:T.esp}}>{f.name}</span>
+              {f.bday&&<div style={{fontFamily:FB,fontSize:11,color:T.blush,marginTop:2,display:"flex",alignItems:"center",gap:6}}>
+                <span>🎂 {f.bday}</span>
+                <GiftButton name={f.name} age="" relation="friend"/>
+              </div>}
+            </div>
+            <button onClick={()=>upd("friends",(local.friends||[]).filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
+          </div>
+        ))}
+        <div style={{display:"flex",gap:6,marginBottom:6}}>
+          <input placeholder="Friend's name" id="fr-name" style={{flex:2,fontFamily:FB,fontSize:13,padding:"10px 10px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
+        </div>
+        <div style={{display:"flex",gap:6}}>
+          <select id="fr-bday-m" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+            <option value="">Month</option>
+            {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].map((m,i)=><option key={i} value={String(i+1).padStart(2,"0")}>{m}</option>)}
+          </select>
+          <select id="fr-bday-d" style={{flex:1,fontFamily:FB,fontSize:12,padding:"10px 8px",borderRadius:12,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}>
+            <option value="">Day</option>
+            {Array.from({length:31},(_,i)=><option key={i+1} value={String(i+1).padStart(2,"0")}>{i+1}</option>)}
+          </select>
+          <button onClick={()=>{
+            const name=document.getElementById("fr-name")?.value||"";
+            if(!name.trim())return;
+            const m=document.getElementById("fr-bday-m")?.value||"";
+            const d=document.getElementById("fr-bday-d")?.value||"";
+            const bd=m&&d?`${m}/${d}`:"";
+            upd("friends",[...(local.friends||[]),{name,bday:bd}]);
+            document.getElementById("fr-name").value="";
+          }} style={{background:T.blush,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+        </div>
+      </div>}/>
+
       {/* Priorities */}
       <Card ch={<div>
         <H2 t="Your Priorities" sub="Pick up to 3"/>

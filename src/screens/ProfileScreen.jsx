@@ -8,7 +8,9 @@ import { GiftButton } from "./GiftButton";
 import { EventAdder } from "./EventAdder";
 import { NotificationCard } from "./NotificationCard";
 
+import { PrivacyScreen } from "./PrivacyScreen";
 export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
+  const [showPrivacy, setShowPrivacy] = React.useState(false);
   const [local, setLocal] = useState({...profile});
   const [saved, setSaved] = useState(false);
   const [kn, setKn] = useState("");

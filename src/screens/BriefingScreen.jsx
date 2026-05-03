@@ -3,6 +3,7 @@ import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
+import { logEvent, EVENTS } from "../utils/analytics";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function BriefingScreen({profile,onAddTask,calEvents}){
@@ -67,6 +68,7 @@ export function BriefingScreen({profile,onAddTask,calEvents}){
       const raw=await claude(sys,ctx,[],"morning_briefing");
       const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());
       setData(parsed);
+      logEvent(EVENTS.BRIEFING_VIEWED,{focusWord:parsed.focusWord});
       const today=new Date().toDateString();
       try{localStorage.setItem("hn_brief_cache",JSON.stringify(parsed));localStorage.setItem("hn_brief_date",today);}catch(e){}
     }

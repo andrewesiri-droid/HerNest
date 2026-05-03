@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRe
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
+import { initSession, logEvent, EVENTS } from "./utils/analytics";
 import { requestNotificationPermission, scheduleMorningBriefing } from "./utils/notifications";
 import { Ic } from "./constants/icons.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -198,6 +199,9 @@ export default function App() {
     if(user?.uid&&profile.name) saveData(user.uid,"profile",profile).catch(()=>{});
   },[profile,user]);
 
+  // Analytics — init session
+  useEffect(()=>{ initSession(); },[]);
+
   // Push notifications — request permission and schedule briefing
   useEffect(()=>{
     if(screen!=="app") return;
@@ -278,7 +282,7 @@ export default function App() {
   }
 
   if(screen==="login") return <><style>{css}</style><LoginScreen onLogin={handleLogin} auth={auth} googleProvider={googleProvider}/></>;
-  if(screen==="intro") return <><style>{css}</style><NoraIntro profile={profile} onEnter={()=>setScreen("app")}/></>;
+  if(screen==="intro") return <><style>{css}</style><NoraIntro profile={profile} onEnter={()=>{logEvent(EVENTS.ONBOARDING_COMPLETED,{name:profile.name,role:profile.role});setScreen("app");}}/></>;
 
   // Main app
   const screens={

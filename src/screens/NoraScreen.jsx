@@ -163,7 +163,13 @@ You are not alone. 💛`,parsed:null}]);
       const toForget = activeMemory.find(f=>f.fact.toLowerCase().includes(factHint.slice(0,15)));
       if(toForget){
         forgetMemory(toForget.id);
-        setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:`Got it — I've forgotten that. 💛`,parsed:null}]);
+        logEvent(EVENTS.NORA_MEMORY_REMOVED);
+        setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:`Got it — I've forgotten: *"${toForget.fact}"* 💛 It's gone from my memory permanently.`,parsed:null}]);
+        setLoading(false);
+        return;
+      } else if(activeMemory.length>0){
+        const list=activeMemory.map((f,i)=>`${i+1}. ${f.fact}`).join("\n");
+        setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:`I'm not sure which memory you mean. Here's what I remember:\n\n${list}\n\nTell me which one to forget and I'll remove it.`,parsed:null}]);
         setLoading(false);
         return;
       }
@@ -178,7 +184,13 @@ You are not alone. 💛`,parsed:null}]);
       else if(/kid|child|son|daughter|husband|wife|partner|mum|dad/i.test(clean)) type = "family";
       else if(/goal|want to|trying to|working on/i.test(clean)) type = "goal";
       else if(/every morning|every day|routine|schedule/i.test(clean)) type = "schedule";
-      if(clean) addMemory(clean, type);
+      if(clean){
+        addMemory(clean, type);
+        logEvent(EVENTS.NORA_MEMORY_ADDED,{type});
+        setMsgs(p=>[...p,{role:"user",content:msg},{role:"assistant",content:`Got it — I'll always remember: *"${clean}"* 💛 This is now part of my permanent memory about you.`,parsed:null}]);
+        setLoading(false);
+        return;
+      }
     }
 
     const memoryCtx = activeMemory.length ? `IMPORTANT — things she has specifically asked Nora to always remember:\n${activeMemory.map((f,i)=>`${i+1}. [${f.type}] ${f.fact}`).join("\n")}\nAlways factor these into every response. If a fact seems outdated, gently check.` : "";
@@ -195,6 +207,7 @@ Respond with 2-3 warm, specific, empathetic sentences that show you KNOW her. Th
 Min 3 tasks. Make tasks specific and actionable. The insight should feel like it came from a close friend who truly gets her life.`;
     const hist=msgs.map(m=>({role:m.role,content:m.content}));
     try{
+      logEvent(EVENTS.NORA_MESSAGE_SENT,{msgLen:msg.length});
       const raw=await claude(sys,msg,hist,"nora_chat");
       const match=raw.match(/<ND>([\s\S]*?)<\/ND>/);
       let parsed=null;if(match){try{parsed=JSON.parse(match[1].trim());}catch(e){ /* silent */ }}

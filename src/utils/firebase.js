@@ -24,4 +24,24 @@ export const loadData = async (uid, key) => {
   return snap.exists() ? snap.data() : null;
 };
 
+// Summary document — lightweight home screen data
+// Updates key metrics without loading all collections
+export const updateSummary = async (uid, updates) => {
+  if (!uid) return;
+  try {
+    await setDoc(doc(db, "users", uid, "summary", "latest"), {
+      ...updates,
+      lastUpdated: new Date().toISOString(),
+    }, { merge: true });
+  } catch(e) { /* silent */ }
+};
+
+export const loadSummary = async (uid) => {
+  if (!uid) return null;
+  try {
+    const snap = await getDoc(doc(db, "users", uid, "summary", "latest"));
+    return snap.exists() ? snap.data() : null;
+  } catch(e) { return null; }
+};
+
 export { db, app };

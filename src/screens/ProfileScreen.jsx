@@ -357,6 +357,34 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       <button onClick={onSignOut} style={{width:"100%",padding:"14px",borderRadius:16,border:`1.5px solid ${T.blushP}`,cursor:"pointer",background:"#fff",color:T.blush,fontFamily:FB,fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:8}}>
         <Ic.LogOut s={18} c={T.blush} w={1.5}/> Sign Out
       </button>
+      {/* Data Export — GDPR Article 15 */}
+      <button onClick={async()=>{
+        try{
+          const exportData = {
+            exportDate: new Date().toISOString(),
+            profile: {...profile},
+            tasks: JSON.parse(localStorage.getItem("hn_tasks")||"[]"),
+            expenses: JSON.parse(localStorage.getItem("hn_expenses")||"[]"),
+            moods: JSON.parse(localStorage.getItem("hn_moods")||"[]"),
+            habits: JSON.parse(localStorage.getItem("hn_habits")||"[]"),
+            schoolEvents: JSON.parse(localStorage.getItem("hn_school_events")||"[]"),
+            wishlist: JSON.parse(localStorage.getItem("hn_wishlist")||"[]"),
+            noraMemory: JSON.parse(localStorage.getItem("hn_nora_memory_v2")||"[]"),
+            weeklyScore: JSON.parse(localStorage.getItem("hn_weekly_score")||"null"),
+          };
+          const json = JSON.stringify(exportData, null, 2);
+          const blob = new Blob([json], {type:"application/json"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `hernest-data-${new Date().toISOString().split("T")[0]}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }catch(e){alert("Export failed. Please contact privacy@hernest.app");}
+      }} style={{width:"100%",background:"none",border:`1.5px solid ${T.linen}`,borderRadius:14,padding:"13px",fontFamily:FB,fontSize:13,fontWeight:700,color:T.bark,cursor:"pointer",marginBottom:8}}>
+        📦 Download my data (GDPR)
+      </button>
+
       <button onClick={async()=>{
         if(!window.confirm("Delete your HerNest account and all data permanently? This cannot be undone."))return;
         if(!window.confirm("Are you sure? All your profile, tasks, budget, wellness and school data will be deleted."))return;

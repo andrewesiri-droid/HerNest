@@ -16,6 +16,8 @@ export function SchoolCalendar({profile,uid}){
   const [selectedChild,setSelectedChild]=useState("");
   const [insight,setInsight]=useState("");
   const [filter,setFilter]=useState("All");
+  const [showAll,setShowAll]=useState(false);
+  const [expandedEvent,setExpandedEvent]=useState(null);
 
   const kids=(profile?.kids||[]).map(k=>k.name);
 
@@ -106,9 +108,22 @@ ${text.slice(0,4000)}`;
         </button>
       </div>
 
-      {/* Nora insight */}
-      {insight&&<div style={{background:"linear-gradient(135deg,#1a3a6e11,#1a5a9e11)",borderRadius:14,padding:"10px 14px",marginBottom:12,borderLeft:"3px solid #1a5a9e"}}>
-        <p style={{fontFamily:FD,fontStyle:"italic",fontSize:13,color:T.esp,margin:0,lineHeight:1.6}}>"{insight}"</p>
+      {/* Nora insight + stats */}
+      {insight&&<div style={{background:"linear-gradient(135deg,#1a3a6e11,#1a5a9e11)",borderRadius:14,padding:"12px 14px",marginBottom:12,borderLeft:"3px solid #1a5a9e"}}>
+        <p style={{fontFamily:FD,fontStyle:"italic",fontSize:13,color:T.esp,margin:"0 0 8px",lineHeight:1.6}}>"{insight}"</p>
+        <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+          {[
+            {n:upcoming.filter(e=>e.type==="holiday").length,l:"Holidays"},
+            {n:upcoming.filter(e=>e.type==="early_dismissal").length,l:"Early pickups"},
+            {n:upcoming.filter(e=>e.type==="parent_meeting").length,l:"Parent meetings"},
+            {n:upcoming.filter(e=>e.type==="exam").length,l:"Exam periods"},
+          ].filter(s=>s.n>0).map((s,i)=>(
+            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <span style={{fontFamily:FD,fontSize:18,fontWeight:700,color:"#1a5a9e"}}>{s.n}</span>
+              <span style={{fontFamily:FB,fontSize:9,color:T.taupe}}>{s.l}</span>
+            </div>
+          ))}
+        </div>
       </div>}
 
       {/* Upload panel */}
@@ -167,6 +182,21 @@ ${text.slice(0,4000)}`;
         <p style={{fontFamily:FB,fontSize:11,color:T.taupe,margin:0}}>Upload a photo or paste your school calendar — Nora handles the rest</p>
       </div>}
 
+      {/* Urgent actions */}
+      {urgent.length>0&&<div style={{background:`linear-gradient(135deg,${T.blush}18,${T.blushP})`,borderRadius:14,padding:"12px 14px",marginBottom:12,border:`1.5px solid ${T.blush}30`}}>
+        <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.blush,marginBottom:8}}>⚡ Needs your attention</div>
+        {urgent.map((e,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:i<urgent.length-1?6:0}}>
+            <span style={{fontSize:14}}>{TYPE_EMOJI[e.type]||"📅"}</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp}}>{e.title}</div>
+              <div style={{fontFamily:FB,fontSize:10,color:T.bark}}>{daysUntil(e.date)}{e.prep?` · ${e.prep}`:""}</div>
+            </div>
+            {e.child&&e.child!=="All"&&<span style={{fontFamily:FB,fontSize:9,color:"#1a5a9e",background:"#1a5a9e11",borderRadius:20,padding:"2px 7px"}}>{e.child}</span>}
+          </div>
+        ))}
+      </div>}
+
       {/* This week alerts */}
       {thisWeek.length>0&&<div style={{marginBottom:10}}>
         <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:8,display:"flex",alignItems:"center",gap:5}}>
@@ -194,21 +224,43 @@ ${text.slice(0,4000)}`;
 
       {/* All upcoming events */}
       {filteredEvents.length>0&&<div>
-        <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:8}}>Upcoming</div>
-        {filteredEvents.slice(0,8).map((e,i)=>(
-          <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<Math.min(filteredEvents.length,8)-1?`1px solid ${T.linen}`:"none"}}>
-            <div style={{width:36,height:36,borderRadius:10,background:(TYPE_COLORS[e.type]||T.bark)+"18",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:16}}>{TYPE_EMOJI[e.type]||"📅"}</div>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontFamily:FB,fontSize:12,fontWeight:600,color:T.esp,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{e.title}</div>
-              <div style={{display:"flex",gap:6,marginTop:2}}>
-                <span style={{fontFamily:FB,fontSize:10,color:T.taupe}}>{formatDate(e.date)}</span>
-                {e.prep&&<span style={{fontFamily:FB,fontSize:10,color:T.sage,fontStyle:"italic"}}>· {e.prep}</span>}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark}}>{filteredEvents.length} upcoming events</div>
+          {filteredEvents.length>8&&<button onClick={()=>setShowAll(p=>!p)} style={{background:"none",border:"none",fontFamily:FB,fontSize:11,color:"#1a5a9e",cursor:"pointer",fontWeight:700}}>{showAll?"Show less":"Show all"}</button>}
+        </div>
+        {(showAll?filteredEvents:filteredEvents.slice(0,8)).map((e,i)=>(
+          <div key={i}>
+            <div onClick={()=>setExpandedEvent(expandedEvent===i?null:i)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:`1px solid ${T.linen}`,cursor:"pointer"}}>
+              <div style={{width:36,height:36,borderRadius:10,background:(TYPE_COLORS[e.type]||T.bark)+"18",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:16}}>{TYPE_EMOJI[e.type]||"📅"}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontFamily:FB,fontSize:12,fontWeight:600,color:T.esp,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{e.title}</div>
+                <div style={{display:"flex",gap:6,marginTop:2,flexWrap:"wrap"}}>
+                  <span style={{fontFamily:FB,fontSize:10,color:T.taupe}}>{formatDate(e.date)}</span>
+                  {e.type==="early_dismissal"&&<span style={{fontFamily:FB,fontSize:9,fontWeight:700,color:T.gold,background:T.goldP,borderRadius:20,padding:"1px 6px"}}>Early pickup</span>}
+                  {e.type==="parent_meeting"&&<span style={{fontFamily:FB,fontSize:9,fontWeight:700,color:T.blush,background:T.blushP,borderRadius:20,padding:"1px 6px"}}>You required</span>}
+                  {e.requiresAction&&e.type!=="early_dismissal"&&e.type!=="parent_meeting"&&<span style={{fontFamily:FB,fontSize:9,fontWeight:700,color:T.blush,background:T.blushP,borderRadius:20,padding:"1px 6px"}}>Action</span>}
+                </div>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4,flexShrink:0}}>
+                {e.child&&e.child!=="All"&&kids.length>1&&<span style={{fontFamily:FB,fontSize:9,color:"#1a5a9e",background:"#1a5a9e11",borderRadius:20,padding:"2px 7px"}}>{e.child}</span>}
+                <span style={{fontFamily:FB,fontSize:9,color:T.taupe}}>{daysUntil(e.date)}</span>
               </div>
             </div>
-            {e.child&&e.child!=="All"&&kids.length>1&&<span style={{fontFamily:FB,fontSize:9,color:"#1a5a9e",background:"#1a5a9e11",borderRadius:20,padding:"2px 7px",flexShrink:0}}>{e.child}</span>}
+            {expandedEvent===i&&<div style={{background:T.sand,borderRadius:12,padding:"12px 14px",margin:"4px 0 8px",borderLeft:`3px solid ${TYPE_COLORS[e.type]||T.bark}`}}>
+              <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.esp,marginBottom:6,textTransform:"capitalize"}}>{e.type?.replace(/_/g," ")} · {e.priority} priority</div>
+              {e.prep&&<div style={{fontFamily:FB,fontSize:12,color:T.bark,marginBottom:8}}>📋 {e.prep}</div>}
+              {e.type==="early_dismissal"&&<div style={{fontFamily:FB,fontSize:11,color:T.gold,background:T.goldP,borderRadius:8,padding:"6px 10px",marginBottom:6}}>⏰ Remember to arrange pickup earlier than usual</div>}
+              {e.type==="parent_meeting"&&<div style={{fontFamily:FB,fontSize:11,color:T.blush,background:T.blushP,borderRadius:8,padding:"6px 10px",marginBottom:6}}>👥 Block your calendar for this meeting</div>}
+              {e.type==="exam"&&<div style={{fontFamily:FB,fontSize:11,color:T.lav,background:T.lavP,borderRadius:8,padding:"6px 10px",marginBottom:6}}>📝 Reduce evening activities the week before</div>}
+              <button onClick={()=>{
+                const txt=`${e.title} — ${formatDate(e.date)}${e.prep?`
+${e.prep}`:""}`;
+                if(navigator.share){navigator.share({title:e.title,text:txt}).catch(()=>{});}
+                else{navigator.clipboard.writeText(txt).catch(()=>{});}
+              }} style={{background:"none",border:`1px solid ${T.linen}`,borderRadius:8,padding:"5px 12px",fontFamily:FB,fontSize:10,color:T.bark,cursor:"pointer"}}>Share event 📤</button>
+            </div>}
           </div>
         ))}
-        {filteredEvents.length>8&&<button onClick={()=>{}} style={{width:"100%",background:"none",border:"none",fontFamily:FB,fontSize:11,color:T.taupe,cursor:"pointer",padding:"8px 0"}}>+{filteredEvents.length-8} more events</button>}
       </div>}
 
       {/* Clear button */}

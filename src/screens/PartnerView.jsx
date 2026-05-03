@@ -123,6 +123,21 @@ export function PartnerView({ uid }) {
         )}
 
         {/* Kids */}
+        {/* Partner nudges */}
+        <div style={{background:"#fff",borderRadius:16,padding:"14px 16px",marginBottom:14,border:"1px solid #E5D9C9",boxShadow:"0 2px 12px rgba(0,0,0,.06)"}}>
+          <div style={{fontFamily:"'DM Sans','Helvetica Neue',sans-serif",fontSize:11,fontWeight:700,color:"#7A6A5A",marginBottom:10,letterSpacing:1,textTransform:"uppercase"}}>💛 Send encouragement</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+            {["You're doing amazing 💛","I'm proud of you 🌟","Let's plan a date night 🌙","You've got this! 💪","I see how hard you work ❤️","Thank you for everything 🙏"].map((msg,i)=>(
+              <button key={i} onClick={()=>{
+                const txt=`${msg} — sent via HerNest`;
+                if(navigator.share){navigator.share({text:txt}).catch(()=>{});}
+                else{navigator.clipboard.writeText(txt).catch(()=>{});alert("Copied! Send via WhatsApp 💛");}
+              }} style={{padding:"10px 8px",borderRadius:12,border:"1.5px solid #E5D9C9",background:"#FAF6EF",fontFamily:"'DM Sans','Helvetica Neue',sans-serif",fontSize:11,color:"#2E1F14",cursor:"pointer",textAlign:"left",lineHeight:1.4}}>{msg}</button>
+            ))}
+          </div>
+          <p style={{fontFamily:"'DM Sans','Helvetica Neue',sans-serif",fontSize:10,color:"#B8A898",margin:0,textAlign:"center"}}>Tap any message to share via WhatsApp</p>
+        </div>
+
         {(profile?.kids||[]).length > 0 && (
           <div style={{background:"#fff",borderRadius:16,padding:"14px 16px",marginBottom:14,border:"1px solid #E5D9C9",boxShadow:"0 2px 12px rgba(0,0,0,.06)"}}>
             <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:"#6B9E7A",marginBottom:10,letterSpacing:1,textTransform:"uppercase"}}>👨‍👩‍👧 The kids</div>

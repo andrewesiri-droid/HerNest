@@ -6,7 +6,7 @@ import { claude } from "../utils/claude";
 import { logEvent, EVENTS } from "../utils/analytics";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
-export function BriefingScreen({profile,onAddTask,calEvents}){
+export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
   const [data,setData]=useState(null);
   const [loading,setLoading]=useState(false);
   const [checkedPriorities,setCheckedPriorities]=useState([]);
@@ -66,7 +66,11 @@ export function BriefingScreen({profile,onAddTask,calEvents}){
 {"greeting":"","date":"","weatherNote":"","weatherType":"sunny|cloudy|rainy","priorities":[{"text":"","tag":"Work|Family|Me|Home"}],"reminders":["","",""],"budgetNote":"","tripNote":"","affirmation":"","energyTip":"","focusWord":""}
 5 priorities, 3-4 reminders, include energyTip and a one-word focusWord for the day (e.g. "Focus", "Rest", "Connect").`;
     const energyCtx=profile?.energyPattern?`Energy pattern: ${profile.energyPattern} (${profile.energyPattern==="morning"?"schedule hardest tasks before noon — her energy peaks early":profile.energyPattern==="evening"?"she gets her second wind after 6pm — don't fill evenings with admin":"energy varies — suggest checking in with how she feels"}).`:"";
-    const ctx=`Name: ${profile?.name||"Sarah"}, role: ${profile?.role||"CFO"}, ${familyCtx}, trip: ${profile?.tripGoal||"none"}, fitness: ${profile?.fitnessGoal||"none"}, challenge: ${profile?.challenge||"mental load"}, priorities: ${profile?.priorities?.join(",")||"family,career,fitness"}. ${energyCtx} ${bdayCtx} ${calCtx} ${schoolCtx} ${weatherCtx}`;
+    const tripsCtx = appContext?.trips?.nextTrip ? `UPCOMING TRIP: ${appContext.trips.nextTrip.dest||"trip"} in ${appContext.trips.daysUntilNext} days.` : "";
+    const budgetCtx2 = appContext?.budget?.isNearLimit ? `BUDGET ALERT: ${Math.round(appContext.budget.percentUsed*100)}% of monthly budget used, $${Math.round(appContext.budget.remaining)} remaining.` : "";
+    const tasksCtx2 = appContext?.tasks?.urgentCount > 0 ? `URGENT TASKS: ${appContext.tasks.urgentCount} urgent tasks today.` : "";
+    const wellnessCtx2 = appContext?.wellness?.sleepDebt ? `SLEEP DEBT: She slept ${appContext.wellness.sleepLastNight} hours — adjust energy tip accordingly.` : "";
+    const ctx=`Name: ${profile?.name||"Sarah"}, role: ${profile?.role||"CFO"}, ${familyCtx}, trip: ${profile?.tripGoal||"none"}, fitness: ${profile?.fitnessGoal||"none"}, challenge: ${profile?.challenge||"mental load"}, priorities: ${profile?.priorities?.join(",")||"family,career,fitness"}. ${energyCtx} ${bdayCtx} ${calCtx} ${schoolCtx} ${weatherCtx} ${tripsCtx} ${budgetCtx2} ${tasksCtx2} ${wellnessCtx2}`;
     try{
       const raw=await claude(sys,ctx,[],"morning_briefing");
       const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());

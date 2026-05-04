@@ -5,7 +5,7 @@ import { saveData, loadData } from "../utils/firebase";
 import { claude, claudeVision } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
-export function BudgetScreen({uid}){
+export function BudgetScreen({uid,appContext}){
   const CAT_META={Groceries:{IC:Ic.Bag,c:T.sage,budget:700},Kids:{IC:Ic.Kids,c:T.sky,budget:400},Fitness:{IC:Ic.Dumbbell,c:T.blush,budget:120},Travel:{IC:Ic.Suitcase,c:T.teal,budget:2000},Shopping:{IC:Ic.Hanger,c:T.lav,budget:500},Dining:{IC:Ic.Fork,c:T.gold,budget:300},Health:{IC:Ic.Leaf,c:T.sage,budget:200},Transport:{IC:Ic.Compass,c:T.sky,budget:300},Entertainment:{IC:Ic.Star,c:T.lav,budget:200},Bills:{IC:Ic.Budget,c:T.bark,budget:1000},Other:{IC:Ic.Bag,c:T.taupe,budget:200}};
   const [categories,setCategories]=useState(()=>{
     try{const s=localStorage.getItem("hn_budget_cats");if(s){const saved=JSON.parse(s);return saved.map(c=>({...c,IC:CAT_META[c.lb]?.IC||Ic.Bag}));}}catch(e){ /* silent */ }
@@ -145,8 +145,11 @@ export function BudgetScreen({uid}){
     const h=hist.map(m=>({role:m.role,content:m.content}));
     const overBudget=categories.filter(c=>c.spent>c.budget*0.9).map(c=>`${c.lb} (${Math.round((c.spent/c.budget)*100)}%)`).join(", ")||"none";
     const recentExp=expenses.slice(0,5).map(e=>`${e.cat} $${e.amount}${e.note?` (${e.note})`:""}`).join(", ");
-    const ctx=`Real budget data: total budget $${totalBudget}, spent $${totalSpent} (${Math.round((totalSpent/totalBudget)*100)}%). Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name||"not set"} $${savingsGoal.saved}/$${savingsGoal.target} (${savingsGoal.target>0?Math.round((savingsGoal.saved/savingsGoal.target)*100):0}%). Near budget limit: ${overBudget}. Recent expenses: ${recentExp}.`;
+    const ctx=`Real budget data: total budget $${totalBudget}, spent $${totalSpent} (${Math.round((totalSpent/totalBudget)*100)}%). Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name||"not set"} $${savingsGoal.saved}/$${savingsGoal.target} (${savingsGoal.target>0?Math.round((savingsGoal.saved/savingsGoal.target)*100):0}%). Near budget limit: ${overBudget}. Recent expenses: ${recentExp}. ${tripContext} ${wellnessContext} ${savingsContext}`;
     const guiltFree=totalBudget-totalSpent>0?`She has $${(totalBudget-totalSpent).toLocaleString()} remaining — this is guilt-free money she CAN spend without any worry.`:"She has reached her budget this month.";
+    const tripContext = appContext?.trips?.nextTrip ? `UPCOMING TRIP: ${appContext.trips.nextTrip.dest||appContext.trips.nextTrip.destination} in ${appContext.trips.daysUntilNext} days, estimated cost ~$${appContext.trips.estimatedCost}. Factor this into advice.` : "";
+    const wellnessContext = appContext?.wellness?.isStruggling ? "She is struggling this week — be extra gentle, celebrate any win." : appContext?.wellness?.sleepDebt ? "She is tired — suggest convenience over frugality for meals." : "";
+    const savingsContext = appContext?.budget?.savingsGoal ? `Savings goal: ${appContext.budget.savingsGoal.name||"goal"} — $${appContext.budget.savingsGoal.saved||0} of $${appContext.budget.savingsGoal.target||0}. Reference this when relevant.` : "";
     try{const raw=await claude(`You are Nora, a warm and supportive financial companion inside HerNest. You are NEVER judgmental about spending — money is for living. ${ctx} ${guiltFree} IMPORTANT: Never recommend specific stocks, crypto, or investment products. If asked for investment advice, warmly redirect to a qualified financial advisor. SELF-CORRECTION: Only reference spending numbers the user has actually provided. Never invent or estimate figures not in the data. If uncertain about a financial fact, say "I believe" and recommend she verify with a professional.
 Your tone is like a brilliant, encouraging best friend who happens to be a CFO. Celebrate wins first. Never use words like "overspending", "too much" or "should cut back" — instead say things like "you have room to play with", "guilt-free spending", "you are doing great". Be specific with her numbers. 3-4 sentences max.`,msg,h,"budget_coach");setHist(p=>{
         const updated=[...p,{role:"user",content:msg},{role:"assistant",content:raw}];

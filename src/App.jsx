@@ -4,6 +4,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
 import { initSession, logEvent, EVENTS } from "./utils/analytics";
+import { buildContextLayer } from "./utils/contextLayer";
 
 // Register service worker
 if("serviceWorker" in navigator){
@@ -151,6 +152,22 @@ export default function App() {
   const [calEvents, setCalEvents] = useState([]);
   const [calConnected, setCalConnected] = useState(false);
   const [streak, setStreak] = useState(1);
+  const [appContext, setAppContext] = useState(null);
+
+  // Build unified context — once on load, refresh every 5 min + on focus
+  useEffect(() => {
+    if(!user?.uid || !profile?.name) return;
+    buildContextLayer(user.uid, profile, calEvents).then(ctx => { if(ctx) setAppContext(ctx); }).catch(() => {});
+  }, [user?.uid, profile?.name, calEvents.length]);
+
+  useEffect(() => {
+    const refresh = () => {
+      if(user?.uid && profile?.name) buildContextLayer(user.uid, profile, calEvents).then(ctx => { if(ctx) setAppContext(ctx); }).catch(() => {});
+    };
+    const interval = setInterval(refresh, 300000);
+    window.addEventListener("focus", refresh);
+    return () => { clearInterval(interval); window.removeEventListener("focus", refresh); };
+  }, [user?.uid, profile?.name]);
   const [showInstall, setShowInstall] = useState(false);
   useEffect(()=>{
     const handler = () => setShowInstall(true);
@@ -315,14 +332,14 @@ export default function App() {
 
   // Main app
   const screens={
-    home:    wrap(<HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents}/>, "home"),
+    home:    wrap(<HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents} appContext={appContext}/>, "home"),
     nora:    wrap(<NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAI} uid={user?.uid}/>, "nora"),
-    brief:   wrap(<BriefingScreen profile={profile}/>, "brief"),
+    brief:   wrap(<BriefingScreen profile={profile} appContext={appContext}/>, "brief"),
     plan:    wrap(<PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>, "plan"),
     trips:   wrap(<TripsScreen uid={user?.uid} profile={profile}/>, "trips"),
-    budget:  wrap(<BudgetScreen uid={user?.uid}/>, "budget"),
-    style:   wrap(<StyleScreen profile={profile} uid={user?.uid}/>, "style"),
-    circle:  wrap(<CircleScreen profile={profile} uid={user?.uid}/>, "circle"),
+    budget:  wrap(<BudgetScreen uid={user?.uid} appContext={appContext}/>, "budget"),
+    style:   wrap(<StyleScreen profile={profile} uid={user?.uid} appContext={appContext}/>, "style"),
+    circle:  wrap(<CircleScreen profile={profile} uid={user?.uid} appContext={appContext}/>, "circle"),
     wellness:wrap(<WellnessScreen profile={profile} uid={user?.uid}/>, "wellness"),
     profile: wrap(<ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>, "profile"),
   };

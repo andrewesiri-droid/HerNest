@@ -7,14 +7,14 @@ import { claude } from "../utils/claude";
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
-export function CircleScreen({profile,uid}){
+export function CircleScreen({profile,uid,appContext}){
   const [activeTab,setActiveTab]=useState("myCircle");
   const [communitySuggestions,setCommunitySuggestions]=useState([]);
   useEffect(()=>{
     try{
-      const wellness=JSON.parse(localStorage.getItem("hn_weekly_checkin")||"null");
-      const schoolEvents=JSON.parse(localStorage.getItem("hn_school_events")||"[]");
-      const suggestions=suggestCommunity(profile,{weeklyMood:wellness},schoolEvents);
+      const wellness = appContext?.wellness || JSON.parse(localStorage.getItem("hn_weekly_checkin")||"null");
+      const schoolEvents = appContext?.school?.events || JSON.parse(localStorage.getItem("hn_school_events")||"[]");
+      const suggestions=suggestCommunity(profile,appContext?.wellness||{weeklyMood:wellness},schoolEvents);
       setCommunitySuggestions(suggestions);
     }catch(e){}
   },[profile?.name]);

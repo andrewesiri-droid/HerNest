@@ -155,14 +155,14 @@ function WaterCard({ water, onEstimate }) {
 // ─── Weekly Score Card ────────────────────────────────────────────
 function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
   if (!checkedIn) return (
-    <Card sx={{ background: T.sand, textAlign: "center" }}>
+    <Card sx={{ background: T.sand, textAlign: "center" }} ch={<div>
       <p style={{ fontFamily: FD, fontStyle: "italic", fontSize: 15, color: T.taupe, margin: "0 0 4px" }}>Check in above to unlock your score</p>
       <p style={{ fontFamily: FB, fontSize: 11, color: T.taupe, margin: 0 }}>Nora needs your weekly mood to calculate honestly</p>
     </div>}/>
   );
 
   if (!score && !generating) return (
-    <Card sx={{ textAlign: "center" }}>
+    <Card sx={{ textAlign: "center" }} ch={<div>
       <AIBadge t="Weekly Score" />
       <p style={{ fontFamily: FB, fontSize: 12, color: T.taupe, margin: "10px 0 14px", lineHeight: 1.6 }}>Nora will rate your week honestly — no defaults, no padding. Based on your real data.</p>
       <button onClick={onGenerate} style={{ background: `linear-gradient(135deg,${T.sage},#2a5a3a)`, border: "none", borderRadius: 12, padding: "11px 24px", fontFamily: FB, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer" }}>✨ Score my week</button>
@@ -170,7 +170,7 @@ function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
   );
 
   if (generating) return (
-    <Card sx={{ textAlign: "center" }}>
+    <Card sx={{ textAlign: "center" }} ch={<div>
       <div style={{ display: "flex", gap: 4, justifyContent: "center", padding: "8px 0" }}>
         {[0, 1, 2].map(i => <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: T.sage, animation: `dot 1.2s ease-in-out ${i * .2}s infinite` }} />)}
       </div>
@@ -180,7 +180,7 @@ function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
 
   const scoreColor = score.score >= 7 ? T.sage : score.score >= 4 ? T.gold : T.blush;
   return (
-    <Card sx={{ background: `linear-gradient(135deg,${T.esp},#1a0a04)`, border: "none" }}>
+    <Card sx={{ background: `linear-gradient(135deg,${T.esp},#1a0a04)`, border: "none" }} ch={<div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
         <AIBadge t="Weekly Score" />
         <div style={{ textAlign: "right" }}>
@@ -210,7 +210,7 @@ function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
 function InsightCard({ sleep, weeklyMood, steps, habits, profile }) {
   const insight = generateInsight(sleep, weeklyMood, steps, habits, profile);
   return (
-    <Card sx={{ background: "linear-gradient(135deg,#f0f7f4,#fff)", border: `1px solid ${T.sage}30` }}>
+    <Card sx={{ background: "linear-gradient(135deg,#f0f7f4,#fff)", border: `1px solid ${T.sage}30` }} ch={<div>
       <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
         <div style={{ fontSize: 28, flexShrink: 0 }}>🌿</div>
         <div>

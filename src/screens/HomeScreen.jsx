@@ -14,7 +14,17 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
     const uidRaw=localStorage.getItem("hn_uid");
     if(!uidRaw)return;
     const uid=JSON.parse(uidRaw);
-    if(uid){loadSummary(uid).then(s=>{if(s)setSummary(s);}).catch(()=>{});}
+    if(uid){loadSummary(uid).then(s=>{
+      if(s){
+        // Merge upcoming from all sub-fields
+        const merged=[
+          ...(s.upcomingBirthdays||[]),
+          ...(s.upcomingTasks||[]),
+          ...(s.upcomingSchool||[]),
+        ].sort((a,b)=>(a.daysUntil||0)-(b.daysUntil||0)).slice(0,3);
+        setSummary({...s,upcomingMerged:merged});
+      }
+    }).catch(()=>{});}
   },[]);
   const [noraInp,setNoraInp]=useState("");
   const [noraResp,setNoraResp]=useState(null);

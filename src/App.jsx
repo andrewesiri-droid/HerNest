@@ -278,8 +278,8 @@ export default function App() {
               </div>
             </div>
           </div>
-          {screen==="step1"&&<Step1 data={profile} onChange={upd} onNext={()=>{localStorage.setItem("hn_ob_step","2");setScreen("step2");}}/>}
-          {screen==="step2"&&<Step2 data={profile} onChange={upd} onNext={()=>{localStorage.setItem("hn_ob_step","3");setScreen("step3");}} onBack={()=>setScreen("step1")}/>}
+          {screen==="step1"&&<Step1 data={profile} onChange={upd} onNext={()=>{localStorage.setItem("hn_ob_step","2");if(user?.uid)saveData(user.uid,"profile",{...profile,_onboardingStep:2});setScreen("step2");}}/>}
+          {screen==="step2"&&<Step2 data={profile} onChange={upd} onNext={()=>{localStorage.setItem("hn_ob_step","3");if(user?.uid)saveData(user.uid,"profile",{...profile,_onboardingStep:3});setScreen("step3");}} onBack={()=>setScreen("step1")}/>}
           {screen==="step3"&&<Step3 data={profile} onChange={upd} onNext={()=>{if(user?.uid)saveData(user.uid,"profile",profile);setScreen("intro");}} onBack={()=>setScreen("step2")}/>}
         </div>
       </div>

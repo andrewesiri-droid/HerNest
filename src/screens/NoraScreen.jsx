@@ -216,6 +216,11 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
         {role:"assistant",content:"I understand. Let me continue from where we were."},
         ...recentHist
       ];
+      try{
+        const compressed=[{role:"assistant",content:`[Summary: ${summary}]`,parsed:null},...msgs.slice(-6)];
+        localStorage.setItem("hn_nora_msgs",JSON.stringify(compressed));
+        sessionStorage.setItem("hn_nora_msgs",JSON.stringify(compressed));
+      }catch(e){}
     }
     try{
       logEvent(EVENTS.NORA_MESSAGE_SENT,{msgLen:msg.length});

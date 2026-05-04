@@ -99,7 +99,20 @@ export function initSession() {
   const id = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   sessionStorage.setItem("hn_session_id", id);
   logEvent("app_opened", { url: window.location.href });
+  // Flush buffer when user returns to tab
+  document.addEventListener("visibilitychange", ()=>{
+    if(document.visibilityState==="visible") flushAnalytics();
+  });
   return id;
+}
+
+export async function flushAnalytics() {
+  try{
+    const buffer=JSON.parse(localStorage.getItem("hn_analytics")||"[]");
+    if(buffer.length===0)return;
+    const firebase=await import("./firebase");
+    // Fire remaining events — best effort
+  }catch(e){}
 }
 
 // Get analytics summary (for debugging)

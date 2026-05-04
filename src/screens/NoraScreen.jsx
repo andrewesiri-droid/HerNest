@@ -128,7 +128,7 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
   const send=async()=>{
     if(!inp.trim()||loading)return;
     const msg=inp.trim();setInp("");setLoading(true);
-    const profileCtx=profile?`User profile: name ${profile.name||"her"}, role ${profile.role||"mum"}, kids: ${profile.kids?.map(k=>`${k.name} (${k.age})`).join(",")||"none listed"}, partner: ${profile.partner||"none"}, parents: ${profile.parents?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, in-laws: ${profile.inlaws?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, trip goal: ${profile.tripGoal||"none"}, priorities: ${profile.priorities?.join(",")||"family"}, challenge: ${profile.challenge||"mental load"}.`:"";
+    const profileCtx=profile?`User profile: name ${profile.name||"her"}, role ${profile.role||"mum"}, kids: ${profile.kids?.map(k=>`${k.name} (${k.age})`).join(",")||"none listed"}, partner: ${profile.partner||"none"}, parents: ${profile.parents?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, in-laws: ${profile.inlaws?.map(p=>`${p.name} (${p.role})`).join(",")||"none listed"}, trip goal: ${profile.tripGoal||"none"}, priorities: ${profile.priorities?.join(",")||"family"}, challenge: ${profile.challenge||"mental load"}, energy pattern: ${profile.energyPattern||"not set"} (use this to time suggestions — morning people do hard tasks early, evening people get second wind after 6pm), diet: ${profile.diet||"no restrictions"}, fitness level: ${profile.fitnessLevel||"not set"}.`:"";
     // Crisis detection — check before sending to AI
     const crisisWords = ["end my life","kill myself","don't want to be here","want to die","suicide","self harm","hurt myself","give up on life","can't go on","not worth living","disappear forever","everyone would be better without me","can't do this anymore","feeling hopeless","no reason to live","end it all","take my own life"];
     const isCrisis = crisisWords.some(w => msg.toLowerCase().includes(w));
@@ -205,7 +205,18 @@ SELF-CORRECTION RULES: If you are not certain about a specific fact, local busin
 Respond with 2-3 warm, specific, empathetic sentences that show you KNOW her. Then output:
 <ND>{"tasks":[{"text":"","tag":"Work|Family|Me|Home|Travel","priority":"high|medium|low"}],"reminders":[{"text":""}],"insight":"a short, warm, personal observation about what she shared"}</ND>
 Min 3 tasks. Make tasks specific and actionable. The insight should feel like it came from a close friend who truly gets her life.`;
-    const hist=msgs.map(m=>({role:m.role,content:m.content}));
+    // Context compression — after 12 messages, summarize older ones to save tokens
+    let hist=msgs.map(m=>({role:m.role,content:m.content}));
+    if(hist.length>12){
+      const recentHist=hist.slice(-6);
+      const olderHist=hist.slice(0,-6);
+      const summary=olderHist.map(m=>`${m.role}: ${m.content.slice(0,100)}`).join(" | ");
+      hist=[
+        {role:"user",content:`[Earlier conversation summary: ${summary}]`},
+        {role:"assistant",content:"I understand. Let me continue from where we were."},
+        ...recentHist
+      ];
+    }
     try{
       logEvent(EVENTS.NORA_MESSAGE_SENT,{msgLen:msg.length});
       const raw=await claude(sys,msg,hist,"nora_chat");

@@ -45,7 +45,10 @@ export function GiftButton({name,age,relation}){
                 <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
                 <span style={{fontFamily:FB,fontSize:10,color:T.sage}}>📍 {g.where}</span>
                 <span style={{fontFamily:FB,fontSize:9,color:T.taupe,display:"block",marginTop:2}}>· Prices are estimates, verify before purchasing</span>
-                <button onClick={()=>window.open("https://www.amazon.com/s?k="+encodeURIComponent(g.name),"_blank")} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"2px 8px",fontFamily:FB,fontSize:9,fontWeight:700,color:T.gold,cursor:"pointer"}}>Buy →</button>
+                <div style={{display:"flex",gap:4"}}>
+                  <button onClick={()=>window.open("https://www.amazon.com/s?k="+encodeURIComponent(g.name)+"&tag=hernest-20","_blank")} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"2px 8px",fontFamily:FB,fontSize:9,fontWeight:700,color:T.gold,cursor:"pointer"}}>Amazon →</button>
+                  <button onClick={()=>window.open("https://www.google.com/search?q=buy+"+encodeURIComponent(g.name),"_blank")} style={{background:T.sand,border:`1px solid ${T.linen}`,borderRadius:8,padding:"2px 8px",fontFamily:FB,fontSize:9,color:T.bark,cursor:"pointer"}}>Search →</button>
+                </div>
               </div>
               </div>
               <span style={{fontFamily:FD,fontSize:14,fontWeight:700,color:T.gold,flexShrink:0,marginLeft:8}}>{g.price}</span>

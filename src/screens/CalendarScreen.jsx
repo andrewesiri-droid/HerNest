@@ -200,15 +200,51 @@ export function CalendarScreen({ profile, calEvents = [], uid }) {
         <p style={{ fontFamily: FB, fontSize: 12, color: T.taupe, margin: 0 }}>Everything in one place</p>
       </div>
 
-      {/* Conflicts alert */}
+      {/* Conflicts alert with resolution suggestions */}
       {conflicts.length > 0 && (
         <div style={{ background: `linear-gradient(135deg,${T.blush}20,${T.blushP})`, borderRadius: 14, padding: "12px 14px", marginBottom: 12, border: `1.5px solid ${T.blush}40` }}>
-          <div style={{ fontFamily: FB, fontSize: 11, fontWeight: 700, color: T.blush, marginBottom: 6 }}>⚠️ {conflicts.length} scheduling conflict{conflicts.length > 1 ? "s" : ""} this month</div>
-          {conflicts.slice(0, 2).map((c, i) => (
-            <div key={i} style={{ fontFamily: FB, fontSize: 11, color: T.bark, marginBottom: 2 }}>
-              {new Date(c.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} — {c.events.map(e => e.title).join(" & ")}
-            </div>
-          ))}
+          <div style={{ fontFamily: FB, fontSize: 11, fontWeight: 700, color: T.blush, marginBottom: 8 }}>⚠️ {conflicts.length} scheduling conflict{conflicts.length > 1 ? "s" : ""} this month</div>
+          {conflicts.slice(0, 2).map((c, i) => {
+            const types = c.events.map(e => e.source);
+            const hasWork = types.includes("google");
+            const hasSchool = types.includes("school");
+            const hasTrip = types.includes("trip");
+            const hasBirthday = types.includes("birthday");
+            let suggestion = null;
+            let action = null;
+            if(hasWork && hasSchool){
+              suggestion = "Parent meeting clashes with your calendar";
+              action = {label:"Draft reschedule email", onClick:()=>{
+                const txt=`Hi,
+
+I have a parent-teacher conference on ${new Date(c.date).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})} and need to reschedule our meeting. Could we find another time that week?
+
+Thank you for your understanding.`;
+                navigator.clipboard.writeText(txt).catch(()=>{});
+                alert("Email draft copied to clipboard 📋");
+              }};
+            } else if(hasTrip && hasSchool){
+              suggestion = "Your trip overlaps with a school event";
+              action = {label:"Review trip dates", onClick:()=>{}};
+            } else if(hasBirthday && hasWork){
+              suggestion = "Birthday falls on a busy work day";
+              action = {label:"Add reminder to plan gift", onClick:()=>{
+                navigator.clipboard.writeText(`Don't forget — it's ${c.events.find(e=>e.source==="birthday")?.title} on ${new Date(c.date).toLocaleDateString()}`).catch(()=>{});
+                alert("Reminder copied 📋");
+              }};
+            } else {
+              suggestion = "Two important events on the same day";
+            }
+            return(
+              <div key={i} style={{ marginBottom: i < conflicts.length-1 ? 10 : 0 }}>
+                <div style={{ fontFamily: FB, fontSize: 11, color: T.bark, marginBottom: 4 }}>
+                  {new Date(c.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} — {c.events.map(e => e.title).join(" & ")}
+                </div>
+                {suggestion && <div style={{ fontFamily: FB, fontSize: 10, color: T.blush, fontStyle:"italic", marginBottom: 4 }}>💡 {suggestion}</div>}
+                {action && <button onClick={action.onClick} style={{ background: T.blush, border: "none", borderRadius: 8, padding: "4px 10px", fontFamily: FB, fontSize: 10, fontWeight: 700, color: "#fff", cursor: "pointer" }}>{action.label}</button>}
+              </div>
+            );
+          })}
         </div>
       )}
 

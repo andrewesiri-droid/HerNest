@@ -60,10 +60,13 @@ export function BriefingScreen({profile,onAddTask,calEvents}){
 
     const calCtx=todayEvents.length?`CALENDAR EVENTS TODAY: ${todayEvents.map(e=>{const t=e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});return `${t} - ${e.title}${e.location?` at ${e.location}`:""}`;}).join(", ")}. Include these in priorities.`:"";
     const familyCtx=`Partner: ${profile?.partner||"none"}, kids: ${profile?.kids?.map(k=>`${k.name} (${k.age||"?"})`).join(",")||"none"}, parents: ${profile?.parents?.map(p=>p.name).join(",")||"none"}, in-laws: ${profile?.inlaws?.map(p=>p.name).join(",")||"none"}`;
+    const weather=await fetchWeather();
+    const weatherCtx=weather?`Current weather: ${weather.desc} (${weather.type}). Mention this naturally in the weatherNote field.`:"";
     const sys=`You are Nora inside HerNest. SELF-CORRECTION: Only reference information the user has actually provided. Never invent calendar events, birthdays or facts not in the context. Return ONLY valid JSON no markdown:
 {"greeting":"","date":"","weatherNote":"","weatherType":"sunny|cloudy|rainy","priorities":[{"text":"","tag":"Work|Family|Me|Home"}],"reminders":["","",""],"budgetNote":"","tripNote":"","affirmation":"","energyTip":"","focusWord":""}
 5 priorities, 3-4 reminders, include energyTip and a one-word focusWord for the day (e.g. "Focus", "Rest", "Connect").`;
-    const ctx=`Name: ${profile?.name||"Sarah"}, role: ${profile?.role||"CFO"}, ${familyCtx}, trip: ${profile?.tripGoal||"none"}, fitness: ${profile?.fitnessGoal||"none"}, challenge: ${profile?.challenge||"mental load"}, priorities: ${profile?.priorities?.join(",")||"family,career,fitness"}. ${bdayCtx} ${calCtx} ${schoolCtx}`;
+    const energyCtx=profile?.energyPattern?`Energy pattern: ${profile.energyPattern} (${profile.energyPattern==="morning"?"schedule hardest tasks before noon — her energy peaks early":profile.energyPattern==="evening"?"she gets her second wind after 6pm — don't fill evenings with admin":"energy varies — suggest checking in with how she feels"}).`:"";
+    const ctx=`Name: ${profile?.name||"Sarah"}, role: ${profile?.role||"CFO"}, ${familyCtx}, trip: ${profile?.tripGoal||"none"}, fitness: ${profile?.fitnessGoal||"none"}, challenge: ${profile?.challenge||"mental load"}, priorities: ${profile?.priorities?.join(",")||"family,career,fitness"}. ${energyCtx} ${bdayCtx} ${calCtx} ${schoolCtx} ${weatherCtx}`;
     try{
       const raw=await claude(sys,ctx,[],"morning_briefing");
       const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());

@@ -38,7 +38,7 @@ function CheckInCard({ uid, onComplete }) {
   );
 
   return (
-    <Card sx={{ border: `2px solid ${T.sage}`, background: "linear-gradient(135deg,#f0f7f4,#fff)" }}>
+    <Card sx={{ border: `2px solid ${T.sage}`, background: "linear-gradient(135deg,#f0f7f4,#fff)" }} ch={<div>
       <p style={{ fontFamily: FD, fontStyle: "italic", fontSize: 18, color: T.esp, margin: "0 0 4px" }}>How was your week?</p>
       <p style={{ fontFamily: FB, fontSize: 12, color: T.taupe, margin: "0 0 16px" }}>One tap — takes 2 seconds</p>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 6 }}>

@@ -1,12 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
-import { saveData, loadData } from "../utils/firebase";
+import { saveData, loadData, loadSummary } from "../utils/firebase";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCalendar,calEvents}){
   const [water,setWater]=useState(()=>{try{return parseInt(localStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
+  const [summary,setSummary]=useState(()=>{try{const uid=JSON.parse(localStorage.getItem("hn_uid")||"null");return uid?JSON.parse(localStorage.getItem(`hn_summary_${uid}`)||"{}"):{};}catch(e){return {};}});
+
+  // Load summary — ONE read for all home screen data
+  useEffect(()=>{
+    const uidRaw=localStorage.getItem("hn_uid");
+    if(!uidRaw)return;
+    const uid=JSON.parse(uidRaw);
+    if(uid){loadSummary(uid).then(s=>{if(s)setSummary(s);}).catch(()=>{});}
+  },[]);
   const [noraInp,setNoraInp]=useState("");
   const [noraResp,setNoraResp]=useState(null);
   const [noraLoad,setNoraLoad]=useState(false);

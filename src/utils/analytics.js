@@ -32,6 +32,15 @@ const EVENTS = {
   WELLNESS_SCORE_SHARED: "wellness_score_shared",
   GIFT_SUGGESTED:        "gift_suggested",
 
+  // Subscription intent (before Stripe)
+  UPGRADE_PROMPT_SHOWN:  "upgrade_prompt_shown",
+  UPGRADE_TAPPED:        "upgrade_tapped",
+  FEATURE_LIMIT_HIT:     "feature_limit_hit",
+
+  // Feature adoption
+  FEATURE_FIRST_USE:     "feature_first_use",
+  FEATURE_ABANDONED:     "feature_abandoned",
+
   // Retention
   STREAK_UPDATED:        "streak_updated",
   HABIT_COMPLETED:       "habit_completed",
@@ -46,6 +55,18 @@ const EVENTS = {
 };
 
 // Log an analytics event
+// Firebase Analytics (lazy loaded)
+let _analytics = null;
+async function getFirebaseAnalytics() {
+  if(_analytics) return _analytics;
+  try{
+    const {getAnalytics,isSupported}=await import("firebase/analytics");
+    const {app}=await import("./firebase");
+    if(await isSupported()){_analytics=getAnalytics(app);return _analytics;}
+  }catch(e){}
+  return null;
+}
+
 export function logEvent(event, params = {}) {
   try {
     const entry = {
@@ -53,6 +74,7 @@ export function logEvent(event, params = {}) {
       params,
       timestamp: new Date().toISOString(),
       session: sessionStorage.getItem("hn_session_id") || "unknown",
+      version: "2.0.1",
     };
 
     // Store locally (ring buffer of last 100 events)
@@ -61,10 +83,14 @@ export function logEvent(event, params = {}) {
     if (stored.length > 100) stored.shift();
     localStorage.setItem("hn_analytics", JSON.stringify(stored));
 
-    // Log to console in development
-    if (window.location.hostname === "localhost") {
-      console.log("[Analytics]", event, params);
-    }
+    // Fire to Firebase Analytics async (non-blocking)
+    getFirebaseAnalytics().then(analytics=>{
+      if(analytics){
+        import("firebase/analytics").then(({logEvent:fbLog})=>{
+          fbLog(analytics, event, {...params, app_version:"2.0.1"});
+        }).catch(()=>{});
+      }
+    });
   } catch(e) { /* silent */ }
 }
 

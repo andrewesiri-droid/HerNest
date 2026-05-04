@@ -393,9 +393,18 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           keys.forEach(k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k);}catch(e){}});
           if(user?.uid){
             const {db}=await import("../utils/firebase");
-            const {doc,deleteDoc,collection,getDocs}=await import("firebase/firestore");
+            const {doc,deleteDoc,collection,getDocs,collectionGroup,query,where,getDoc}=await import("firebase/firestore");
+            const {db:firestoreDb}=await import("../utils/firebase");
             const collections=["profile","tasks","trips","budget","wellness","style","school","nora_memory"];
-            for(const col of collections){try{await deleteDoc(doc(db,"users",user.uid,"data",col));}catch(e){}}
+            for(const col of collections){try{await deleteDoc(doc(firestoreDb,"users",user.uid,"data",col));}catch(e){}}
+            // Delete summary
+            try{await deleteDoc(doc(firestoreDb,"users",user.uid,"summary","latest"));}catch(e){}
+            // Delete Circle messages
+            try{
+              const q=query(collectionGroup(firestoreDb,"messages"),where("uid","==",user.uid));
+              const snap=await getDocs(q);
+              for(const d of snap.docs){try{await deleteDoc(d.ref);}catch(e){}}
+            }catch(e){}
           }
           alert("Your data has been deleted. You will now be signed out.");
           onSignOut();

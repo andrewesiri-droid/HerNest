@@ -77,8 +77,8 @@ export function WellnessScreen({profile,uid}){
     if(!chatInp.trim()||chatLoad)return;
     const msg=chatInp.trim();setChatInp("");setChatLoad(true);
     const h=chatHist.map(m=>({role:m.role,content:m.content}));
-    const avgMood=Math.round(moods.reduce((a,b)=>a+b,0)/moods.length*10)/10;
-    const lowMoodDays=moods.filter(m=>m<=2).length;
+    const avgMood=moods.length?Math.round(moods.reduce((a,b)=>a+b,0)/moods.length*10)/10:0;
+    const lowMoodDays=(moods||[]).filter(m=>m<=2).length;
     const doneHabits=habits.filter(h=>h.done).length;
     const topStreak=habits.reduce((a,h)=>h.streak>a?h.streak:a,0);
 
@@ -258,7 +258,7 @@ export function WellnessScreen({profile,uid}){
           <div>
             <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:14}}>
               <div style={{width:72,height:72,borderRadius:"50%",background:`linear-gradient(135deg,${T.sage},#4a7a5a)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:"#fff"}}>{weeklyScore.score}</div>
+                <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:"#fff"}}>{weeklyScore?.score??"-"}</div>
               </div>
               <div style={{flex:1}}>
                 <p style={{fontFamily:FD,fontStyle:"italic",fontSize:15,color:T.esp,margin:"0 0 4px",lineHeight:1.5}}>{weeklyScore.headline}</p>

@@ -1,4 +1,4 @@
-const HAIKU = "claude-haiku-4-5-20251001";
+const HAIKU = "claude-3-5-haiku-20241022";  // Verified Anthropic model string
 const SONNET = "claude-sonnet-4-20250514";
 
 // Feature → model map (based on Silicon Valley audit)

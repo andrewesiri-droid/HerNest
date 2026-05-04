@@ -30,9 +30,6 @@ import { LoginScreen } from "./onboarding/LoginScreen";
 import { Step1 } from "./onboarding/Step1";
 import { Step2 } from "./onboarding/Step2";
 import { Step3 } from "./onboarding/Step3";
-import { Step4 } from "./onboarding/Step4";
-import { Step5 } from "./onboarding/Step5";
-import { Step6 } from "./onboarding/Step6";
 import { NoraIntro } from "./onboarding/NoraIntro";
 
 // ─── Firebase ──────────────────────────────────────────────────────
@@ -149,7 +146,10 @@ export default function App() {
 
   const handleSaveProfile = (updated) => {
     setProfile(updated);
-    if(user?.uid) saveData(user.uid, "profile", updated);
+    if(user?.uid){
+      saveData(user.uid, "profile", updated);
+      try{localStorage.setItem("hn_uid", JSON.stringify(user.uid));}catch(e){}
+    }
   };
 
   const reset = async () => {
@@ -181,10 +181,15 @@ export default function App() {
     const unsub=onAuthStateChanged(auth,(u)=>{
       clearTimeout(timeout);
       setUser(u||null);
+      if(u){try{localStorage.setItem("hn_uid",JSON.stringify(u.uid));}catch(e){}}
       if(u){
         loadData(u.uid,"profile").then(saved=>{
           if(saved&&saved.name){setProfile(saved);setScreen("app");}
-          else{if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));setScreen("step1");}
+          else{
+            if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
+            const savedStep=localStorage.getItem("hn_ob_step");
+            setScreen(savedStep?`step${savedStep}`:"step1");
+          }
         }).catch(()=>{setScreen("step1");});
       } else {
         setScreen("login");
@@ -273,8 +278,8 @@ export default function App() {
               </div>
             </div>
           </div>
-          {screen==="step1"&&<Step1 data={profile} onChange={upd} onNext={()=>setScreen("step2")}/>}
-          {screen==="step2"&&<Step2 data={profile} onChange={upd} onNext={()=>setScreen("step3")} onBack={()=>setScreen("step1")}/>}
+          {screen==="step1"&&<Step1 data={profile} onChange={upd} onNext={()=>{localStorage.setItem("hn_ob_step","2");setScreen("step2");}}/>}
+          {screen==="step2"&&<Step2 data={profile} onChange={upd} onNext={()=>{localStorage.setItem("hn_ob_step","3");setScreen("step3");}} onBack={()=>setScreen("step1")}/>}
           {screen==="step3"&&<Step3 data={profile} onChange={upd} onNext={()=>{if(user?.uid)saveData(user.uid,"profile",profile);setScreen("intro");}} onBack={()=>setScreen("step2")}/>}
         </div>
       </div>
@@ -282,7 +287,7 @@ export default function App() {
   }
 
   if(screen==="login") return <><style>{css}</style><LoginScreen onLogin={handleLogin} auth={auth} googleProvider={googleProvider}/></>;
-  if(screen==="intro") return <><style>{css}</style><NoraIntro profile={profile} onEnter={()=>{logEvent(EVENTS.ONBOARDING_COMPLETED,{name:profile.name,role:profile.role});setScreen("app");}}/></>;
+  if(screen==="intro") return <><style>{css}</style><NoraIntro profile={profile} onEnter={()=>{logEvent(EVENTS.ONBOARDING_COMPLETED,{name:profile.name,role:profile.role});localStorage.removeItem("hn_ob_step");setScreen("app");}}/></>;
 
   // Main app
   const screens={

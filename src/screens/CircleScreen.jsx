@@ -49,7 +49,7 @@ export function CircleScreen({profile,uid}){
     const sys=`You are Nora, AI community matcher for HerNest. Return ONLY valid JSON: {"match":{"name":"","avatar":"👩🏽","role":"","kids":"","sharedInterests":["","",""],"icebreaker":"","whyMatch":""},"reason":""}`;
     const userCtx=`User: ${profile?.name||"Sarah"}, ${profile?.role||"Working Mum"}, kids: ${profile?.kids?.map(k=>k.name).join(",")||"2 kids"}, priorities: ${profile?.priorities?.join(",")||"family,career"}`;
     try{
-      const raw=await claude(sys,`Find a perfect Circle match: ${userCtx}. Create a realistic mum profile.`);
+      const raw=await claude(sys,`Find a perfect Circle match for ${userCtx}. Create a supportive mum profile for a practice conversation.`);
       const parsed=JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,"").trim());
       if(parsed?.match)setAiMatch(parsed);
     }catch(e){

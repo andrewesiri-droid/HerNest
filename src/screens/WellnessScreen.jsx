@@ -64,7 +64,7 @@ function CheckInCard({ uid, onComplete }) {
       <p style={{ fontFamily: FB, fontSize: 10, color: T.taupe, margin: "12px 0 0", textAlign: "center", fontStyle: "italic" }}>
         💡 Nora uses this to personalise your score and next week's focus
       </p>
-    </Card>
+    </div>}/>
   );
 }
 
@@ -75,7 +75,7 @@ function SleepCard({ sleep, onEstimate }) {
   const low = sleep?.hours > 0 && sleep?.hours < 6;
 
   return (
-    <Card>
+    <Card ch={<div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <H2 t="Sleep" sub={sleep?.inferred ? "⚡ Inferred from phone activity" : sleep?.source === "user_estimate" ? "Your estimate" : "Log your sleep"} />
         {has && <div style={{ textAlign: "right" }}>
@@ -104,14 +104,14 @@ function SleepCard({ sleep, onEstimate }) {
           <button onClick={() => onEstimate(null)} style={{ marginTop: 8, background: "none", border: "none", fontFamily: FB, fontSize: 10, color: T.taupe, cursor: "pointer", textDecoration: "underline" }}>Update estimate</button>
         </div>
       )}
-    </Card>
+    </div>}/>
   );
 }
 
 // ─── Habits Card ──────────────────────────────────────────────────
 function HabitsCard({ habits, onMarkDone }) {
   return (
-    <Card>
+    <Card ch={<div>
       <H2 t="Habits" sub="Auto-detected · tap to mark done" />
       {Object.entries(habits || {}).map(([id, h]) => (
         <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: `1px solid ${T.linen}` }}>
@@ -130,7 +130,7 @@ function HabitsCard({ habits, onMarkDone }) {
           {h.done && <Ic.Check s={16} c={T.sage} w={2.5} />}
         </div>
       ))}
-    </Card>
+    </div>}/>
   );
 }
 
@@ -138,7 +138,7 @@ function HabitsCard({ habits, onMarkDone }) {
 function WaterCard({ water, onEstimate }) {
   const glasses = water || 0;
   return (
-    <Card>
+    <Card ch={<div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <H2 t="Water today" sub="Tap to log" />
         <div style={{ fontFamily: FD, fontSize: 28, fontWeight: 700, color: T.sky }}>{glasses}<span style={{ fontFamily: FB, fontSize: 12, color: T.taupe }}>/8</span></div>
@@ -149,7 +149,7 @@ function WaterCard({ water, onEstimate }) {
         ))}
       </div>
       <p style={{ fontFamily: FB, fontSize: 10, color: T.taupe, margin: 0, textAlign: "center" }}>Tell Nora: "I've had 6 glasses today" to auto-update</p>
-    </Card>
+    </div>}/>
   );
 }
 
@@ -159,7 +159,7 @@ function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
     <Card sx={{ background: T.sand, textAlign: "center" }}>
       <p style={{ fontFamily: FD, fontStyle: "italic", fontSize: 15, color: T.taupe, margin: "0 0 4px" }}>Check in above to unlock your score</p>
       <p style={{ fontFamily: FB, fontSize: 11, color: T.taupe, margin: 0 }}>Nora needs your weekly mood to calculate honestly</p>
-    </Card>
+    </div>}/>
   );
 
   if (!score && !generating) return (
@@ -167,7 +167,7 @@ function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
       <AIBadge t="Weekly Score" />
       <p style={{ fontFamily: FB, fontSize: 12, color: T.taupe, margin: "10px 0 14px", lineHeight: 1.6 }}>Nora will rate your week honestly — no defaults, no padding. Based on your real data.</p>
       <button onClick={onGenerate} style={{ background: `linear-gradient(135deg,${T.sage},#2a5a3a)`, border: "none", borderRadius: 12, padding: "11px 24px", fontFamily: FB, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer" }}>✨ Score my week</button>
-    </Card>
+    </div>}/>
   );
 
   if (generating) return (
@@ -176,7 +176,7 @@ function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
         {[0, 1, 2].map(i => <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: T.sage, animation: `dot 1.2s ease-in-out ${i * .2}s infinite` }} />)}
       </div>
       <p style={{ fontFamily: FB, fontSize: 12, color: T.taupe, margin: "8px 0 0" }}>Nora is looking at your week...</p>
-    </Card>
+    </div>}/>
   );
 
   const scoreColor = score.score >= 7 ? T.sage : score.score >= 4 ? T.gold : T.blush;
@@ -203,7 +203,7 @@ function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
         if (navigator.share) { navigator.share({ text: txt }).catch(() => {}); }
         else { navigator.clipboard.writeText(txt).catch(() => {}); alert("Copied!"); }
       }} style={{ width: "100%", background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.2)", borderRadius: 10, padding: "8px", fontFamily: FB, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer" }}>Share my score 📤</button>
-    </Card>
+    </div>}/>
   );
 }
 
@@ -219,7 +219,7 @@ function InsightCard({ sleep, weeklyMood, steps, habits, profile }) {
           <p style={{ fontFamily: FB, fontSize: 13, color: T.bark, margin: 0, lineHeight: 1.7 }}>{insight}</p>
         </div>
       </div>
-    </Card>
+    </div>}/>
   );
 }
 

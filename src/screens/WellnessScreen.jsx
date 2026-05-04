@@ -73,16 +73,7 @@ export function WellnessScreen({profile,uid}){
   };
   const todayMood=moods[6];
 
-  const askCoach=async()=>{
-    if(!chatInp.trim()||chatLoad)return;
-    const msg=chatInp.trim();setChatInp("");setChatLoad(true);
-    const h=chatHist.map(m=>({role:m.role,content:m.content}));
-    const avgMood=moods.length?Math.round(moods.reduce((a,b)=>a+b,0)/moods.length*10)/10:0;
-    const lowMoodDays=(moods||[]).filter(m=>m<=2).length;
-    const doneHabits=(habits||[]).filter(h=>h.done).length;
-    const topStreak=(habits||[]).reduce((a,h)=>h.streak>a?h.streak:a,0);
-
-  // Weekly wellness score
+  // Weekly wellness score — MUST be at component level, not inside another function
   const [weeklyScore,setWeeklyScore]=useState(()=>{
     try{const s=localStorage.getItem("hn_weekly_score");return s?JSON.parse(s):null;}catch(e){return null;}
   });
@@ -90,23 +81,34 @@ export function WellnessScreen({profile,uid}){
 
   const generateWeeklyScore=async()=>{
     setGeneratingScore(true);
-    const avgMoodLocal=moods.length?Math.round((moods.reduce((a,b)=>a+b,0)/moods.length)*10)/10:0;
+    const avgMoodLocal=(moods||[]).length?Math.round((moods.reduce((a,b)=>a+b,0)/moods.length)*10)/10:0;
     const habitsDone=(habits||[]).filter(h=>h.done).length;
     const topStreakLocal=(habits||[]).reduce((a,h)=>h.streak>a?h.streak:a,0);
-    const sys=`You are Nora, a warm wellness coach. Return ONLY valid JSON: {"score":0,"headline":"one punchy sentence about this week","wins":["",""],"focus":"one gentle suggestion for next week","affirmation":"one warm personal sentence"}. Score must be calculated honestly from the data provided — do not default to any number. Only reference wellness metrics the user has actually tracked. Never invent data points. If data is limited, say so in the headline and score conservatively. A tough week might score 4-5. A great week might score 8-9.`;
-    const prompt=`Weekly wellness data: mood average ${avgMoodLocal}/5, sleep ${sleep}hrs (goal ${profile?.sleepGoal||8}hrs), water ${water}/8 glasses today, habits completed ${habitsDone}/${habits.length}, longest streak ${topStreakLocal} days. Fitness level: ${profile?.fitnessLevel||"not set"}. Generate a warm personal weekly score out of 10.`;
+    const sys=`You are Nora, a warm wellness coach. Return ONLY valid JSON: {"score":0,"headline":"one punchy sentence about this week","wins":["",""],"focus":"one gentle suggestion for next week","affirmation":"one warm personal sentence"}. Score must be calculated honestly from the data provided. A tough week might score 4-5. A great week might score 8-9.`;
+    const prompt=`Weekly wellness data: mood average ${avgMoodLocal}/5, sleep ${sleep}hrs (goal ${profile?.sleepGoal||8}hrs), water ${water}/8 glasses today, habits completed ${habitsDone}/${(habits||[]).length}, longest streak ${topStreakLocal} days. Fitness level: ${profile?.fitnessLevel||"not set"}. Generate a warm personal weekly score out of 10.`;
     try{
       logEvent(EVENTS.WELLNESS_SCORE_GENERATED);
-    const raw=await claude(sys,prompt,[],"wellness_score");
+      const raw=await claude(sys,prompt,[],"wellness_score");
       const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
       const scoreData={...data,generatedAt:new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})};
       setWeeklyScore(scoreData);
-      try{localStorage.setItem("hn_weekly_score",JSON.stringify(scoreData));}catch(e){setWeeklyScore({score:6,headline:"You showed up this week — that counts for everything.",wins:["You kept going","You cared for your family"],focus:"Be gentle with yourself next week",affirmation:"Every small step forward is still progress.",generatedAt:new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})});}
-    }catch(e){ /* silent */ }
+      try{localStorage.setItem("hn_weekly_score",JSON.stringify(scoreData));}catch(e){}
+    }catch(e){
+      setWeeklyScore({score:6,headline:"You showed up this week — that counts for everything.",wins:["You kept going","You cared for your family"],focus:"Be gentle with yourself next week",affirmation:"Every small step forward is still progress.",generatedAt:new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})});
+    }
     setGeneratingScore(false);
   };
-    const ctx=`Real wellness data: mood today ${todayMood}/5, weekly average ${avgMood}/5, low mood days this week: ${lowMoodDays}. Sleep last night: ${sleep}hrs (goal 8hrs, ${sleep>=8?"on track":"below target"}). Water today: ${water}/8 glasses. Workouts completed: ${(workouts||[]).filter(w=>w.done).length}/${workouts.length} (${totalKcal} kcal burned, ${doneMins} mins). Daily habits done today: ${doneHabits}/${habits.length}. Longest streak: ${topStreak} days. Active habits: ${habits.map(h=>`${h.lb} (${h.streak}d streak)`).join(", ")}.`;
-    try{const raw=await claude(`You are Nora, warm wellness coach in HerNest. You have the user's REAL wellness data. ${ctx} Be specific and reference her actual numbers. If mood is low (below 3) acknowledge it with empathy first. Give personalised, actionable advice. 3-4 sentences max.`,msg,h);setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
+
+  const askCoach=async()=>{
+    if(!chatInp.trim()||chatLoad)return;
+    const msg=chatInp.trim();setChatInp("");setChatLoad(true);
+    const h=chatHist.map(m=>({role:m.role,content:m.content}));
+    const avgMood=(moods||[]).length?Math.round(moods.reduce((a,b)=>a+b,0)/moods.length*10)/10:0;
+    const lowMoodDays=(moods||[]).filter(m=>m<=2).length;
+    const doneHabits=(habits||[]).filter(h=>h.done).length;
+    const topStreak=(habits||[]).reduce((a,h)=>h.streak>a?h.streak:a,0);
+    const ctx=`Real wellness data: mood today ${todayMood}/5, weekly average ${avgMood}/5, low mood days this week: ${lowMoodDays}. Sleep last night: ${sleep}hrs (goal 8hrs, ${sleep>=8?"on track":"below target"}). Water today: ${water}/8 glasses. Workouts completed: ${(workouts||[]).filter(w=>w.done).length}/${(workouts||[]).length} (${totalKcal} kcal burned, ${doneMins} mins). Daily habits done today: ${doneHabits}/${(habits||[]).length}. Longest streak: ${topStreak} days. Active habits: ${(habits||[]).map(h=>`${h.lb} (${h.streak}d streak)`).join(", ")}.`;
+    try{const raw=await claude(`You are Nora, warm wellness coach in HerNest. You have the user's REAL wellness data. ${ctx} Be specific and reference her actual numbers. If mood is low (below 3) acknowledge it with empathy first. Give personalised, actionable advice. 3-4 sentences max.`,msg,h,"wellness_coach");setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
     catch(e){setChatHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"I lost connection for a second. You deserve a proper answer — try again and I'll be here. 🌿"}]);}
     setChatLoad(false);
   };

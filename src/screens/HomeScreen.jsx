@@ -104,6 +104,14 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
         </div>}
         {noraResp&&<button onClick={()=>go("nora")} style={{width:"100%",background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:12,padding:"9px",fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.7)",cursor:"pointer",marginTop:4}}>Continue with Nora →</button>}
       </div>
+      {/* Smart proactive nudge */}
+      {smartNudge&&<div onClick={()=>{if(smartNudge.tab&&go)go(smartNudge.tab);}} style={{background:"#fff",borderRadius:18,padding:"14px 16px",marginBottom:12,borderLeft:`4px solid ${smartNudge.color}`,boxShadow:"0 2px 12px rgba(0,0,0,.06)",cursor:smartNudge.tab?"pointer":"default",display:"flex",alignItems:"flex-start",gap:12}}>
+        <span style={{fontSize:26,flexShrink:0}}>{smartNudge.icon}</span>
+        <div style={{flex:1}}>
+          <p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"0 0 6px",lineHeight:1.6}}>{smartNudge.text}</p>
+          {smartNudge.action&&<span style={{fontFamily:FB,fontSize:11,fontWeight:700,color:smartNudge.color}}>{smartNudge.action} →</span>}
+        </div>
+      </div>}
       {/* Proactive birthday alerts */}
       {[...(profile?.kids||[]),...(profile?.parents||[]),...(profile?.inlaws||[]),...(profile?.friends||[])].filter(p=>{
         if(!p?.bday)return false;

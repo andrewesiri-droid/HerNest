@@ -165,6 +165,16 @@ export function CircleScreen({profile,uid}){
 
       {/* Weekly question tab */}
       {activeTab==="weekly"&&<div>
+          {/* Community suggestions based on her context */}
+          {communitySuggestions.length>0&&<div style={{marginBottom:14}}>
+            {communitySuggestions.map((s,i)=>(
+              <div key={i} onClick={()=>setActiveRoom(s.roomId)} style={{background:T.goldP,borderRadius:12,padding:"10px 14px",marginBottom:8,borderLeft:`3px solid ${T.gold}`,cursor:"pointer"}}>
+                <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.esp,marginBottom:4}}>{s.room}</div>
+                <div style={{fontFamily:FB,fontSize:12,color:T.bark}}>{s.text}</div>
+                <div style={{fontFamily:FB,fontSize:10,color:T.gold,marginTop:4,fontWeight:700}}>Join conversation →</div>
+              </div>
+            ))}
+          </div>}
         <div style={{background:`linear-gradient(135deg,${T.esp},#4a2e18)`,borderRadius:18,padding:"20px",marginBottom:14}}>
           <div style={{fontFamily:FB,fontSize:10,color:T.gold,letterSpacing:2,textTransform:"uppercase",fontWeight:700,marginBottom:8}}>This Week's Question</div>
           <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:"#fff",margin:"0 0 4px",lineHeight:1.5}}>"{weeklyQ.q}"</p>

@@ -157,7 +157,15 @@ export default function App() {
   // Build unified context — once on load, refresh every 5 min + on focus
   useEffect(() => {
     if(!user?.uid || !profile?.name) return;
-    buildContextLayer(user.uid, profile, calEvents).then(ctx => { if(ctx) setAppContext(ctx); }).catch(() => {});
+    buildContextLayer(user.uid, profile, calEvents).then(ctx => {
+      if(ctx){
+        setAppContext(ctx);
+        try{localStorage.setItem("hn_app_context",JSON.stringify({
+          wellness:ctx.wellness,school:ctx.school,tasks:ctx.tasks,
+          budget:ctx.budget,trips:ctx.trips,calendar:ctx.calendar
+        }));}catch(e){}
+      }
+    }).catch(() => {});
   }, [user?.uid, profile?.name, calEvents.length]);
 
   useEffect(() => {

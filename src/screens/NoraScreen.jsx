@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
+import { buildEmotionalContext } from "../utils/emotionalContext";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
@@ -193,6 +194,20 @@ You are not alone. 💛`,parsed:null}]);
       }
     }
 
+    // Build emotional tone from context
+    let emotionalTone = "";
+    try{
+      const ctxRaw=localStorage.getItem("hn_app_context");
+      if(ctxRaw){
+        const appCtx=JSON.parse(ctxRaw);
+        const emotional=buildEmotionalContext(appCtx);
+        if(emotional?.state==="overwhelmed") emotionalTone="IMPORTANT: She is overwhelmed right now. Do not open with a task or question. Open with acknowledgment. Keep responses short. Offer to take one thing off her plate.";
+        else if(emotional?.state==="struggling") emotionalTone="She is struggling this week. Lead with empathy before any advice. Acknowledge before suggesting.";
+        else if(emotional?.state==="tired") emotionalTone="She is tired. Favour simple, concrete suggestions over complex plans. Short responses.";
+        else if(emotional?.state==="thriving") emotionalTone="She is thriving. Match her energy. Be ambitious with suggestions.";
+        else if(emotional?.state==="recovering") emotionalTone="She had a hard stretch but is improving. Acknowledge the progress. Build on it.";
+      }
+    }catch(e){}
     const memoryCtx = activeMemory.length ? `IMPORTANT — things she has specifically asked Nora to always remember:\n${activeMemory.map((f,i)=>`${i+1}. [${f.type}] ${f.fact}`).join("\n")}\nAlways factor these into every response. If a fact seems outdated, gently check.` : "";
 
     const sys=`You are Nora, a warm, intelligent AI Mental Load Manager inside HerNest. ${profileCtx} ${memoryCtx}

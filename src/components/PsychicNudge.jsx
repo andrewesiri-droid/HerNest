@@ -82,17 +82,9 @@ export function PsychicNudge({ nudge, go, uid, profile, onDismiss }) {
 
   const emailQuestions = () => {
     const questions = draftText||nudge.draftContent||[];
-    const body = encodeURIComponent(`Hi,
-
-I wanted to reach out ahead of our meeting. A few things I'd love to discuss:
-
-${questions.map((q,i)=>`${i+1}. ${q}`).join("
-
-")}
-
-Looking forward to connecting.
-
-${profile?.name||""}`);
+    const qText = questions.map((q,i)=>`${i+1}. ${q}`).join("\n\n");
+    const greeting = `Hi,\n\nI wanted to reach out ahead of our meeting. A few things I'd love to discuss:\n\n${qText}\n\nLooking forward to connecting.\n\n${profile?.name||""}`;
+    const body = encodeURIComponent(greeting);
     const subject = encodeURIComponent(`Parent-Teacher Meeting — ${nudge.primaryAction?.data?.childName||""}`);
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };

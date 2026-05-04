@@ -47,6 +47,7 @@ export function GiftButton({name,age,relation}){
                 <span style={{fontFamily:FB,fontSize:9,color:T.taupe,display:"block",marginTop:2}}>· Prices are estimates, verify before purchasing</span>
                 <div>
                   <div style={{display:"flex",gap:4,marginBottom:2}}>
+                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:8,color:"#B8A898",margin:"0 0 3px",fontStyle:"italic"}}>As an Amazon Associate, HerNest earns from qualifying purchases</p>
                   <button onClick={()=>window.open("https://www.amazon.com/s?k="+encodeURIComponent(g.name)+"&tag=hernest-20","_blank")} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"2px 8px",fontFamily:FB,fontSize:9,fontWeight:700,color:T.gold,cursor:"pointer"}}>Amazon →</button>
                   <button onClick={()=>window.open("https://www.google.com/search?q=buy+"+encodeURIComponent(g.name),"_blank")} style={{background:T.sand,border:`1px solid ${T.linen}`,borderRadius:8,padding:"2px 8px",fontFamily:FB,fontSize:9,color:T.bark,cursor:"pointer"}}>Search →</button>
                   </div>

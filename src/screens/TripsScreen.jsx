@@ -261,6 +261,7 @@ export function TripsScreen({uid,profile}){
                 {lb:"Flights",url:`https://www.skyscanner.net/transport/flights/?oym=${new Date(trip.departDate||Date.now()).toISOString().slice(0,7).replace("-","")}`,emoji:"✈️"},
                 {lb:"Hotels",url:`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(trip.dest)}&aid=304142`,emoji:"🏨"},
                 {lb:"Activities",url:`https://www.viator.com/search/${encodeURIComponent(trip.dest)}?pid=P00049202`,emoji:"🎡"},
+                {lb:"Insurance",url:"https://www.worldnomads.com/?affiliate=hernest",emoji:"🛡️"},
                 {lb:"Insurance",url:"https://www.worldnomads.com/?affiliate=hernest",emoji:"🛡️"}
               ].map(b=>(
                 <button key={b.lb} onClick={()=>window.open(b.url,"_blank")} style={{flex:1,background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:12,padding:"10px 6px",cursor:"pointer",textAlign:"center"}}>

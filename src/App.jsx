@@ -324,6 +324,16 @@ export default function App() {
   return(
     <div style={{maxWidth:430,margin:"0 auto",minHeight:"100vh",background:T.cream,position:"relative"}}>
       <style>{css}</style>
+    {/* Add to Home Screen */}
+    {showInstall&&<div style={{position:"fixed",bottom:80,left:16,right:16,background:`linear-gradient(135deg,${T.esp},#1a0a04)`,borderRadius:16,padding:"14px 16px",zIndex:999,display:"flex",alignItems:"center",gap:12,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}>
+      <span style={{fontSize:24}}>📱</span>
+      <div style={{flex:1}}>
+        <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Add HerNest to home screen</div>
+        <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.6)"}}>Opens like an app, works offline</div>
+      </div>
+      <button onClick={()=>{if(typeof deferredPrompt!=="undefined"&&deferredPrompt){deferredPrompt.prompt();}setShowInstall(false);logEvent(EVENTS.FEATURE_FIRST_USE,{feature:"pwa_install"});}} style={{background:T.gold,border:"none",borderRadius:10,padding:"8px 14px",fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp,cursor:"pointer"}}>Add</button>
+      <button onClick={()=>setShowInstall(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,lineHeight:1}}>×</button>
+    </div>}
       <OfflineBanner/>
       <div style={{padding:"16px 16px 90px"}}>
         {screens[tab]||screens.home}

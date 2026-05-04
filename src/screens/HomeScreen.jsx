@@ -8,7 +8,7 @@ import { PsychicNudge } from "../components/PsychicNudge";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
-export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCalendar,calEvents}){
+export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCalendar,calEvents,appContext}){
   const [water,setWater]=useState(()=>{try{return parseInt(localStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
   const [smartNudge,setSmartNudge]=useState(null);
   const [psychicNudge,setPsychicNudge]=useState(null);
@@ -114,7 +114,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
         {noraResp&&<button onClick={()=>go("nora")} style={{width:"100%",background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:12,padding:"9px",fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.7)",cursor:"pointer",marginTop:4}}>Continue with Nora →</button>}
       </div>
       {/* Psychic nudge — emotional context aware */}
-      {psychicNudge&&<PsychicNudge nudge={psychicNudge} go={go} uid={uid} profile={profile} onDismiss={()=>setPsychicNudge(null)}/>}
+      {psychicNudge&&<PsychicNudge nudge={psychicNudge} go={go} uid={JSON.parse(localStorage.getItem("hn_uid")||"null")} profile={profile} onDismiss={()=>setPsychicNudge(null)}/>}
       {/* Fallback smart nudge */}
       {!psychicNudge&&smartNudge&&<div onClick={()=>{if(smartNudge.tab&&go)go(smartNudge.tab);}} style={{background:"#fff",borderRadius:18,padding:"14px 16px",marginBottom:12,borderLeft:`4px solid ${smartNudge.color}`,boxShadow:"0 2px 12px rgba(0,0,0,.06)",cursor:smartNudge.tab?"pointer":"default",display:"flex",alignItems:"flex-start",gap:12}}>
         <span style={{fontSize:26,flexShrink:0}}>{smartNudge.icon}</span>

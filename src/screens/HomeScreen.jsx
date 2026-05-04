@@ -2,11 +2,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData, loadSummary } from "../utils/firebase";
+import { generateProactiveNudge } from "../utils/inference/proactiveNudge";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCalendar,calEvents}){
   const [water,setWater]=useState(()=>{try{return parseInt(localStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
+  const [smartNudge,setSmartNudge]=useState(null);
+  useEffect(()=>{
+    const uidRaw=localStorage.getItem("hn_uid");
+    const uid=uidRaw?JSON.parse(uidRaw):null;
+    if(uid&&profile?.name){
+      generateProactiveNudge(uid,profile,calEvents).then(n=>{if(n&&n.priority>0)setSmartNudge(n);}).catch(()=>{});
+    }
+  },[profile?.name]);
   const [summary,setSummary]=useState(()=>{try{const uid=JSON.parse(localStorage.getItem("hn_uid")||"null");return uid?JSON.parse(localStorage.getItem(`hn_summary_${uid}`)||"{}"):{};}catch(e){return {};}});
 
   // Load summary — ONE read for all home screen data

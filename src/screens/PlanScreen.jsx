@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
+import { extractAutoTasks } from "../utils/inference/taskExtractor";
 import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 import { SchoolCalendar } from "./SchoolCalendar";
@@ -12,6 +13,29 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
   const today=new Date();
   const [selectedDay,setSelectedDay]=useState(today.getDay());
   const DEFAULT_TASKS=[];
+  const [pendingAutoTasks,setPendingAutoTasks]=useState([]);
+
+  // Extract auto tasks from school events + birthdays + trips
+  useEffect(()=>{
+    if(!profile)return;
+    const schoolRaw=localStorage.getItem("hn_school_events");
+    const tripsRaw=localStorage.getItem("hn_trips");
+    const schoolEvents=schoolRaw?JSON.parse(schoolRaw):[];
+    const trips=tripsRaw?JSON.parse(tripsRaw):[];
+    const autoTasks=extractAutoTasks(profile,schoolEvents,trips);
+    // Filter out ones already in tasks list
+    const existingIds=new Set(tasks.map(t=>t.id).filter(Boolean));
+    const newOnes=autoTasks.filter(t=>!existingIds.has(t.id));
+    if(newOnes.length>0)setPendingAutoTasks(newOnes);
+  },[profile?.name]);
+
+  const confirmAutoTask=(task)=>{
+    const confirmed={...task,confirmed:true,autoCreated:true};
+    setTasks(p=>[...p,confirmed]);
+    setPendingAutoTasks(p=>p.filter(t=>t.id!==task.id));
+  };
+  const dismissAutoTask=(task)=>setPendingAutoTasks(p=>p.filter(t=>t.id!==task.id));
+
   const [tasks,setTasks]=useState(()=>{
     try{const s=localStorage.getItem("hn_tasks");return s?JSON.parse(s):DEFAULT_TASKS;}catch(e){return DEFAULT_TASKS;}
   });
@@ -124,6 +148,22 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
           );
         })}
       </div>
+
+      {/* Auto-detected tasks */}
+      {pendingAutoTasks.length>0&&<div style={{background:T.goldP,borderRadius:16,padding:"12px 14px",marginBottom:12,border:`1.5px solid ${T.gold}30`}}>
+        <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.gold,marginBottom:8}}>⚡ Nora noticed these — add or dismiss</div>
+        {pendingAutoTasks.map((t,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+            <span style={{fontSize:14}}>{t.source==="school_auto"?"📚":t.source==="birthday_auto"?"🎂":"✈️"}</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:FB,fontSize:12,fontWeight:600,color:T.esp}}>{t.text}</div>
+              <div style={{fontFamily:FB,fontSize:10,color:T.taupe}}>{t.dueDay===0?"Today":t.dueDay===1?"Tomorrow":`In ${t.dueDay} days`}</div>
+            </div>
+            <button onClick={()=>confirmAutoTask(t)} style={{background:T.sage,border:"none",borderRadius:8,padding:"4px 10px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer"}}>Add</button>
+            <button onClick={()=>dismissAutoTask(t)} style={{background:"none",border:"none",fontFamily:FB,fontSize:16,color:T.taupe,cursor:"pointer"}}>×</button>
+          </div>
+        ))}
+      </div>}
 
       {/* Add task */}
       <button onClick={()=>setShowAdd(!showAdd)} style={{width:"100%",background:showAdd?T.esp:T.sand,border:`1.5px solid ${showAdd?T.esp:T.linen}`,borderRadius:14,padding:"11px 16px",fontFamily:FB,fontSize:13,color:showAdd?"#fff":T.bark,cursor:"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:10,transition:"all .15s"}}>

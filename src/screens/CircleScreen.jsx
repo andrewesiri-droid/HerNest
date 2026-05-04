@@ -2,12 +2,22 @@ import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData, db } from "../utils/firebase";
+import { suggestCommunity } from "../utils/inference/communityInference";
 import { claude } from "../utils/claude";
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function CircleScreen({profile,uid}){
   const [activeTab,setActiveTab]=useState("myCircle");
+  const [communitySuggestions,setCommunitySuggestions]=useState([]);
+  useEffect(()=>{
+    try{
+      const wellness=JSON.parse(localStorage.getItem("hn_weekly_checkin")||"null");
+      const schoolEvents=JSON.parse(localStorage.getItem("hn_school_events")||"[]");
+      const suggestions=suggestCommunity(profile,{weeklyMood:wellness},schoolEvents);
+      setCommunitySuggestions(suggestions);
+    }catch(e){}
+  },[profile?.name]);
   const [myCircle,setMyCircle]=useState([
     {id:1,name:"Priya M",av:"👩🏽",role:"Marketing Director",kids:"Arjun 5, Isla 8",sharedInterests:["Working mums","Family travel","Pilates"],status:"online",lastMsg:"Just dropped the kids — finally some quiet!",time:"2m"},
     {id:2,name:"Sophie L",av:"👩🏼",role:"Teacher",kids:"Noah 6",sharedInterests:["Meal prep","Fitness","School stuff"],status:"online",lastMsg:"That meal prep tip you shared was a game changer",time:"1h"},

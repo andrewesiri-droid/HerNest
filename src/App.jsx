@@ -151,6 +151,12 @@ export default function App() {
   const [calEvents, setCalEvents] = useState([]);
   const [calConnected, setCalConnected] = useState(false);
   const [streak, setStreak] = useState(1);
+  const [showInstall, setShowInstall] = useState(false);
+  useEffect(()=>{
+    const handler = () => setShowInstall(true);
+    window.addEventListener("hn_show_install", handler);
+    return () => window.removeEventListener("hn_show_install", handler);
+  }, []);
 
   const upd = (k,v) => setProfile(p=>({...p,[k]:v}));
 

@@ -120,7 +120,7 @@ export function BudgetScreen({uid}){
 
   const totalBudget=categories.reduce((a,c)=>a+c.budget,0);
   const totalSpent=categories.reduce((a,c)=>a+c.spent,0);
-  const savingsPct=Math.round((savingsGoal.saved/savingsGoal.target)*100);
+  const savingsPct=savingsGoal.target>0?Math.min(100,Math.round((savingsGoal.saved/savingsGoal.target)*100)):0;
 
   const addExpense=()=>{
     if(!newExp.amount)return;
@@ -348,16 +348,56 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
           <div style={{background:"rgba(255,255,255,.15)",borderRadius:10,height:10}}>
             <div style={{background:`linear-gradient(90deg,${T.gold},${T.sage})`,height:"100%",borderRadius:10,width:`${savingsPct}%`,transition:"width .5s"}}/>
           </div>
-          <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:"10px 0 0"}}>At $800/month you'll reach your goal in {Math.ceil((savingsGoal.target-savingsGoal.saved)/800)} months</p>
+          <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:"10px 0 0"}}>
+            {(()=>{
+              const remaining=savingsGoal.target-savingsGoal.saved;
+              const surplus=totalBudget>0?Math.max(0,totalBudget-totalSpent):0;
+              const monthly=surplus||200;
+              const months=monthly>0?Math.ceil(remaining/monthly):null;
+              if(remaining<=0)return "🎉 Goal reached!";
+              if(!savingsGoal.target)return "Set a target to see your timeline";
+              return `At your current rate, you'll reach your goal in ${months||"?"} months`;
+            })()}
+          </p>
         </div>}/>
         <Card ch={<div>
-          <H2 t="Add to Savings"/>
-          <div style={{display:"flex",gap:8}}>
+          <H2 t="Add to Savings" sub="Tap to log a contribution"/>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
             {[100,200,500,1000].map(amt=>(
-              <button key={amt} onClick={()=>setSavingsGoal(p=>({...p,saved:Math.min(p.saved+amt,p.target)}))} style={{flex:1,background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:12,padding:"10px 0",fontFamily:FD,fontSize:16,fontWeight:700,color:T.esp,cursor:"pointer"}}>+${amt}</button>
+              <button key={amt} onClick={()=>{
+                setSavingsGoal(p=>({...p,saved:Math.min(p.saved+amt,p.target)}));
+                // Log contribution to history
+                const today=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});
+                const hist=JSON.parse(localStorage.getItem("hn_savings_hist")||"[]");
+                hist.unshift({amt,date:today});
+                if(hist.length>10)hist.pop();
+                localStorage.setItem("hn_savings_hist",JSON.stringify(hist));
+              }} style={{flex:1,background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:12,padding:"10px 0",fontFamily:FD,fontSize:16,fontWeight:700,color:T.esp,cursor:"pointer"}}>+${amt}</button>
             ))}
           </div>
+          {(()=>{
+            const hist=JSON.parse(localStorage.getItem("hn_savings_hist")||"[]");
+            if(!hist.length)return null;
+            const monthTotal=hist.reduce((s,h)=>s+h.amt,0);
+            return(
+              <div>
+                <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:6}}>Recent contributions · ${monthTotal} total</div>
+                {hist.slice(0,4).map((h,i)=>(
+                  <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:i<3?`1px solid ${T.linen}`:"none"}}>
+                    <span style={{fontFamily:FB,fontSize:12,color:T.bark}}>{h.date}</span>
+                    <span style={{fontFamily:FD,fontSize:13,fontWeight:700,color:T.sage}}>+${h.amt}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>}/>
+        {savingsPct>=100&&<Card sx={{background:`linear-gradient(135deg,${T.sage},#2a5a3a)`,border:"none"}} ch={<div style={{textAlign:"center",padding:"8px 0"}}>
+          <div style={{fontSize:36,marginBottom:8}}>🎉</div>
+          <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:"#fff",margin:"0 0 4px"}}>Goal reached!</p>
+          <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.7)",margin:"0 0 12px"}}>You saved ${savingsGoal.target.toLocaleString()} for {savingsGoal.name}. Nora is so proud of you.</p>
+          <button onClick={()=>{const txt=`I just hit my savings goal of $${savingsGoal.target.toLocaleString()} for ${savingsGoal.name} with HerNest 🎉`;if(navigator.share){navigator.share({text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{});}}} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:10,padding:"8px 16px",fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff",cursor:"pointer"}}>Share achievement 🌟</button>
+        </div>}/>}
         <Card ch={<div>
           <H2 t="Savings Milestones"/>
           {[25,50,75,100].map(pct=>(
@@ -367,7 +407,11 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
               </div>
               <div style={{flex:1}}>
                 <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>{pct}% — ${Math.round(savingsGoal.target*pct/100).toLocaleString()}</div>
-                <div style={{fontFamily:FB,fontSize:11,color:T.taupe}}>{savingsPct>=pct?"✓ Reached":"Upcoming"}</div>
+                <div style={{fontFamily:FB,fontSize:11,color:savingsPct>=pct?T.sage:T.taupe}}>
+                  {savingsPct>=pct
+                    ? pct===100?"🎉 Goal complete! You did it!":pct===75?"💪 Almost there!":pct===50?"🌟 Halfway there!":"✓ First milestone reached!"
+                    : `${pct-savingsPct}% away · $${Math.round((savingsGoal.target*(pct/100))-savingsGoal.saved).toLocaleString()} to go`}
+                </div>
               </div>
             </div>
           ))}

@@ -34,7 +34,13 @@ export function BudgetScreen({uid}){
     });
   };
   const [inp,setInp]=useState("");
-  const [hist,setHist]=useState([]);
+  const [hist,setHist]=useState(()=>{
+    try{
+      const saved=localStorage.getItem("hn_budget_chat");
+      if(saved){const parsed=JSON.parse(saved);if(parsed.length>0)return parsed;}
+    }catch(e){}
+    return [{role:"assistant",content:"Hey! 💛 I've looked at your numbers and you're doing better than you think. Ask me anything — what are you wondering about?"}];
+  });
   const [loading,setLoading]=useState(false);
   const [activeTab,setActiveTab]=useState("overview");
   const [editCat,setEditCat]=useState(null);
@@ -134,13 +140,20 @@ export function BudgetScreen({uid}){
   const ask=async()=>{
     if(!inp.trim()||loading)return;
     const msg=inp.trim();setInp("");setLoading(true);
+    // Auto-scroll to bottom
+    setTimeout(()=>{const el=document.getElementById("budget-chat");if(el)el.scrollTop=el.scrollHeight;},100);
     const h=hist.map(m=>({role:m.role,content:m.content}));
     const overBudget=categories.filter(c=>c.spent>c.budget*0.9).map(c=>`${c.lb} (${Math.round((c.spent/c.budget)*100)}%)`).join(", ")||"none";
     const recentExp=expenses.slice(0,5).map(e=>`${e.cat} $${e.amount}${e.note?` (${e.note})`:""}`).join(", ");
-    const ctx=`Real budget data: total budget $${totalBudget}, spent $${totalSpent} (${Math.round((totalSpent/totalBudget)*100)}%). Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name} $${savingsGoal.saved}/$${savingsGoal.target} (${Math.round((savingsGoal.saved/savingsGoal.target)*100)}%). Near budget limit: ${overBudget}. Recent expenses: ${recentExp}.`;
+    const ctx=`Real budget data: total budget $${totalBudget}, spent $${totalSpent} (${Math.round((totalSpent/totalBudget)*100)}%). Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name||"not set"} $${savingsGoal.saved}/$${savingsGoal.target} (${savingsGoal.target>0?Math.round((savingsGoal.saved/savingsGoal.target)*100):0}%). Near budget limit: ${overBudget}. Recent expenses: ${recentExp}.`;
     const guiltFree=totalBudget-totalSpent>0?`She has $${(totalBudget-totalSpent).toLocaleString()} remaining — this is guilt-free money she CAN spend without any worry.`:"She has reached her budget this month.";
     try{const raw=await claude(`You are Nora, a warm and supportive financial companion inside HerNest. You are NEVER judgmental about spending — money is for living. ${ctx} ${guiltFree} IMPORTANT: Never recommend specific stocks, crypto, or investment products. If asked for investment advice, warmly redirect to a qualified financial advisor. SELF-CORRECTION: Only reference spending numbers the user has actually provided. Never invent or estimate figures not in the data. If uncertain about a financial fact, say "I believe" and recommend she verify with a professional.
-Your tone is like a brilliant, encouraging best friend who happens to be a CFO. Celebrate wins first. Never use words like "overspending", "too much" or "should cut back" — instead say things like "you have room to play with", "guilt-free spending", "you are doing great". Be specific with her numbers. 3-4 sentences max.`,msg,h);setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:raw}]);}
+Your tone is like a brilliant, encouraging best friend who happens to be a CFO. Celebrate wins first. Never use words like "overspending", "too much" or "should cut back" — instead say things like "you have room to play with", "guilt-free spending", "you are doing great". Be specific with her numbers. 3-4 sentences max.`,msg,h,"budget_coach");setHist(p=>{
+        const updated=[...p,{role:"user",content:msg},{role:"assistant",content:raw}];
+        try{localStorage.setItem("hn_budget_chat",JSON.stringify(updated.slice(-20)));}catch(e){}
+        return updated;
+      });
+    }
     catch(e){setHist(p=>[...p,{role:"user",content:msg},{role:"assistant",content:"Something went quiet on my end — but your question was a great one. Give me another go in a moment. 💳"}]);}
     setLoading(false);
   };
@@ -512,12 +525,12 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
           <AIBadge t="Financial Companion"/>
           <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.6)",margin:"8px 0 0",lineHeight:1.6}}>I am on your side. Ask me anything — I will celebrate your wins and help you make the most of what you have.</p>
         </div>
-        {["How much can I spend guilt-free?","What are my biggest wins this month?","Help me save for my trip","What should I treat myself to?"].map((q,i)=>(
+        {hist.length<=1&&["How much can I spend guilt-free?","What are my biggest wins this month?","Help me save for my trip","What should I treat myself to?"].map((q,i)=>(
           <div key={i} onClick={()=>setInp(q)} style={{background:"#fff",border:`1px solid ${T.linen}`,borderRadius:11,padding:"9px 14px",cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",gap:8,fontFamily:FB,fontSize:12,color:T.bark}}>
             <Ic.Budget s={13} c={T.taupe} w={1.5}/>{q}
           </div>
         ))}
-        <div style={{maxHeight:280,overflowY:"auto",marginBottom:10}}>
+        <div id="budget-chat" style={{maxHeight:280,overflowY:"auto",marginBottom:10}}>
           {hist.map((m,i)=>(
             <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:8}}>
               <div style={{maxWidth:"85%",background:m.role==="user"?`linear-gradient(135deg,${T.esp},#4a3020)`:"#fff",borderRadius:16,padding:"10px 14px",border:m.role==="assistant"?`1px solid ${T.linen}`:"none"}}>
@@ -526,6 +539,9 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
             </div>
           ))}
           {loading&&<div style={{display:"flex",gap:4,padding:"8px 0"}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:T.taupe,animation:`dot 1.2s ease-in-out ${i*.2}s infinite`}}/>)}</div>}
+        </div>
+        <div style={{display:"flex",justifyContent:"flex-end",marginBottom:6}}>
+          <button onClick={()=>{setHist([{role:"assistant",content:"Hey! 💛 Fresh start — what's on your mind?"}]);try{localStorage.removeItem("hn_budget_chat");}catch(e){}}} style={{background:"none",border:"none",fontFamily:FB,fontSize:10,color:T.taupe,cursor:"pointer",textDecoration:"underline"}}>Clear chat</button>
         </div>
         <div style={{display:"flex",gap:8}}>
           <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&ask()} placeholder="Ask anything about your finances…" style={{flex:1,fontFamily:FB,fontSize:13,padding:"11px 14px",borderRadius:13,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>

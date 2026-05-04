@@ -4,6 +4,24 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
 import { initSession, logEvent, EVENTS } from "./utils/analytics";
+
+// Register service worker
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("/sw.js").catch(()=>{});
+  });
+}
+
+// Capture Add to Home Screen prompt
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner after 30 seconds of use
+  setTimeout(() => {
+    if(deferredPrompt) window.dispatchEvent(new CustomEvent("hn_show_install"));
+  }, 30000);
+});
 import { requestNotificationPermission, scheduleMorningBriefing } from "./utils/notifications";
 import { Ic } from "./constants/icons.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";

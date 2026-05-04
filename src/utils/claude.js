@@ -20,7 +20,41 @@ const MODEL_MAP = {
   style_stylist:     SONNET,  // Creative outfit generation
 };
 
+// Daily usage tracking
+function getDailyUsage() {
+  try {
+    const today = new Date().toDateString();
+    const stored = JSON.parse(localStorage.getItem("hn_daily_usage") || "{}");
+    if(stored.date !== today) return 0;
+    return stored.count || 0;
+  } catch(e) { return 0; }
+}
+
+function incrementDailyUsage() {
+  try {
+    const today = new Date().toDateString();
+    const stored = JSON.parse(localStorage.getItem("hn_daily_usage") || "{}");
+    const count = stored.date === today ? (stored.count || 0) + 1 : 1;
+    localStorage.setItem("hn_daily_usage", JSON.stringify({ date: today, count }));
+    return count;
+  } catch(e) { return 0; }
+}
+
+const FREE_DAILY_LIMIT = 10;
+
 export const claude = async (sys, prompt, hist = [], feature = "nora_chat") => {
+  // Soft paywall — track but don't block (test phase)
+  const usage = getDailyUsage();
+  if(usage >= FREE_DAILY_LIMIT) {
+    // Fire analytics event — track willingness to pay
+    try{
+      const {logEvent,EVENTS}=await import("./analytics");
+      logEvent(EVENTS.FEATURE_LIMIT_HIT,{feature,usage,limit:FREE_DAILY_LIMIT});
+    }catch(e){}
+    // Soft limit — still allows the call, just tracks it
+    // At 500 users, change this to: show paywall, return null
+  }
+  incrementDailyUsage();
   const model = MODEL_MAP[feature] || HAIKU;
   try {
     const res = await fetch("/api/claude", {

@@ -77,8 +77,7 @@ export function PsychicNudge({ nudge, go, uid, profile, onDismiss }) {
 
   const copyQuestions = () => {
     const questions = draftText||nudge.draftContent||[];
-    navigator.clipboard.writeText(questions.map((q,i)=>`${i+1}. ${q}`).join("
-")).catch(()=>{});
+    navigator.clipboard.writeText(questions.map((q,i)=>`${i+1}. ${q}`).join("\n")).catch(()=>{});
   };
 
   const emailQuestions = () => {

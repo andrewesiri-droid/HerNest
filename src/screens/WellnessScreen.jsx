@@ -344,7 +344,7 @@ export function WellnessScreen({ profile, uid }) {
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        {tabs.map(t => <Pill key={t} ch={t === "today" ? "Today" : t === "score" ? "Weekly Score" : "Nora Coach"} active={activeTab === t} on={() => setActiveTab(t)} color={T.sage} />)}
+        {["today","score","coach"].map(t => <Pill key={t} ch={t==="today"?"Today":t==="score"?"Weekly Score":"Nora Coach"} active={activeTab===t} on={()=>setActiveTab(t)} color={T.sage}/>)}
       </div>
 
       {/* Today tab */}

@@ -20,6 +20,10 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
     temporary: {expires:"7days",label:"Temporary"},
   };
 
+  const [debriefMode,setDebriefMode]=useState(false);
+  const [debriefHist,setDebriefHist]=useState(()=>{
+    try{const s=localStorage.getItem("hn_debrief_chat");return s?JSON.parse(s):[];}catch(e){return [];}
+  });
   const [noraMemory,setNoraMemory]=useState(()=>{
     try{
       const s=localStorage.getItem("hn_nora_memory_v2");
@@ -194,8 +198,44 @@ You are not alone. 💛`,parsed:null}]);
       }
     }
 
+    // Debrief mode detection
+    const debriefTriggers = ["how did today go","debrief","end of day","tell me about my day","i need to vent","how was my day","just listen"];
+    const isDebriefTrigger = debriefTriggers.some(t => msg.toLowerCase().includes(t));
+    if(isDebriefTrigger && !debriefMode) {
+      setDebriefMode(true);
+    }
+
     // Build emotional tone from context
     let emotionalTone = "";
+
+    // Debrief mode overrides everything
+    if(debriefMode || isDebriefTrigger) {
+      const noraName = profile?.name?.split(" ")?.[0] || "lovely";
+      const kidCount = profile?.kids?.length || 0;
+      const isSolo = profile?.soloParent || profile?.role === "Single Mum";
+      const sys_debrief = `You are in debrief mode. ${noraName} has just put her ${kidCount > 0 ? kidCount + " kid" + (kidCount > 1 ? "s" : "") : "children"} to bed. She is exhausted. She does not want solutions.
+RULES:
+1. NEVER suggest an action item unless she explicitly asks
+2. NEVER say "have you tried" or "you should" or "maybe you could"
+3. ALWAYS reflect back what she said: start with "So today was..." or "That sounds like..."
+4. ALWAYS validate the hard parts — say "That sounds really hard" not "That sounds hard but..."
+5. ONE warm question only: "What was the hardest part?" or "What are you proud of from today?"
+6. END with something specific and true: ${isSolo ? `"Solo. Kids fed. You did it."` : `"That was a full day. You handled it."`}
+7. If she says "I'm fine" after listing hard things → acknowledge what you heard: "You say fine, but that was a lot."
+8. Max 3 sentences per response. She is tired.`;
+      try{
+        const h = (debriefHist.length > 0 ? debriefHist : msgs).map(m=>({role:m.role,content:m.content}));
+        const raw = await claude(sys_debrief, msg, h.slice(-6), "wellness_coach");
+        const updated = [...debriefHist, {role:"user",content:msg}, {role:"assistant",content:raw}];
+        setDebriefHist(updated);
+        setMsgs(p=>[...p,{role:"user",content:msg,parsed:null},{role:"assistant",content:raw,parsed:null}]);
+        try{localStorage.setItem("hn_debrief_chat",JSON.stringify(updated.slice(-20)));}catch(e){}
+      }catch(e){
+        setMsgs(p=>[...p,{role:"user",content:msg,parsed:null},{role:"assistant",content:"I'm here. What happened today?",parsed:null}]);
+      }
+      setLoading(false);
+      return;
+    }
     try{
       const ctxRaw=localStorage.getItem("hn_app_context");
       if(ctxRaw){
@@ -239,7 +279,36 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
     }
     try{
       logEvent(EVENTS.NORA_MESSAGE_SENT,{msgLen:msg.length});
-      const raw=await claude(sys,msg,hist,"nora_chat");
+      // Freeform task extraction detection
+    const taskWords = ["need to","must","should","book","call","reply","sort","buy","pick up","collect","remind","don't forget","have to"];
+    const taskMatches = taskWords.filter(w => msg.toLowerCase().includes(w));
+    if(taskMatches.length >= 2 && msg.length > 30) {
+      // Extract tasks via AI
+      try{
+        const extractSys = `Extract tasks from this message. Return ONLY valid JSON: {"tasks":[{"text":"task description","tag":"Family|Work|Home|Me|School"}]}. Max 6 tasks. Be specific. Do not invent tasks not mentioned.`;
+        const extracted = await claude(extractSys, msg, [], "briefing_ask");
+        const parsed = JSON.parse(extracted.replace(/```json|```/g,"").trim());
+        if(parsed.tasks && parsed.tasks.length >= 2) {
+          const taskList = parsed.tasks.map((t,i)=>`${i+1}. ${t.text} — ${t.tag}`).join("\n");
+          const confirmMsg = `I heard:\n${taskList}\n\nWant me to add these to your Plan?`;
+          setMsgs(p=>[...p,{role:"user",content:msg,parsed:null},{role:"assistant",content:confirmMsg,parsed:{pendingTasks:parsed.tasks,awaitingConfirm:true}}]);
+          setLoading(false);
+          return;
+        }
+      }catch(e){ /* fall through to normal response */ }
+    }
+
+    // Check if confirming pending tasks
+    const lastMsg = msgs[msgs.length-1];
+    if(lastMsg?.parsed?.awaitingConfirm && /yes|yeah|go ahead|add them|please|do it/i.test(msg)) {
+      const tasks = lastMsg.parsed.pendingTasks;
+      if(tasks && onTasks) onTasks(tasks);
+      setMsgs(p=>[...p,{role:"user",content:msg,parsed:null},{role:"assistant",content:`Done. ${tasks.length} task${tasks.length>1?"s":""} added to your Plan. 💛`,parsed:null}]);
+      setLoading(false);
+      return;
+    }
+
+    const raw=await claude(sys,msg,hist,"nora_chat");
       const match=raw.match(/<ND>([\s\S]*?)<\/ND>/);
       let parsed=null;if(match){try{parsed=JSON.parse(match[1].trim());}catch(e){ /* silent */ }}
       const display=raw.replace(/<ND>[\s\S]*?<\/ND>/g,"").trim();

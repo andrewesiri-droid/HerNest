@@ -9,6 +9,7 @@ const DEFER_KEY = "hn_nudge_defer";
 const NUDGE_SHOWN_KEY = "hn_nudge_shown";
 
 export function selectPsychicNudge(appContext) {
+  const ctx = appContext || {};
   if(!appContext) return null;
 
   // Build emotional layer
@@ -45,6 +46,15 @@ export function selectPsychicNudge(appContext) {
   }
 
   // P1: Calm / celebration
+  // Solo parent specific reassurance (once per week)
+  const isSolo = appContext.soloParent || appContext.profile?.role === "Single Mum";
+  const moodLow = (appContext.wellness?.mood || 3) <= 3;
+  const lastReassurance = (() => { try { return parseInt(localStorage.getItem("hn_last_reassurance")||"0"); } catch(e) { return 0; } })();
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  if(isSolo && moodLow && lastReassurance < weekAgo) {
+    candidates.push({priority:6,type:"specific_reassurance",emotional,state:emotional.state});
+  }
+
   candidates.push({priority:1,type:"calm",emotional,state:emotional.state});
 
   const selected = candidates.sort((a,b)=>b.priority-a.priority)[0];
@@ -167,6 +177,29 @@ function buildNudgeCard(candidate, ctx) {
         : "Something is on your mind. Nora is here.",
       primaryAction:{label:"Let's do it →", action:"open_tab", tab:"plan"},
       secondaryAction:{label:"Later", action:"defer", deferKey:"gentle", deferDays:1},
+    };
+  }
+
+  // SPECIFIC REASSURANCE — solo parent
+  if(type==="specific_reassurance") {
+    const name = ctx.profile?.name?.split(" ")?.[0] || "lovely";
+    const streak = (() => { try { return JSON.parse(localStorage.getItem("hn_streak")||"{}").count||0; } catch(e) { return 0; } })();
+    const tasksDone = (() => { try { const tasks=JSON.parse(localStorage.getItem("hn_tasks")||"[]"); return tasks.filter(t=>t.done).length; } catch(e) { return 0; } })();
+    const water = (() => { try { return parseInt(localStorage.getItem("hn_water")||"0"); } catch(e) { return 0; } })();
+    const detail = tasksDone > 0
+      ? `${tasksDone} thing${tasksDone>1?"s":""} handled${streak>3?" and a " + streak + "-day streak":""}.`
+      : streak > 3 ? `${streak} days straight, showing up.`
+      : "Every single day, showing up.";
+    try { localStorage.setItem("hn_last_reassurance", String(Date.now())); } catch(e) {}
+    return {
+      id:"specific_reassurance",
+      type:"specific_reassurance",
+      icon:"💜",
+      color:"#9b59b6",
+      title:"Nora sees you",
+      text:`${name}. ${detail} On your own. That is not nothing.`,
+      primaryAction:{label:"Talk to Nora →", action:"open_tab", tab:"nora"},
+      secondaryAction:{label:"I needed that", action:"dismiss"},
     };
   }
 

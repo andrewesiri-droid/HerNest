@@ -339,9 +339,9 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       <button onClick={()=>{
         const url=window.location.origin+"?family="+user?.uid;
         if(navigator.share){navigator.share({title:"Our Family Calendar",text:"Here is our family this week",url}).catch(()=>{});}
-        else{navigator.clipboard.writeText(url).then(()=>alert("Link copied! Share with your partner.")).catch(()=>alert("Copy this link: "+url));}
+        else{navigator.clipboard.writeText(url).then(()=>alert("Link copied! Share with your people.")).catch(()=>alert("Copy this link: "+url));}
       }} style={{width:"100%",background:`linear-gradient(135deg,${T.sage},#4a7a5a)`,border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-        👨‍👩‍👧 Share family view with partner
+        👨‍👩‍👧 Share your week with family
       </button>
       <button onClick={async()=>{
         if(!("Notification" in window)){alert("Not supported on this browser.");return;}

@@ -125,7 +125,7 @@ export function PartnerView({ uid }) {
         {/* Kids */}
         {/* Partner nudges */}
         <div style={{background:"#fff",borderRadius:16,padding:"14px 16px",marginBottom:14,border:"1px solid #E5D9C9",boxShadow:"0 2px 12px rgba(0,0,0,.06)"}}>
-          <div style={{fontFamily:"'DM Sans','Helvetica Neue',sans-serif",fontSize:11,fontWeight:700,color:"#7A6A5A",marginBottom:10,letterSpacing:1,textTransform:"uppercase"}}>💛 Send encouragement</div>
+          <div style={{fontFamily:"'DM Sans','Helvetica Neue',sans-serif",fontSize:11,fontWeight:700,color:"#7A6A5A",marginBottom:10,letterSpacing:1,textTransform:"uppercase"}}>💛 Send a message</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
             {["You're doing amazing 💛","I'm proud of you 🌟","Let's plan a date night 🌙","You've got this! 💪","I see how hard you work ❤️","Thank you for everything 🙏"].map((msg,i)=>(
               <button key={i} onClick={()=>{

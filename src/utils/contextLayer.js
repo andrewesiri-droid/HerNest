@@ -145,6 +145,7 @@ export async function buildContextLayer(uid, profile, calEvents = []) {
       hasSoonBirthday: upcomingBirthdays.length>0,
     },
     memory: { facts, factCount: facts.length, dietaryFacts },
+    soloParent: !!(profile?.soloParent || profile?.role === "Single Mum"),
     briefing: { viewedToday: localStorage.getItem("hn_brief_date")===today },
   };
 }

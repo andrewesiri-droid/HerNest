@@ -149,7 +149,7 @@ export default function App() {
   const [tab, setTab] = useState("home");
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [profile, setProfile] = useState({name:"",avatar:"👩",city:"",role:"",kids:[],partner:"",parents:[],inlaws:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
+  const [profile, setProfile] = useState({name:"",avatar:"👩",city:"",role:"",kids:[],partner:"",parents:[],inlaws:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:"",soloParent:false});
   const [aiTasks, setAiTasks] = useState([]);
   const [calEvents, setCalEvents] = useState([]);
   const [calConnected, setCalConnected] = useState(false);

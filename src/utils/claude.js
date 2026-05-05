@@ -56,6 +56,21 @@ export function detectEmotionalSignal(message) {
 }
 
 export const claude = async (sys, prompt, hist = [], feature = "nora_chat") => {
+  // Solo parent context injection
+  if (feature === "nora_chat" || feature === "morning_briefing" || feature === "wellness_coach" || feature === "budget_coach") {
+    try {
+      const ctxRaw = localStorage.getItem("hn_app_context");
+      if (ctxRaw) {
+        const appCtx = JSON.parse(ctxRaw);
+        if (appCtx.soloParent) {
+          const soloNote = "She is a solo parent. Never reference a partner or assume shared parenting. All suggestions assume she is doing this alone. Double the empathy. Half the to-do list suggestions. When she is overwhelmed, give ONE thing only, not a list.";
+          if (sys) sys = soloNote + " " + sys;
+          else sys = soloNote;
+        }
+      }
+    } catch(e) {}
+  }
+
   // Emotional tone injection
   let emotionalPrefix = "";
   if (feature === "nora_chat" && prompt) {

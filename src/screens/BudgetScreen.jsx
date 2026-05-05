@@ -146,12 +146,20 @@ export function BudgetScreen({uid,appContext}){
     const overBudget=categories.filter(c=>c.spent>c.budget*0.9).map(c=>`${c.lb} (${Math.round((c.spent/c.budget)*100)}%)`).join(", ")||"none";
     const recentExp=expenses.slice(0,5).map(e=>`${e.cat} $${e.amount}${e.note?` (${e.note})`:""}`).join(", ");
     const ctx=`Real budget data: total budget $${totalBudget}, spent $${totalSpent} (${Math.round((totalSpent/totalBudget)*100)}%). Categories: ${categories.map(c=>`${c.lb}: $${c.spent}/$${c.budget}`).join(", ")}. Savings goal: ${savingsGoal.name||"not set"} $${savingsGoal.saved}/$${savingsGoal.target} (${savingsGoal.target>0?Math.round((savingsGoal.saved/savingsGoal.target)*100):0}%). Near budget limit: ${overBudget}. Recent expenses: ${recentExp}. ${tripContext} ${wellnessContext} ${savingsContext}`;
-    const guiltFree=totalBudget-totalSpent>0?`She has $${(totalBudget-totalSpent).toLocaleString()} remaining — this is guilt-free money she CAN spend without any worry.`:"She has reached her budget this month.";
+    const remaining=totalBudget-totalSpent;
+    const pctLeft=totalBudget>0?remaining/totalBudget:0;
+    const guiltFree=remaining>0
+      ? pctLeft>0.2
+        ? `She has ${remaining.toLocaleString()} remaining — this is genuinely guilt-free money she can enjoy.`
+        : pctLeft>0.1
+        ? `She has ${remaining.toLocaleString()} left — breathing room. Focus on essentials, protect it carefully.`
+        : `She has only ${remaining.toLocaleString()} left — tight month. Essentials only. Be practical, not positive.`
+      : `She is over budget by ${Math.abs(remaining).toLocaleString()}. Do not say anything positive about spending. Help her triage.`;
     const tripContext = appContext?.trips?.nextTrip ? `UPCOMING TRIP: ${appContext.trips.nextTrip.dest||appContext.trips.nextTrip.destination} in ${appContext.trips.daysUntilNext} days, estimated cost ~$${appContext.trips.estimatedCost}. Factor this into advice.` : "";
     const wellnessContext = appContext?.wellness?.isStruggling ? "She is struggling this week — be extra gentle, celebrate any win." : appContext?.wellness?.sleepDebt ? "She is tired — suggest convenience over frugality for meals." : "";
     const savingsContext = appContext?.budget?.savingsGoal ? `Savings goal: ${appContext.budget.savingsGoal.name||"goal"} — $${appContext.budget.savingsGoal.saved||0} of $${appContext.budget.savingsGoal.target||0}. Reference this when relevant.` : "";
     try{const raw=await claude(`You are Nora, a warm and supportive financial companion inside HerNest. You are NEVER judgmental about spending — money is for living. ${ctx} ${guiltFree} IMPORTANT: Never recommend specific stocks, crypto, or investment products. If asked for investment advice, warmly redirect to a qualified financial advisor. SELF-CORRECTION: Only reference spending numbers the user has actually provided. Never invent or estimate figures not in the data. If uncertain about a financial fact, say "I believe" and recommend she verify with a professional.
-Your tone is like a brilliant, encouraging best friend who happens to be a CFO. Celebrate wins first. Never use words like "overspending", "too much" or "should cut back" — instead say things like "you have room to play with", "guilt-free spending", "you are doing great". Be specific with her numbers. 3-4 sentences max.`,msg,h,"budget_coach");setHist(p=>{
+Your tone is like a brilliant, encouraging best friend who happens to be a CFO. Celebrate wins first. Adapt tone to budget reality: if plenty remaining — celebrate and encourage; if tight — be practical and specific, never say "guilt-free" or "treat yourself"; if emergency — be direct and kind, one clear action only. Never use "overspending" or "should cut back". Reference her real numbers every time. Be specific with her numbers. 3-4 sentences max.`,msg,h,"budget_coach");setHist(p=>{
         const updated=[...p,{role:"user",content:msg},{role:"assistant",content:raw}];
         try{localStorage.setItem("hn_budget_chat",JSON.stringify(updated.slice(-20)));}catch(e){}
         return updated;
@@ -511,18 +519,68 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
 
       {activeTab==="coach"&&<div style={{animation:"slideRight .3s ease both"}}>
 
-        {/* Guilt-free spending card */}
-        {totalSpent<totalBudget&&<div style={{background:`linear-gradient(135deg,${T.sage},#4a7a5a)`,borderRadius:18,padding:"16px 18px",marginBottom:14}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-            <span style={{fontSize:28}}>✅</span>
-            <div>
-              <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Guilt-free money this month</div>
-              <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>You can spend this without any worry</div>
+        {/* Budget status card — tiered by remaining % */}
+        {(()=>{
+          const remaining = totalBudget - totalSpent;
+          const pct = totalBudget > 0 ? remaining / totalBudget : 0;
+          if(pct > 0.2) return (
+            <div style={{background:`linear-gradient(135deg,${T.sage},#4a7a5a)`,borderRadius:18,padding:"16px 18px",marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <span style={{fontSize:28}}>✅</span>
+                <div>
+                  <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Guilt-free money this month</div>
+                  <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>You can spend this without any worry</div>
+                </div>
+              </div>
+              <div style={{fontFamily:FD,fontSize:36,fontWeight:700,color:"#fff",marginBottom:4}}>${remaining.toLocaleString()}</div>
+              <div style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.6)"}}>That is ${Math.round(remaining/30)} a day to enjoy 💛</div>
             </div>
-          </div>
-          <div style={{fontFamily:FD,fontSize:36,fontWeight:700,color:"#fff",marginBottom:4}}>${(totalBudget-totalSpent).toLocaleString()}</div>
-          <div style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.6)"}}>That is ${Math.round((totalBudget-totalSpent)/30)} a day to enjoy guilt-free 💛</div>
-        </div>}
+          );
+          if(pct > 0.1) return (
+            <div style={{background:"linear-gradient(135deg,#5a4a1a,#8a7a2a)",borderRadius:18,padding:"16px 18px",marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <span style={{fontSize:28}}>🌿</span>
+                <div>
+                  <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Breathing room: ${remaining.toLocaleString()}</div>
+                  <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>Protect it for essentials this week</div>
+                </div>
+              </div>
+            </div>
+          );
+          if(pct > 0.05) return (
+            <div style={{background:"linear-gradient(135deg,#5a3a1a,#8a5a2a)",borderRadius:18,padding:"16px 18px",marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <span style={{fontSize:28}}>⚠️</span>
+                <div>
+                  <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Tight month: ${remaining.toLocaleString()} left</div>
+                  <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>Essentials first. Nora is watching your back.</div>
+                </div>
+              </div>
+            </div>
+          );
+          if(pct > 0) return (
+            <div style={{background:"linear-gradient(135deg,#5a1a1a,#8a2a2a)",borderRadius:18,padding:"16px 18px",marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <span style={{fontSize:28}}>🔴</span>
+                <div>
+                  <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Emergency month: ${remaining.toLocaleString()} left</div>
+                  <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>What is the one must-pay this week?</div>
+                </div>
+              </div>
+            </div>
+          );
+          return (
+            <div style={{background:"linear-gradient(135deg,#3a1a1a,#6a2a2a)",borderRadius:18,padding:"16px 18px",marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <span style={{fontSize:28}}>🆘</span>
+                <div>
+                  <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff"}}>Over budget by ${Math.abs(remaining).toLocaleString()}</div>
+                  <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.7)"}}>Nora can help you triage. Talk to her.</div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         <div style={{background:AIGRAD,borderRadius:18,padding:"16px",marginBottom:14}}>
           <AIBadge t="Financial Companion"/>

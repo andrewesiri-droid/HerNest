@@ -4,6 +4,8 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
 import { initSession, logEvent, EVENTS } from "./utils/analytics";
+import { checkProactiveNotifications, checkQuietModeExit, requestPushPermission } from "./utils/proactiveNotifications";
+import { isQuietMode } from "./utils/quietMode";
 import { buildContextLayer } from "./utils/contextLayer";
 
 // Register service worker
@@ -160,6 +162,9 @@ export default function App() {
     buildContextLayer(user.uid, profile, calEvents).then(ctx => {
       if(ctx){
         setAppContext(ctx);
+        // Run proactive notification check
+        if(!isQuietMode()) checkProactiveNotifications(ctx, profile);
+        checkQuietModeExit(profile);
         try{localStorage.setItem("hn_app_context",JSON.stringify({
           wellness:ctx.wellness,school:ctx.school,tasks:ctx.tasks,
           budget:ctx.budget,trips:ctx.trips,calendar:ctx.calendar
@@ -336,7 +341,8 @@ export default function App() {
   }
 
   if(screen==="login") return <><style>{css}</style><LoginScreen onLogin={handleLogin} auth={auth} googleProvider={googleProvider}/></>;
-  if(screen==="intro") return <><style>{css}</style><NoraIntro profile={profile} onEnter={()=>{logEvent(EVENTS.ONBOARDING_COMPLETED,{name:profile.name,role:profile.role});localStorage.removeItem("hn_ob_step");setScreen("app");}}/></>;
+  if(screen==="intro") return <><style>{css}</style><NoraIntro profile={profile} onEnter={()=>{logEvent(EVENTS.ONBOARDING_COMPLETED,{name:profile.name,role:profile.role});
+              requestPushPermission().catch(()=>{});localStorage.removeItem("hn_ob_step");setScreen("app");}}/></>;
 
   // Main app
   const screens={

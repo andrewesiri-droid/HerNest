@@ -3,6 +3,8 @@ import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { loadSummary } from "../utils/firebase";
 import { selectPsychicNudge } from "../utils/nudgeBuilder";
+import { getPendingFollowUp, closeFollowUp } from "../utils/followUpSystem";
+import { isQuietMode, setQuietMode, clearQuietMode } from "../utils/quietMode";
 import { buildEmotionalContext } from "../utils/emotionalContext";
 import { PsychicNudge } from "../components/PsychicNudge";
 import { claude } from "../utils/claude";
@@ -120,6 +122,14 @@ function UpcomingRow({ item, go }) {
 export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCalendar,calEvents,appContext}){
   const [water,setWater]=useState(()=>{try{return parseInt(localStorage.getItem("hn_hw")||"3");}catch(e){return 3;}});
   const [psychicNudge,setPsychicNudge]=useState(null);
+  const [followUp,setFollowUp]=useState(null);
+  const [quietMode,setQuietModeState]=useState(()=>isQuietMode());
+
+  // Check for pending follow-ups on load
+  useEffect(()=>{
+    const pending = getPendingFollowUp();
+    if(pending) setFollowUp(pending);
+  },[]);
   const [smartNudge,setSmartNudge]=useState(null);
   const [summary,setSummary]=useState(()=>{
     try{const uid=JSON.parse(localStorage.getItem("hn_uid")||"null");return uid?JSON.parse(localStorage.getItem(`hn_summary_${uid}`)||"{}"):{};}catch(e){return {};}
@@ -156,9 +166,27 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
   useEffect(()=>{try{localStorage.setItem("hn_hw",String(water));}catch(e){};},[water]);
 
   // Quick Nora
+  // Detect quiet mode request in chat
+  const checkForQuietMode=(msg)=>{
+    const lower=msg.toLowerCase();
+    const quietPhrases=["can't deal","leave me alone","too much","need space","i give up","can't do this","shut everything down"];
+    if(quietPhrases.some(p=>lower.includes(p))){
+      setQuietMode(24);
+      setQuietModeState(true);
+      return true;
+    }
+    return false;
+  };
+
   const askNora=async()=>{
     if(!noraInp.trim()||noraLoad)return;
-    const msg=noraInp.trim();setNoraInp("");setNoraLoad(true);
+    const msg=noraInp.trim();setNoraInp("");
+    if(checkForQuietMode(msg)){
+      setNoraResp("I hear you. I'll give you space. Check in when you're ready 💛");
+      setNoraLoad(false);
+      return;
+    }
+    setNoraLoad(true);
     const ctx=profile?`User: ${profile.name}, ${profile.role}, priorities: ${profile.priorities?.join(",")}.`:"";
     try{
       const raw=await claude(`You are Nora. ${ctx} Reply in 2 warm sentences max. End with one emoji.`,msg,[],"nora_chat");
@@ -199,6 +227,32 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
       {/* ── ZONE 2: THE ONE THING ────────────────────────────── */}
       {psychicNudge&&(
         <PsychicNudge nudge={psychicNudge} go={go} uid={uid} profile={profile} onDismiss={()=>setPsychicNudge(null)}/>
+      )}
+
+      {/* Follow-up card */}
+      {followUp&&!quietMode&&(
+        <div style={{background:"#fff",borderRadius:18,padding:"14px 16px",marginBottom:14,border:`1.5px solid ${T.gold}40`,boxShadow:"0 2px 8px rgba(0,0,0,.05)",display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:22,flexShrink:0}}>{followUp.icon}</span>
+          <div style={{flex:1}}>
+            <p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"0 0 4px",lineHeight:1.5}}>{followUp.message}</p>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>{go("nora");closeFollowUp(followUp.nudgeId);setFollowUp(null);}} style={{background:T.gold,border:"none",borderRadius:8,padding:"5px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer"}}>Talk to Nora →</button>
+              <button onClick={()=>{closeFollowUp(followUp.nudgeId);setFollowUp(null);}} style={{background:"none",border:"none",fontFamily:FB,fontSize:11,color:T.taupe,cursor:"pointer"}}>I'm good</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quiet mode banner */}
+      {quietMode&&(
+        <div style={{background:"linear-gradient(135deg,#2d1654,#1a0e28)",borderRadius:18,padding:"14px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:22}}>🌙</span>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:"#fff",marginBottom:2}}>Quiet mode on</div>
+            <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.6)"}}>Nora will check in when you're ready</div>
+          </div>
+          <button onClick={()=>{clearQuietMode&&clearQuietMode();setQuietModeState(false);}} style={{background:"rgba(255,255,255,.15)",border:"none",borderRadius:8,padding:"5px 10px",fontFamily:FB,fontSize:10,color:"#fff",cursor:"pointer"}}>I'm ready</button>
+        </div>
       )}
 
       {/* Fallback: Smart nudge if no psychic */}

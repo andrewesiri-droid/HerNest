@@ -42,7 +42,31 @@ function incrementDailyUsage() {
 
 const FREE_DAILY_LIMIT = 10;
 
+// Emotional extraction keywords
+const EXHAUSTION_WORDS = ["exhausted","drained","running on empty","can't cope","overwhelmed","burnt out","so tired","no energy","depleted"];
+const QUIET_WORDS = ["can't deal","leave me alone","too much","need space","shut down","I give up","can't do this"];
+const THRIVING_WORDS = ["amazing","on fire","crushing it","best week","so good","proud of myself","nailed it","feeling great"];
+
+export function detectEmotionalSignal(message) {
+  const lower = message.toLowerCase();
+  if (QUIET_WORDS.some(w => lower.includes(w))) return "needs_quiet";
+  if (EXHAUSTION_WORDS.some(w => lower.includes(w))) return "exhausted";
+  if (THRIVING_WORDS.some(w => lower.includes(w))) return "thriving";
+  return null;
+}
+
 export const claude = async (sys, prompt, hist = [], feature = "nora_chat") => {
+  // Emotional tone injection
+  let emotionalPrefix = "";
+  if (feature === "nora_chat" && prompt) {
+    const signal = detectEmotionalSignal(prompt);
+    if (signal === "needs_quiet") emotionalPrefix = "TONE: She needs space. Acknowledge gently. Offer quiet mode — just say 'Want me to give you space for a bit? I'll check in later.' Don't suggest tasks. Don't fix anything.";
+    else if (signal === "exhausted") emotionalPrefix = "TONE: She is exhausted. Lead with 'I hear you.' One small concrete thing only. Never say 'have you tried' or 'you should'. Rest is the answer.";
+    else if (signal === "thriving") emotionalPrefix = "TONE: She is thriving. Match her energy. Be ambitious. Celebrate specifically.";
+  }
+  if (emotionalPrefix && sys) sys = emotionalPrefix + " " + sys;
+  else if (emotionalPrefix) sys = emotionalPrefix;
+
   // Soft paywall — track but don't block (test phase)
   const usage = getDailyUsage();
   if(usage >= FREE_DAILY_LIMIT) {

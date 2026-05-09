@@ -7,16 +7,19 @@ import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar 
 
 export function BudgetScreen({uid,appContext}){
   const CAT_META={Groceries:{IC:Ic.Bag,c:T.sage,budget:700},Kids:{IC:Ic.Kids,c:T.sky,budget:400},Fitness:{IC:Ic.Dumbbell,c:T.blush,budget:120},Travel:{IC:Ic.Suitcase,c:T.teal,budget:2000},Shopping:{IC:Ic.Hanger,c:T.lav,budget:500},Dining:{IC:Ic.Fork,c:T.gold,budget:300},Health:{IC:Ic.Leaf,c:T.sage,budget:200},Transport:{IC:Ic.Compass,c:T.sky,budget:300},Entertainment:{IC:Ic.Star,c:T.lav,budget:200},Bills:{IC:Ic.Budget,c:T.bark,budget:1000},Other:{IC:Ic.Bag,c:T.taupe,budget:200}};
+  const DEFAULT_CATS = [
+    {lb:"Groceries",spent:0,budget:700,IC:Ic.Bag,c:T.sage},
+    {lb:"Kids",spent:0,budget:400,IC:Ic.Kids,c:T.sky},
+    {lb:"Fitness",spent:0,budget:120,IC:Ic.Dumbbell,c:T.blush},
+    {lb:"Travel",spent:0,budget:2000,IC:Ic.Suitcase,c:T.teal},
+    {lb:"Shopping",spent:0,budget:500,IC:Ic.Hanger,c:T.lav},
+    {lb:"Dining",spent:0,budget:300,IC:Ic.Fork,c:T.gold},
+  ];
+  const [budgetLoading,setBudgetLoading]=useState(true);
   const [categories,setCategories]=useState(()=>{
-    try{const s=localStorage.getItem("hn_budget_cats");if(s){const saved=JSON.parse(s);return saved.map(c=>({...c,IC:CAT_META[c.lb]?.IC||Ic.Bag}));}}catch(e){ /* silent */ }
-    return [
-      {lb:"Groceries",spent:0,budget:700,IC:Ic.Bag,c:T.sage},
-      {lb:"Kids",spent:0,budget:400,IC:Ic.Kids,c:T.sky},
-      {lb:"Fitness",spent:0,budget:120,IC:Ic.Dumbbell,c:T.blush},
-      {lb:"Travel",spent:0,budget:2000,IC:Ic.Suitcase,c:T.teal},
-      {lb:"Shopping",spent:0,budget:500,IC:Ic.Hanger,c:T.lav},
-      {lb:"Dining",spent:0,budget:300,IC:Ic.Fork,c:T.gold},
-    ];
+    // Try localStorage as read-ahead cache only
+    try{const s=localStorage.getItem("hn_budget_cats");if(s){const saved=JSON.parse(s);return saved.map(c=>({...c,IC:CAT_META[c.lb]?.IC||Ic.Bag}));}}catch(e){}
+    return DEFAULT_CATS;
   });
   const [savingsGoal,setSavingsGoal]=useState({name:"",target:0,saved:0});
   const [editingGoal,setEditingGoal]=useState(false);
@@ -101,9 +104,7 @@ export function BudgetScreen({uid,appContext}){
     setImportMode(null);
     alert("Imported successfully! "+( importResult.transactions?importResult.transactions.length+" transactions added.":"Receipt added."));
   };
-  const [expenses,setExpenses]=useState(()=>{
-    try{const s=localStorage.getItem("hn_expenses");return s?JSON.parse(s):[];}catch(e){return [];}
-  });
+  const [expenses,setExpenses]=useState([]);
 
   // Save expenses + categories on change
   useEffect(()=>{
@@ -114,14 +115,18 @@ export function BudgetScreen({uid,appContext}){
     if(uid) saveData(uid,"budget",{expenses,categories:categories.map(c=>({...c,ICname:Object.keys(Ic).find(k=>Ic[k]===c.IC)||"Bag"})),savingsGoal}).catch(()=>{});
   },[expenses,categories,uid]);
 
-  // Load budget from Firebase
+  // Load budget from Firebase — Firestore is source of truth
   useEffect(()=>{
-    if(!uid)return;
+    if(!uid){setBudgetLoading(false);return;}
     loadData(uid,"budget").then(d=>{
       if(d?.expenses) setExpenses(d.expenses);
       if(d?.categories) setCategories(d.categories.map(c=>({...c,IC:Ic[c.ICname]||Ic.Bag})));
+      else setCategories(DEFAULT_CATS);
       if(d?.savingsGoal) setSavingsGoal(d.savingsGoal);
-    }).catch(()=>{});
+      // Update localStorage cache
+      try{if(d?.expenses)localStorage.setItem("hn_expenses",JSON.stringify(d.expenses));}catch(e){}
+      try{if(d?.categories)localStorage.setItem("hn_budget_cats",JSON.stringify(d.categories));}catch(e){}
+    }).catch(()=>{}).finally(()=>setBudgetLoading(false));
   },[uid]);
 
   const totalBudget=categories.reduce((a,c)=>a+c.budget,0);
@@ -169,6 +174,12 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
     setLoading(false);
   };
 
+  if(budgetLoading) return(
+    <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"60vh",flexDirection:"column",gap:16}}>
+      <div style={{width:36,height:36,border:`3px solid ${T.linen}`,borderTop:`3px solid ${T.gold}`,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
+      <p style={{fontFamily:FB,fontSize:13,color:T.taupe}}>Loading your budget…</p>
+    </div>
+  );
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
       <div style={{background:"linear-gradient(135deg,#1a1400,#3a2e00)",borderRadius:22,padding:"20px",marginBottom:14}}>

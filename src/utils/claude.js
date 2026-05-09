@@ -1,144 +1,108 @@
-const HAIKU = "claude-3-5-haiku-20241022";  // Verified Anthropic model string
-const SONNET = "claude-sonnet-4-20250514";
+import { auth } from "./firebase";
 
-// Feature → model map (based on Silicon Valley audit)
+const HAIKU  = "claude-haiku-4-5-20251001";
+const SONNET = "claude-sonnet-4-5-20251001";
+
 const MODEL_MAP = {
-  meal_planner:      HAIKU,   // Structured JSON, simple
-  school_calendar:   HAIKU,   // Text → JSON extraction
-  school_photo:      HAIKU,   // Vision → JSON extraction
-  receipt_scanner:   HAIKU,   // Vision → JSON extraction
-  csv_import:        HAIKU,   // Text → JSON extraction
-  wellness_score:    HAIKU,   // Math + template
-  wellness_coach:    HAIKU,   // Empathy via prompting
-  budget_coach:      HAIKU,   // Templated advice
-  briefing_ask:      HAIKU,   // Factual 2-sentence answer
-  gift_advisor:      HAIKU,   // Simple recommendation
-  circle_match:      HAIKU,   // Profile → JSON
-  morning_briefing:  SONNET,  // Retention hook — don't cheap out
-  nora_chat:         SONNET,  // Emotional intelligence
-  trip_planner:      SONNET,  // Complex multi-day reasoning
-  style_stylist:     SONNET,  // Creative outfit generation
+  meal_planner:     HAIKU,
+  school_calendar:  HAIKU,
+  school_photo:     HAIKU,
+  receipt_scanner:  HAIKU,
+  csv_import:       HAIKU,
+  wellness_score:   HAIKU,
+  wellness_coach:   HAIKU,
+  budget_coach:     HAIKU,
+  briefing_ask:     HAIKU,
+  gift_advisor:     HAIKU,
+  circle_match:     HAIKU,
+  morning_briefing: SONNET,
+  nora_chat:        SONNET,
+  trip_planner:     SONNET,
+  style_stylist:    SONNET,
 };
 
-// Daily usage tracking
-function getDailyUsage() {
+async function getIdToken() {
   try {
-    const today = new Date().toDateString();
-    const stored = JSON.parse(localStorage.getItem("hn_daily_usage") || "{}");
-    if(stored.date !== today) return 0;
-    return stored.count || 0;
-  } catch(e) { return 0; }
+    const user = auth.currentUser;
+    if (!user) return null;
+    return await user.getIdToken();
+  } catch (e) {
+    return null;
+  }
 }
-
-function incrementDailyUsage() {
-  try {
-    const today = new Date().toDateString();
-    const stored = JSON.parse(localStorage.getItem("hn_daily_usage") || "{}");
-    const count = stored.date === today ? (stored.count || 0) + 1 : 1;
-    localStorage.setItem("hn_daily_usage", JSON.stringify({ date: today, count }));
-    return count;
-  } catch(e) { return 0; }
-}
-
-const FREE_DAILY_LIMIT = 10;
-
-// Emotional extraction keywords
-const EXHAUSTION_WORDS = ["exhausted","drained","running on empty","can't cope","overwhelmed","burnt out","so tired","no energy","depleted"];
-const QUIET_WORDS = ["can't deal","leave me alone","too much","need space","shut down","I give up","can't do this"];
-const THRIVING_WORDS = ["amazing","on fire","crushing it","best week","so good","proud of myself","nailed it","feeling great"];
 
 export function detectEmotionalSignal(message) {
   const lower = message.toLowerCase();
-  if (QUIET_WORDS.some(w => lower.includes(w))) return "needs_quiet";
-  if (EXHAUSTION_WORDS.some(w => lower.includes(w))) return "exhausted";
-  if (THRIVING_WORDS.some(w => lower.includes(w))) return "thriving";
+  if (["can't deal","leave me alone","too much","need space","shut down","I give up","can't do this"].some(w => lower.includes(w))) return "needs_quiet";
+  if (["exhausted","drained","running on empty","can't cope","overwhelmed","burnt out","so tired","no energy","depleted"].some(w => lower.includes(w))) return "exhausted";
+  if (["amazing","on fire","crushing it","best week","so good","proud of myself","nailed it","feeling great"].some(w => lower.includes(w))) return "thriving";
   return null;
 }
 
 export const claude = async (sys, prompt, hist = [], feature = "nora_chat") => {
-  // Solo parent context injection
-  if (feature === "nora_chat" || feature === "morning_briefing" || feature === "wellness_coach" || feature === "budget_coach") {
+  if (["nora_chat","morning_briefing","wellness_coach","budget_coach"].includes(feature)) {
     try {
       const ctxRaw = localStorage.getItem("hn_app_context");
       if (ctxRaw) {
         const appCtx = JSON.parse(ctxRaw);
         if (appCtx.soloParent) {
-          const soloNote = "She is a solo parent. Never reference a partner or assume shared parenting. All suggestions assume she is doing this alone. Double the empathy. Half the to-do list suggestions. When she is overwhelmed, give ONE thing only, not a list.";
-          if (sys) sys = soloNote + " " + sys;
-          else sys = soloNote;
+          const soloNote = "She is a solo parent. Never reference a partner or assume shared parenting. Double the empathy. When she is overwhelmed, give ONE thing only.";
+          sys = sys ? soloNote + " " + sys : soloNote;
         }
       }
-    } catch(e) {}
+    } catch (e) {}
   }
 
-  // Emotional tone injection
-  let emotionalPrefix = "";
   if (feature === "nora_chat" && prompt) {
     const signal = detectEmotionalSignal(prompt);
-    if (signal === "needs_quiet") emotionalPrefix = "TONE: She needs space. Acknowledge gently. Offer quiet mode — just say 'Want me to give you space for a bit? I'll check in later.' Don't suggest tasks. Don't fix anything.";
-    else if (signal === "exhausted") emotionalPrefix = "TONE: She is exhausted. Lead with 'I hear you.' One small concrete thing only. Never say 'have you tried' or 'you should'. Rest is the answer.";
-    else if (signal === "thriving") emotionalPrefix = "TONE: She is thriving. Match her energy. Be ambitious. Celebrate specifically.";
+    let ep = "";
+    if (signal === "needs_quiet")  ep = "TONE: She needs space. Acknowledge gently. Don't suggest tasks.";
+    else if (signal === "exhausted") ep = "TONE: She is exhausted. Lead with 'I hear you.' One small thing only.";
+    else if (signal === "thriving")  ep = "TONE: She is thriving. Match her energy. Be ambitious.";
+    if (ep) sys = sys ? ep + " " + sys : ep;
   }
-  if (emotionalPrefix && sys) sys = emotionalPrefix + " " + sys;
-  else if (emotionalPrefix) sys = emotionalPrefix;
 
-  // Soft paywall — track but don't block (test phase)
-  const usage = getDailyUsage();
-  if(usage >= FREE_DAILY_LIMIT) {
-    // Fire analytics event — track willingness to pay
-    try{
-      const {logEvent,EVENTS}=await import("./analytics");
-      logEvent(EVENTS.FEATURE_LIMIT_HIT,{feature,usage,limit:FREE_DAILY_LIMIT});
-    }catch(e){}
-    // Soft limit — still allows the call, just tracks it
-    // At 500 users, change this to: show paywall, return null
-  }
-  incrementDailyUsage();
-  const model = MODEL_MAP[feature] || HAIKU;
+  const model   = MODEL_MAP[feature] || HAIKU;
+  const idToken = await getIdToken();
+  if (!idToken) return { error: true, code: "unauthenticated" };
+
   try {
     const res = await fetch("/api/claude", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system: sys,
-        prompt: prompt,
-        messages: hist.length > 0 ? hist : undefined,
-        max_tokens: 1000,
-        model,
-        feature
-      })
+      method:  "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${idToken}` },
+      body: JSON.stringify({ system: sys, prompt, messages: hist.length > 0 ? hist : undefined, max_tokens: 1000, model, feature }),
     });
-    if (!res.ok) throw new Error("API error");
+
+    if (res.status === 429) {
+      const data = await res.json();
+      return { error: true, code: "daily_limit_reached", message: data.message };
+    }
+    if (!res.ok) return { error: true, code: `http_${res.status}` };
     const data = await res.json();
     return data.content?.[0]?.text || "";
   } catch (e) {
-    return "";
+    return { error: true, code: "network_error" };
   }
 };
 
 export const claudeVision = async (base64, mediaType, prompt, feature = "receipt_scanner") => {
-  const model = MODEL_MAP[feature] || HAIKU;
+  const model   = MODEL_MAP[feature] || HAIKU;
+  const idToken = await getIdToken();
+  if (!idToken) return { error: true, code: "unauthenticated" };
+
   try {
     const res = await fetch("/api/claude", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method:  "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${idToken}` },
       body: JSON.stringify({
-        messages: [{
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-            { type: "text", text: prompt }
-          ]
-        }],
-        max_tokens: 1000,
-        model,
-        feature
-      })
+        messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: mediaType, data: base64 } }, { type: "text", text: prompt }] }],
+        max_tokens: 1000, model, feature,
+      }),
     });
-    if (!res.ok) throw new Error("Vision API error");
+    if (!res.ok) return { error: true, code: `http_${res.status}` };
     const data = await res.json();
     return data.content?.[0]?.text || "";
   } catch (e) {
-    return "";
+    return { error: true, code: "network_error" };
   }
 };

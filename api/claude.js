@@ -1,59 +1,78 @@
+import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId:   process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  });
+}
+
+const adminDb  = getFirestore();
+const FREE_LIMIT = 10;
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  // Rate limiting — max 60 requests per minute per IP
-  const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
-
-  // Security headers
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "no-referrer");
 
-  const { system, prompt, messages, max_tokens = 1000 } = req.body;
+  const idToken = req.headers["authorization"]?.split("Bearer ")[1];
+  if (!idToken) return res.status(401).json({ error: "Unauthorized" });
 
-  // Input validation
-  if (max_tokens > 2000) {
-    return res.status(400).json({ error: "max_tokens exceeds limit" });
+  let uid;
+  try {
+    const decoded = await getAuth().verifyIdToken(idToken);
+    uid = decoded.uid;
+  } catch (e) {
+    return res.status(401).json({ error: "Invalid token" });
   }
 
-  // Block prompt injection attempts
-  const injectionPatterns = ["ignore previous instructions","ignore all instructions","you are now","forget you are","act as if","pretend you are","disregard your","override your"];
-  const fullPrompt = (typeof prompt === "string" ? prompt : "") + (system || "");
-  const hasInjection = injectionPatterns.some(p => fullPrompt.toLowerCase().includes(p));
-  if (hasInjection) {
-    return res.status(400).json({ error: "Invalid request" });
+  const today = new Date().toISOString().split("T")[0];
+  const usageRef = adminDb.doc(`users/${uid}/usage/${today}`);
+  try {
+    const snap  = await usageRef.get();
+    const count = snap.exists ? (snap.data()?.count || 0) : 0;
+    if (count >= FREE_LIMIT) {
+      return res.status(429).json({ error: "daily_limit_reached", message: "You've used all 10 free daily AI requests. Upgrade to HerNest Pro for unlimited access.", count, limit: FREE_LIMIT });
+    }
+    usageRef.set({ count: count + 1, date: today }, { merge: true }).catch(() => {});
+  } catch (e) {
+    console.error("[HerNest] Usage check failed:", e?.message);
   }
 
-  if (!prompt && !messages) {
-    return res.status(400).json({ error: "Missing prompt or messages" });
-  }
+  const { system, prompt, messages, max_tokens = 1000, model } = req.body;
+  if (max_tokens > 2000) return res.status(400).json({ error: "max_tokens exceeds limit" });
+  if (!prompt && !messages) return res.status(400).json({ error: "Missing prompt or messages" });
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
+        "Content-Type":      "application/json",
+        "x-api-key":         process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: req.body.model || "claude-sonnet-4-20250514",
+        model:    model || "claude-sonnet-4-5-20251001",
         max_tokens,
-        system: system || undefined,
-        messages: messages || [{ role: "user", content: prompt }]
-      })
+        system:   system || undefined,
+        messages: messages || [{ role: "user", content: prompt }],
+      }),
     });
 
     if (!response.ok) {
       const err = await response.json();
       return res.status(response.status).json({ error: err });
     }
-
     const data = await response.json();
     return res.status(200).json(data);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

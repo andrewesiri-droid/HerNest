@@ -1,128 +1,80 @@
-// HerNest Analytics — tracks key user events
-// Uses localStorage for now, ready for Firebase Analytics or Segment
+import posthog from "posthog-js";
 
-const EVENTS = {
+// ─── Init ─────────────────────────────────────────────────────────
+posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
+  api_host:          "https://us.i.posthog.com",
+  person_profiles:   "identified_only",
+  capture_pageview:  false, // we handle this manually
+  capture_pageleave: true,
+});
+
+// ─── Event names ──────────────────────────────────────────────────
+export const EVENTS = {
   // Onboarding
-  ONBOARDING_STARTED:    "onboarding_started",
-  ONBOARDING_COMPLETED:  "onboarding_completed",
-  ONBOARDING_STEP:       "onboarding_step",
-
-  // Briefing
-  BRIEFING_VIEWED:       "briefing_viewed",
-  BRIEFING_SHARED:       "briefing_shared",
-  BRIEFING_REFRESHED:    "briefing_refreshed",
-  BRIEFING_SPOKEN:       "briefing_spoken",
+  ONBOARDING_STARTED:       "onboarding_started",
+  ONBOARDING_COMPLETED:     "onboarding_completed",
+  ONBOARDING_STEP:          "onboarding_step",
 
   // Nora
-  NORA_MESSAGE_SENT:     "nora_message_sent",
-  NORA_MEMORY_ADDED:     "nora_memory_added",
-  NORA_MEMORY_REMOVED:   "nora_memory_removed",
-  NORA_TASK_CREATED:     "nora_task_created",
-  NORA_CRISIS_DETECTED:  "nora_crisis_detected",
+  NORA_MESSAGE_SENT:        "nora_message_sent",
+  NORA_MEMORY_ADDED:        "nora_memory_added",
+  NORA_MEMORY_REMOVED:      "nora_memory_removed",
+  NORA_DEBRIEF_STARTED:     "nora_debrief_started",
+  NORA_TASK_CONFIRMED:      "nora_task_confirmed",
 
   // Features
-  TRIP_CREATED:          "trip_created",
-  TRIP_PLAN_GENERATED:   "trip_plan_generated",
-  RECEIPT_SCANNED:       "receipt_scanned",
-  CSV_IMPORTED:          "csv_imported",
-  OUTFIT_GENERATED:      "outfit_generated",
-  OUTFIT_SAVED:          "outfit_saved",
-  SCHOOL_CALENDAR_ADDED: "school_calendar_added",
+  FEATURE_FIRST_USE:        "feature_first_use",
+  FEATURE_LIMIT_HIT:        "feature_limit_hit",
+  AI_REQUEST_SUCCESS:       "ai_request_success",
+  AI_REQUEST_FAILED:        "ai_request_failed",
+
+  // Wellness
+  WELLNESS_CHECKIN:         "wellness_checkin",
   WELLNESS_SCORE_GENERATED: "wellness_score_generated",
-  WELLNESS_SCORE_SHARED: "wellness_score_shared",
-  GIFT_SUGGESTED:        "gift_suggested",
 
-  // Subscription intent (before Stripe)
-  UPGRADE_PROMPT_SHOWN:  "upgrade_prompt_shown",
-  UPGRADE_TAPPED:        "upgrade_tapped",
-  FEATURE_LIMIT_HIT:     "feature_limit_hit",
+  // Budget
+  EXPENSE_LOGGED:           "expense_logged",
+  RECEIPT_SCANNED:          "receipt_scanned",
+  CSV_IMPORTED:             "csv_imported",
 
-  // Feature adoption
-  FEATURE_FIRST_USE:     "feature_first_use",
-  FEATURE_ABANDONED:     "feature_abandoned",
+  // Style
+  OUTFIT_GENERATED:         "outfit_generated",
+  OUTFIT_SAVED:             "outfit_saved",
 
-  // Retention
-  STREAK_UPDATED:        "streak_updated",
-  HABIT_COMPLETED:       "habit_completed",
-  WATER_LOGGED:          "water_logged",
-  PARTNER_VIEW_SHARED:   "partner_view_shared",
-  DATA_EXPORTED:         "data_exported",
-  ACCOUNT_DELETED:       "account_deleted",
-
-  // Circle
-  CIRCLE_MSG_SENT:       "circle_msg_sent",
-  CIRCLE_MATCH_VIEWED:   "circle_match_viewed",
+  // Engagement
+  STREAK_UPDATED:           "streak_updated",
+  CALENDAR_CONNECTED:       "calendar_connected",
+  PWA_INSTALLED:            "pwa_installed",
 };
 
-// Log an analytics event
-// Firebase Analytics (lazy loaded)
-let _analytics = null;
-async function getFirebaseAnalytics() {
-  if(_analytics) return _analytics;
-  try{
-    const {getAnalytics,isSupported}=await import("firebase/analytics");
-    const {app}=await import("./firebase");
-    if(await isSupported()){_analytics=getAnalytics(app);return _analytics;}
-  }catch(e){}
-  return null;
+// ─── Identify user ────────────────────────────────────────────────
+export function identifyUser(uid, properties = {}) {
+  if (!uid) return;
+  posthog.identify(uid, properties);
 }
 
-export function logEvent(event, params = {}) {
-  try {
-    const entry = {
-      event,
-      params,
-      timestamp: new Date().toISOString(),
-      session: sessionStorage.getItem("hn_session_id") || "unknown",
-      version: "2.0.1",
-    };
-
-    // Store locally (ring buffer of last 100 events)
-    const stored = JSON.parse(localStorage.getItem("hn_analytics") || "[]");
-    stored.push(entry);
-    if (stored.length > 100) stored.shift();
-    localStorage.setItem("hn_analytics", JSON.stringify(stored));
-
-    // Fire to Firebase Analytics async (non-blocking)
-    getFirebaseAnalytics().then(analytics=>{
-      if(analytics){
-        import("firebase/analytics").then(({logEvent:fbLog})=>{
-          fbLog(analytics, event, {...params, app_version:"2.0.1"});
-        }).catch(()=>{});
-      }
-    });
-  } catch(e) { /* silent */ }
+// ─── Reset on sign out ────────────────────────────────────────────
+export function resetUser() {
+  posthog.reset();
 }
 
-// Get session ID (new each app open)
+// ─── Track page/tab views ─────────────────────────────────────────
+export function trackPage(tabName) {
+  posthog.capture("$pageview", { tab: tabName, path: "/" + tabName });
+}
+
+// ─── Track session start ──────────────────────────────────────────
 export function initSession() {
-  const id = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  sessionStorage.setItem("hn_session_id", id);
-  logEvent("app_opened", { url: window.location.href });
-  // Flush buffer when user returns to tab
-  document.addEventListener("visibilitychange", ()=>{
-    if(document.visibilityState==="visible") flushAnalytics();
+  posthog.capture("session_started", {
+    timestamp: new Date().toISOString(),
+    day_of_week: new Date().toLocaleDateString("en-US", { weekday: "long" }),
+    hour_of_day: new Date().getHours(),
   });
-  return id;
 }
 
-export async function flushAnalytics() {
-  try{
-    const buffer=JSON.parse(localStorage.getItem("hn_analytics")||"[]");
-    if(buffer.length===0)return;
-    const firebase=await import("./firebase");
-    // Fire remaining events — best effort
-  }catch(e){}
+// ─── Main event logger ────────────────────────────────────────────
+export function logEvent(eventName, properties = {}) {
+  posthog.capture(eventName, properties);
 }
 
-// Get analytics summary (for debugging)
-export function getAnalyticsSummary() {
-  try {
-    const events = JSON.parse(localStorage.getItem("hn_analytics") || "[]");
-    const counts = {};
-    events.forEach(e => { counts[e.event] = (counts[e.event] || 0) + 1; });
-    return counts;
-  } catch(e) { return {}; }
-}
-
-export { EVENTS };
+export default posthog;

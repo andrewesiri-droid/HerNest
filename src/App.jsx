@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "firebase/auth";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
-import { initSession, logEvent, EVENTS } from "./utils/analytics";
+import { initSession, logEvent, EVENTS, identifyUser, resetUser, trackPage } from "./utils/analytics";
 import { checkProactiveNotifications, checkQuietModeExit, requestPushPermission } from "./utils/proactiveNotifications";
 import { isQuietMode } from "./utils/quietMode";
 import { buildContextLayer } from "./utils/contextLayer";
@@ -138,7 +138,7 @@ export default function App() {
   const location = useLocation();
   const [screen, setScreen] = useState("loading");
   const [tab, setTabState] = useState("home");
-  const setTab = (t) => { setTabState(t); navigate("/" + t, { replace: true }); };
+  const setTab = (t) => { setTabState(t); navigate("/" + t, { replace: true }); trackPage(t); };
   // Sync tab from URL on load
   useEffect(() => {
     const path = location.pathname.replace("/", "") || "home";
@@ -207,6 +207,7 @@ export default function App() {
 
   const reset = async () => {
     try{await signOut(auth);}catch(e){}
+    resetUser();
     setProfile({avatar:"👩",name:"",city:"",role:"",partner:"",kids:[],parents:[],inlaws:[],siblings:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:""});
     setTab("home");setAiTasks([]);setUser(null);setScreen("login");
   };
@@ -234,7 +235,7 @@ export default function App() {
     const unsub=onAuthStateChanged(auth,(u)=>{
       clearTimeout(timeout);
       setUser(u||null);
-      if(u){try{localStorage.setItem("hn_uid",JSON.stringify(u.uid));}catch(e){}}
+      if(u){try{localStorage.setItem("hn_uid",JSON.stringify(u.uid));}catch(e){} identifyUser(u.uid,{email:u.email,name:u.displayName});}
       if(u){
         loadData(u.uid,"profile").then(saved=>{
           if(saved&&saved.name){setProfile(saved);setScreen("app");}

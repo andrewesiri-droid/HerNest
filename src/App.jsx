@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "firebase/auth";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
 import { initSession, logEvent, EVENTS } from "./utils/analytics";
@@ -133,8 +134,18 @@ const wrap = (screen, key) => <ErrorBoundaryClass key={key}>{screen}</ErrorBound
 
 // ─── MAIN APP ──────────────────────────────────────────────────────
 export default function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [screen, setScreen] = useState("loading");
-  const [tab, setTab] = useState("home");
+  const [tab, setTabState] = useState("home");
+  const setTab = (t) => { setTabState(t); navigate("/" + t, { replace: true }); };
+  // Sync tab from URL on load
+  useEffect(() => {
+    const path = location.pathname.replace("/", "") || "home";
+    const validTabs = ["home","nora","plan","trips","budget","style","circle","wellness","profile","brief"];
+    if (validTabs.includes(path)) setTabState(path);
+  }, []);
+
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [profile, setProfile] = useState({name:"",avatar:"👩",city:"",role:"",kids:[],partner:"",parents:[],inlaws:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:"",soloParent:false});
@@ -304,7 +315,7 @@ export default function App() {
 
 
   // Onboarding
-  const STEPS=["step1","step2","step3","step4","step5","step6"];
+  const STEPS=["step1","step2","step3"];
   if(STEPS.includes(screen)){
     const idx=STEPS.indexOf(screen);
     const total=STEPS.length;
@@ -322,7 +333,7 @@ export default function App() {
           </div>
           {screen==="step1"&&<Step1 data={profile} onChange={upd} onNext={()=>{localStorage.setItem("hn_ob_step","2");if(user?.uid)saveData(user.uid,"profile",{...profile,_onboardingStep:2});setScreen("step2");}}/>}
           {screen==="step2"&&<Step2 data={profile} onChange={upd} onNext={()=>{localStorage.setItem("hn_ob_step","3");if(user?.uid)saveData(user.uid,"profile",{...profile,_onboardingStep:3});setScreen("step3");}} onBack={()=>setScreen("step1")}/>}
-          {screen==="step3"&&<Step3 data={profile} onChange={upd} onNext={()=>{if(user?.uid)saveData(user.uid,"profile",profile);setScreen("intro");}} onBack={()=>setScreen("step2")}/>}
+          {screen==="step3"&&<Step3 data={profile} onChange={upd} onNext={()=>{if(user?.uid)saveData(user.uid,"profile",profile);localStorage.removeItem("hn_ob_step");setScreen("intro");}} onBack={()=>setScreen("step2")}/>}
         </div>
       </div>
     );

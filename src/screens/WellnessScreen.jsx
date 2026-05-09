@@ -122,7 +122,7 @@ function HabitsCard({ habits, onMarkDone }) {
             </div>
           </div>
           {!h.done && (
-            <button onClick={() => onMarkDone(id)} style={{ background: T.sand, border: `1px solid ${T.linen}`, borderRadius: 8, padding: "4px 10px", fontFamily: FB, fontSize: 10, color: T.bark, cursor: "pointer" }}>
+            <button onClick={() => onMarkDone(id)} aria-label="Mark habit as done" style={{ background: T.sand, border: `1px solid ${T.linen}`, borderRadius: 8, padding: "4px 10px", fontFamily: FB, fontSize: 10, color: T.bark, cursor: "pointer" }}>
               I did this
             </button>
           )}

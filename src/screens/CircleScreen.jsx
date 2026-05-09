@@ -114,7 +114,7 @@ export function CircleScreen({profile,uid,appContext}){
           <div>
             {/* Chat view */}
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-              <button onClick={()=>setActiveMember(null)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Back s={20} c={T.bark} w={2}/></button>
+              <button onClick={()=>setActiveMember(null)} aria-label="Back to circle" style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Back s={20} c={T.bark} w={2}/></button>
               <span style={{fontSize:28}}>{member?.av}</span>
               <div style={{flex:1}}>
                 <div style={{fontFamily:FB,fontSize:14,fontWeight:700,color:T.esp}}>{member?.name}</div>
@@ -139,7 +139,7 @@ export function CircleScreen({profile,uid,appContext}){
             </div>
             <div style={{display:"flex",gap:8}}>
               <input value={chatMsg} onChange={e=>setChatMsg(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendChat(activeMember)} placeholder="Say something kind…" style={{flex:1,fontFamily:FB,fontSize:13,padding:"11px 14px",borderRadius:13,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-              <button onClick={()=>sendChat(activeMember)} style={{background:`linear-gradient(135deg,${T.esp},#4a3020)`,border:"none",borderRadius:13,padding:"0 16px",cursor:"pointer",display:"flex",alignItems:"center"}}><Ic.Send s={16} c="#fff" w={2}/></button>
+              <button onClick={()=>sendChat(activeMember)} aria-label="Send message" style={{background:`linear-gradient(135deg,${T.esp},#4a3020)`,border:"none",borderRadius:13,padding:"0 16px",cursor:"pointer",display:"flex",alignItems:"center"}}><Ic.Send s={16} c="#fff" w={2}/></button>
             </div>
           </div>
         ):(

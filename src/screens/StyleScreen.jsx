@@ -137,7 +137,7 @@ export function StyleScreen({profile,uid,appContext}){
           <input value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. I need to look authoritative but approachable…" style={{width:"100%",fontFamily:FB,fontSize:13,padding:"11px 14px",borderRadius:13,border:`1.5px solid ${T.linen}`,color:T.esp,background:"#fff"}}/>
         </div>
 
-        <button onClick={()=>run()} disabled={!occasion&&!mood&&!prompt.trim()||loading} style={{width:"100%",background:occasion||mood||prompt.trim()?`linear-gradient(135deg,#2d1428,#4a1a3a)`:T.linen,color:occasion||mood||prompt.trim()?"#fff":T.taupe,border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14,opacity:loading?.7:1}}>
+        <button onClick={()=>run()} aria-label="Get style recommendation" disabled={!occasion&&!mood&&!prompt.trim()||loading} style={{width:"100%",background:occasion||mood||prompt.trim()?`linear-gradient(135deg,#2d1428,#4a1a3a)`:T.linen,color:occasion||mood||prompt.trim()?"#fff":T.taupe,border:"none",borderRadius:14,padding:"13px",fontFamily:FB,fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:14,opacity:loading?.7:1}}>
           {loading?<><Spinner/>Styling you…</>:<>✨ Style Me</>}
         </button>
 

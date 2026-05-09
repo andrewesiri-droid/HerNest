@@ -239,7 +239,7 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
 
       {/* Expenses */}
       {activeTab==="expenses"&&<div style={{animation:"slideRight .3s ease both"}}>
-        <button onClick={()=>setShowAddExp(!showAddExp)} style={{width:"100%",background:showAddExp?T.esp:T.sand,border:`1.5px solid ${showAddExp?T.esp:T.linen}`,borderRadius:14,padding:"11px 16px",fontFamily:FB,fontSize:13,color:showAddExp?"#fff":T.bark,cursor:"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:12,transition:"all .15s"}}>
+        <button onClick={()=>setShowAddExp(!showAddExp)} aria-label={showAddExp?"Cancel expense":"Log an expense"} style={{width:"100%",background:showAddExp?T.esp:T.sand,border:`1.5px solid ${showAddExp?T.esp:T.linen}`,borderRadius:14,padding:"11px 16px",fontFamily:FB,fontSize:13,color:showAddExp?"#fff":T.bark,cursor:"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:12,transition:"all .15s"}}>
           <Ic.Plus s={18} c={showAddExp?"#fff":T.bark} w={2}/>{showAddExp?"Cancel":"Log an expense"}
         </button>
         {showAddExp&&(
@@ -617,7 +617,7 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
         </div>
         <div style={{display:"flex",gap:8}}>
           <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&ask()} placeholder="Ask anything about your finances…" style={{flex:1,fontFamily:FB,fontSize:13,padding:"11px 14px",borderRadius:13,border:`1.5px solid ${T.linen}`,background:"#fff",color:T.esp}}/>
-          <button onClick={ask} style={{background:T.esp,border:"none",borderRadius:13,padding:"0 16px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Send s={16} c="#fff" w={2}/></button>
+          <button onClick={ask} aria-label="Send message" style={{background:T.esp,border:"none",borderRadius:13,padding:"0 16px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Send s={16} c="#fff" w={2}/></button>
         </div>
       </div>}
     </div>

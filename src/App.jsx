@@ -3,9 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "firebase/auth";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
 import { initSession, logEvent, EVENTS, identifyUser, resetUser, trackPage } from "./utils/analytics";
-import { checkProactiveNotifications, checkQuietModeExit, requestPushPermission } from "./utils/proactiveNotifications";
-import { isQuietMode } from "./utils/quietMode";
-import { buildContextLayer } from "./utils/contextLayer";
+import { requestPushPermission } from "./utils/proactiveNotifications";
+
+
+import { useStreak } from "./hooks/useStreak";
+import { useCalendar } from "./hooks/useCalendar";
+import { useAppContext } from "./hooks/useAppContext";
 
 // Register service worker
 if("serviceWorker" in navigator){
@@ -66,19 +69,7 @@ const loadData = async (uid, key) => {
   try { const snap = await getDoc(doc(db,"users",uid,"data",key)); return snap.exists()?snap.data():null; } catch(e) { return null; }
 };
 
-async function fetchGCalEvents() {
-  const token = sessionStorage.getItem("hn_gtoken") || localStorage.getItem("hn_gtoken");
-  if (!token) return null;
-  const now = new Date();
-  const end = new Date(now.getTime() + 7*24*60*60*1000);
-  const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin="+now.toISOString()+"&timeMax="+end.toISOString()+"&singleEvents=true&orderBy=startTime&maxResults=20";
-  try {
-    const res = await fetch(url, {headers:{Authorization:"Bearer "+token}});
-    if (!res.ok) return null;
-    const data = await res.json();
-    return (data.items||[]).map(e=>({id:e.id,title:e.summary||"Untitled",start:e.start?.dateTime||e.start?.date,end:e.end?.dateTime||e.end?.date,location:e.location||"",allDay:!e.start?.dateTime}));
-  } catch(e) { return null; }
-}
+// fetchGCalEvents — moved to src/hooks/useCalendar.js
 
 // ─── Tab Bar ───────────────────────────────────────────────────────
 const TABS=[
@@ -154,36 +145,11 @@ export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [profile, setProfile] = useState({name:"",avatar:"👩",city:"",role:"",kids:[],partner:"",parents:[],inlaws:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:"",soloParent:false});
   const [aiTasks, setAiTasks] = useState([]);
-  const [calEvents, setCalEvents] = useState([]);
-  const [calConnected, setCalConnected] = useState(false);
-  const [streak, setStreak] = useState(1);
-  const [appContext, setAppContext] = useState(null);
+  const { calEvents, calConnected, connectCalendar } = useCalendar();
+  const streak = useStreak(screen);
+  const appContext = useAppContext(user?.uid, profile?.name, calEvents);
 
-  // Build unified context — once on load, refresh every 5 min + on focus
-  useEffect(() => {
-    if(!user?.uid || !profile?.name) return;
-    buildContextLayer(user.uid, profile, calEvents).then(ctx => {
-      if(ctx){
-        setAppContext(ctx);
-        // Run proactive notification check
-        if(!isQuietMode()) checkProactiveNotifications(ctx, profile);
-        checkQuietModeExit(profile);
-        try{localStorage.setItem("hn_app_context",JSON.stringify({
-          wellness:ctx.wellness,school:ctx.school,tasks:ctx.tasks,
-          budget:ctx.budget,trips:ctx.trips,calendar:ctx.calendar
-        }));}catch(e){}
-      }
-    }).catch(() => {});
-  }, [user?.uid, profile?.name, calEvents.length]);
-
-  useEffect(() => {
-    const refresh = () => {
-      if(user?.uid && profile?.name) buildContextLayer(user.uid, profile, calEvents).then(ctx => { if(ctx) setAppContext(ctx); }).catch(() => {});
-    };
-    const interval = setInterval(refresh, 300000);
-    window.addEventListener("focus", refresh);
-    return () => { clearInterval(interval); window.removeEventListener("focus", refresh); };
-  }, [user?.uid, profile?.name]);
+  // Context — managed by useAppContext hook
   const [showInstall, setShowInstall] = useState(false);
   useEffect(()=>{
     const handler = () => setShowInstall(true);
@@ -195,11 +161,7 @@ export default function App() {
 
   const handleAI = (p) => { if(p?.tasks) setAiTasks(prev=>[...prev,...p.tasks]); };
 
-  const connectCalendar = async () => {
-    const events = await fetchGCalEvents();
-    if(events){setCalEvents(events);setCalConnected(true);sessionStorage.setItem("hn_cal_connected","1");}
-    else{alert("Could not connect. Please sign out and sign back in to grant calendar access.");}
-  };
+  // connectCalendar — managed by useCalendar hook
 
   const handleSaveProfile = (updated) => {
     setProfile(updated);
@@ -277,30 +239,9 @@ export default function App() {
     });
   },[screen]);
 
-  // Streak
-  useEffect(()=>{
-    if(screen!=="app") return;
-    const today=new Date().toDateString();
-    try{
-      const s=JSON.parse(localStorage.getItem("hn_streak")||"{}");
-      if(s.lastDate===today){setStreak(s.count||1);}
-      else if(s.lastDate===new Date(Date.now()-86400000).toDateString()){
-        const newCount=(s.count||1)+1;
-        setStreak(newCount);
-        localStorage.setItem("hn_streak",JSON.stringify({count:newCount,lastDate:today}));
-      } else {
-        localStorage.setItem("hn_streak",JSON.stringify({count:1,lastDate:today}));
-        setStreak(1);
-      }
-    }catch(e){}
-  },[screen]);
+  // Streak — managed by useStreak hook
 
-  // Calendar reconnect
-  useEffect(()=>{
-    if(sessionStorage.getItem("hn_cal_connected")==="1"){
-      fetchGCalEvents().then(events=>{if(events){setCalEvents(events);setCalConnected(true);}});
-    }
-  },[]);
+  // Calendar — managed by useCalendar hook
 
   // Splash
   // Show splash only on first load before auth check

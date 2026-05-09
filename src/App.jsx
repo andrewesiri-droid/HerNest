@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "firebase/auth";
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "firebase/auth";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
 import { initSession, logEvent, EVENTS } from "./utils/analytics";
 import { checkProactiveNotifications, checkQuietModeExit, requestPushPermission } from "./utils/proactiveNotifications";
@@ -54,17 +52,7 @@ import { Step3 } from "./onboarding/Step3";
 import { NoraIntro } from "./onboarding/NoraIntro";
 
 // ─── Firebase ──────────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyBxUCbZT4sJbsu7tjiJPQSLpFCfhr9gUJg",
-  authDomain: "hernest-af2e0.firebaseapp.com",
-  projectId: "hernest-af2e0",
-  storageBucket: "hernest-af2e0.firebasestorage.app",
-  messagingSenderId: "910407116452",
-  appId: "1:910407116452:web:376e23e5a8230a0d166831"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+import { db, auth, app } from "./utils/firebase";
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope("https://www.googleapis.com/auth/calendar.readonly");
 

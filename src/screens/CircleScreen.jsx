@@ -41,17 +41,20 @@ export function CircleScreen({profile,uid,appContext}){
   const [weeklyQ,setWeeklyQ]=useState({q:"What is one thing you did just for YOU this week?",answers:[{av:"👩🏽",name:"Priya",txt:"Booked a massage — first one in 6 months!"},{av:"👩🏼",name:"Sophie",txt:"Read an actual book. Not a kids book. A real one."}]});
   const [myAnswer,setMyAnswer]=useState("");
 
-  const sendChat=(memberId)=>{
+  const sendChat=async(memberId)=>{
     if(!chatMsg.trim())return;
-    const msg={from:"me",txt:chatMsg,time:"Just now"};
-    setChats(p=>({...p,[memberId]:[...(p[memberId]||[]),msg]}));
+    const msg=chatMsg.trim();
+    const member=myCircle.find(m=>m.id===memberId);
     setChatMsg("");
-    // Simulate reply
-    setTimeout(()=>{
-      const replies=["That is so relatable!","You are doing amazing.","Tell me more!","I needed to hear this today.","Same! How do you handle it?"];
-      const reply={from:"them",txt:replies[Math.floor(Math.random()*replies.length)],time:"Just now"};
-      setChats(p=>({...p,[memberId]:[...(p[memberId]||[]),reply]}));
-    },2000);
+    setChats(p=>({...p,[memberId]:[...(p[memberId]||[]),{from:"me",txt:msg,time:"Just now"}]}));
+    try{
+      const sys=`You are ${member?.name}, an AI practice conversation partner in HerNest. Interests: ${member?.sharedInterests?.join(", ")}. Role: ${member?.role}. Respond warmly in 1-2 sentences.`;
+      const raw=await claude(sys,msg,[],"wellness_coach");
+      const reply=typeof raw==="string"&&raw.trim()?raw.trim():"That really resonates with me! Tell me more.";
+      setChats(p=>({...p,[memberId]:[...(p[memberId]||[]),{from:"them",txt:reply,time:"Just now"}]}));
+    }catch(e){
+      setChats(p=>({...p,[memberId]:[...(p[memberId]||[]),{from:"them",txt:"That really resonates. You are doing amazing 💛",time:"Just now"}]}));
+    }
   };
 
   const findMatch=async()=>{
@@ -82,9 +85,12 @@ export function CircleScreen({profile,uid,appContext}){
       {/* Header */}
       <div style={{background:"linear-gradient(135deg,#0e1428,#1a2a4e)",borderRadius:22,padding:"22px 20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",background:"rgba(100,160,255,.05)"}}/>
-        <AIBadge t="AI Community"/>
+        <AIBadge t="AI Practice Circle"/>
         <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:"#fff",margin:"10px 0 6px",fontWeight:400}}>The Circle</h2>
-        <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.45)",margin:"0 0 14px"}}>Your curated group of mums who get it 💛</p>
+        <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.45)",margin:"0 0 10px"}}>Practice conversations with AI companions 💛</p>
+        <div style={{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"8px 12px",border:"1px solid rgba(255,255,255,.15)",marginBottom:4}}>
+          <p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.6)",margin:0}}>✨ These are AI-powered practice companions, not real users. Real community coming soon.</p>
+        </div>
         <div style={{display:"flex",gap:16}}>
           {[[myCircle.length,`of 8`,"Members"],[myCircle.filter(m=>m.status==="online").length,"online","Active now"],["5⭐","","Vibe"]].map(([v,sub,lb],i)=>(
             <div key={i} style={{textAlign:"center"}}>
@@ -112,7 +118,7 @@ export function CircleScreen({profile,uid,appContext}){
               <span style={{fontSize:28}}>{member?.av}</span>
               <div style={{flex:1}}>
                 <div style={{fontFamily:FB,fontSize:14,fontWeight:700,color:T.esp}}>{member?.name}</div>
-                <div style={{fontFamily:FB,fontSize:11,color:T.sage}}>{member?.status==="online"?"● Online":"○ Away"}</div>
+                <div style={{fontFamily:FB,fontSize:11,color:T.sky}}>✨ AI Practice Partner</div>
               </div>
             </div>
             <div style={{background:"#fff",borderRadius:16,padding:"14px",marginBottom:12,minHeight:200,maxHeight:320,overflowY:"auto",border:`1px solid ${T.linen}`}}>

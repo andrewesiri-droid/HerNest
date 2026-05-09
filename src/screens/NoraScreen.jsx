@@ -4,6 +4,8 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { buildEmotionalContext } from "../utils/emotionalContext";
 import { claude } from "../utils/claude";
+import { logEvent, EVENTS } from "../utils/analytics";
+import { BriefingScreen } from "./BriefingScreen";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
@@ -101,7 +103,7 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
   },[uid]);
 
   useEffect(()=>{
-    try{const save=msgs.slice(-20).map(m=>({role:m.role,content:m.content}));sessionStorage.setItem("hn_nora_msgs",JSON.stringify(save));localStorage.setItem("hn_nora_msgs",JSON.stringify(save));}catch(e){ /* silent */ }
+    try{const save=msgs.slice(-20).map(m=>({role:m.role,content:m.content}));sessionStorage.setItem("hn_nora_msgs",JSON.stringify(save));}catch(e){ /* silent */ }
   },[msgs]);
 
   const startVoice=()=>{
@@ -198,11 +200,16 @@ You are not alone. 💛`,parsed:null}]);
       }
     }
 
-    // Debrief mode detection
+    // Debrief mode detection + exit condition
     const debriefTriggers = ["how did today go","debrief","end of day","tell me about my day","i need to vent","how was my day","just listen"];
+    const planningTriggers = ["plan my week","help me organize","what should i do","add a task","remind me","schedule","priorities"];
     const isDebriefTrigger = debriefTriggers.some(t => msg.toLowerCase().includes(t));
+    const isPlanningTrigger = planningTriggers.some(t => msg.toLowerCase().includes(t));
     if(isDebriefTrigger && !debriefMode) {
       setDebriefMode(true);
+    }
+    if(debriefMode && isPlanningTrigger) {
+      setDebriefMode(false);
     }
 
     // Build emotional tone from context

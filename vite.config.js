@@ -3,12 +3,14 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  publicDir: 'public',
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+    }
+  },
   build: {
     rollupOptions: {
-      input: {
-        main: './index.html'
-      }
+      external: ["firebase-admin"],
     }
   }
 })

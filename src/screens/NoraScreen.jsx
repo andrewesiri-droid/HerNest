@@ -109,7 +109,7 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
     if(!SR){alert("Voice input not supported on this browser. Try Chrome.");return;}
     if(listening){recogRef.current?.stop();setListening(false);return;}
     const r=new SR();
-    r.continuous=false;r.interimResults=true;r.lang="en-AU";
+    r.continuous=false;r.interimResults=true;r.lang="en-US";
     r.onstart=()=>setListening(true);
     r.onresult=e=>{
       const t=Array.from(e.results).map(r=>r[0].transcript).join("");

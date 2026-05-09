@@ -56,7 +56,7 @@ export function PsychicNudge({ nudge, go, uid, profile, onDismiss }) {
     if(action==="block_me_time") {
       // Set a localStorage reminder for tomorrow
       const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
-      const tomorrowStr = tomorrow.toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"});
+      const tomorrowStr = tomorrow.toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"short"});
       try{
         localStorage.setItem("hn_me_time_block", JSON.stringify({date:tomorrowStr,time:"7:00 PM",duration:20}));
       }catch(e){}

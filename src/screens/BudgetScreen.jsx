@@ -25,7 +25,7 @@ export function BudgetScreen({uid,appContext}){
   });
 
   const saveMonthSnapshot=()=>{
-    const month=new Date().toLocaleDateString("en-AU",{month:"short",year:"numeric"});
+    const month=new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"});
     const snapshot={month,categories:categories.map(c=>({lb:c.lb,spent:c.spent,budget:c.budget})),totalSpent:categories.reduce((a,c)=>a+c.spent,0),totalBudget:categories.reduce((a,c)=>a+c.budget,0)};
     setMonthHistory(p=>{
       const updated=[snapshot,...p.filter(m=>m.month!==month)].slice(0,6);
@@ -176,7 +176,7 @@ Your tone is like a brilliant, encouraging best friend who happens to be a CFO. 
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:10}}>
           <div>
             <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"0 0 4px",fontWeight:400}}>Financial Pulse</h2>
-            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:0}}>{new Date().toLocaleDateString("en-AU",{month:"long",year:"numeric"})} {totalSpent<totalBudget*0.8?"· 🎉 On track!":totalSpent<totalBudget?"· ✓ Looking good":""}</p>
+            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:0}}>{new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"})} {totalSpent<totalBudget*0.8?"· 🎉 On track!":totalSpent<totalBudget?"· ✓ Looking good":""}</p>
           </div>
           <div style={{textAlign:"right"}}>
             <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:T.gold}}>${totalSpent.toLocaleString()}</div>

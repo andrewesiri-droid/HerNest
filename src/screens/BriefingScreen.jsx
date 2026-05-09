@@ -58,7 +58,7 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
 
 
 
-    const calCtx=todayEvents.length?`CALENDAR EVENTS TODAY: ${todayEvents.map(e=>{const t=e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});return `${t} - ${e.title}${e.location?` at ${e.location}`:""}`;}).join(", ")}. Include these in priorities.`:"";
+    const calCtx=todayEvents.length?`CALENDAR EVENTS TODAY: ${todayEvents.map(e=>{const t=e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});return `${t} - ${e.title}${e.location?` at ${e.location}`:""}`;}).join(", ")}. Include these in priorities.`:"";
     const familyCtx=`Partner: ${profile?.partner||"none"}, kids: ${profile?.kids?.map(k=>`${k.name} (${k.age||"?"})`).join(",")||"none"}, parents: ${profile?.parents?.map(p=>p.name).join(",")||"none"}, in-laws: ${profile?.inlaws?.map(p=>p.name).join(",")||"none"}`;
     const weather=await fetchWeather();
     const weatherCtx=weather?`Current weather: ${weather.desc} (${weather.type}). Mention this naturally in the weatherNote field.`:"";
@@ -79,7 +79,7 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
       const today=new Date().toDateString();
       try{localStorage.setItem("hn_brief_cache",JSON.stringify(parsed));localStorage.setItem("hn_brief_date",today);}catch(e){}
     }
-    catch(e){setData({greeting:`Good morning${profile?.name?`, ${profile.name}`:""}!`,date:new Date().toLocaleDateString("en-AU",{weekday:"long",month:"long",day:"numeric"}),weatherNote:"Make today count — you've got this.",weatherType:"sunny",priorities:[{text:"Block 2hrs for deep work",tag:"Work"},{text:"School run 8:15am",tag:"Family"},{text:"30 min workout",tag:"Me"},{text:"Grocery order",tag:"Home"},{text:"Check budget",tag:"Work"}],reminders:["Check in with the kids tonight","Review tomorrow's calendar","Drink 8 glasses of water"],budgetNote:"Stay mindful of spending today.",tripNote:profile?.tripGoal?`${profile.tripGoal} — keep planning!`:"Start planning your next adventure.",affirmation:"You carry so much, so gracefully. Today, you have already won.",energyTip:"Start with your hardest task first — your energy is highest in the morning.",focusWord:"Focus"});}
+    catch(e){setData({greeting:`Good morning${profile?.name?`, ${profile.name}`:""}!`,date:new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}),weatherNote:"Make today count — you've got this.",weatherType:"sunny",priorities:[{text:"Block 2hrs for deep work",tag:"Work"},{text:"School run 8:15am",tag:"Family"},{text:"30 min workout",tag:"Me"},{text:"Grocery order",tag:"Home"},{text:"Check budget",tag:"Work"}],reminders:["Check in with the kids tonight","Review tomorrow's calendar","Drink 8 glasses of water"],budgetNote:"Stay mindful of spending today.",tripNote:profile?.tripGoal?`${profile.tripGoal} — keep planning!`:"Start planning your next adventure.",affirmation:"You carry so much, so gracefully. Today, you have already won.",energyTip:"Start with your hardest task first — your energy is highest in the morning.",focusWord:"Focus"});}
     setLoading(false);
   };
   const refreshBriefing=()=>{
@@ -95,7 +95,7 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
     const utt=new SpeechSynthesisUtterance(txt);
     utt.rate=0.92;utt.pitch=1.05;utt.volume=1;
     const voices=window.speechSynthesis.getVoices();
-    const preferred=voices.find(v=>v.name.includes("Samantha")||v.name.includes("Karen")||v.name.includes("Moira")||v.name.includes("Female")||v.lang==="en-AU"||v.lang==="en-GB");
+    const preferred=voices.find(v=>v.name.includes("Samantha")||v.name.includes("Karen")||v.name.includes("Moira")||v.name.includes("Female")||v.lang==="en-US"||v.lang==="en-GB");
     if(preferred)utt.voice=preferred;
     utt.onend=()=>setSpeaking(false);
     utt.onerror=()=>setSpeaking(false);

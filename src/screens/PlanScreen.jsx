@@ -221,7 +221,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
             </div>
             {todayCal.map((e,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"linear-gradient(135deg,#1a3a6e11,#1a5a9e11)",borderRadius:12,padding:"10px 14px",marginBottom:6,border:"1px solid #1a5a9e22"}}>
-                <span style={{fontFamily:FB,fontSize:12,color:"#1a5a9e",fontWeight:700,flexShrink:0}}>{e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"})}</span>
+                <span style={{fontFamily:FB,fontSize:12,color:"#1a5a9e",fontWeight:700,flexShrink:0}}>{e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</span>
                 <span style={{fontFamily:FB,fontSize:13,color:T.esp,flex:1}}>{e.title}</span>
                 {e.location&&<span style={{fontFamily:FB,fontSize:10,color:T.taupe}}>📍{e.location}</span>}
               </div>

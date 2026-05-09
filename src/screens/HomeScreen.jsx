@@ -217,7 +217,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
       {/* ── ZONE 1: GREETING ─────────────────────────────────── */}
       <div style={{marginBottom:20,paddingTop:4}}>
         <p style={{fontFamily:FB,fontSize:10,color:T.taupe,letterSpacing:2,textTransform:"uppercase",margin:"0 0 6px"}}>
-          {new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"})}
+          {new Date().toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long"})}
         </p>
         <h1 style={{fontFamily:FD,fontStyle:"italic",fontSize:28,color:T.esp,margin:"0 0 2px",fontWeight:300,lineHeight:1.2}}>{greeting.line1}</h1>
         <h1 style={{fontFamily:FD,fontSize:28,color:greeting.color,margin:0,fontWeight:700,fontStyle:"normal",lineHeight:1.2}}>{greeting.line2}</h1>

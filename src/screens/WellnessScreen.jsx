@@ -318,7 +318,7 @@ export function WellnessScreen({ profile, uid }) {
     try {
       const raw = await claude(sys, prompt, [], "wellness_score");
       const data = JSON.parse(raw.replace(/```json|```/g, "").trim());
-      const scoreData = { ...data, weekStart: getWeekStart(), generatedAt: new Date().toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "short" }) };
+      const scoreData = { ...data, weekStart: getWeekStart(), generatedAt: new Date().toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "short" }) };
       setWeeklyScore(scoreData);
       try { localStorage.setItem("hn_weekly_score", JSON.stringify(scoreData)); } catch (e) {}
       if (uid) saveData(uid, "wellness", { weeklyScore: scoreData }).catch(() => {});

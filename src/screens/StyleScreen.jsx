@@ -60,7 +60,7 @@ export function StyleScreen({profile,uid,appContext}){
   const run=async(autoPrompt)=>{
     if(!occasion&&!mood&&!prompt.trim()&&!autoPrompt)return;
     setLoading(true);setResult(null);
-    const profileCtx=profile?`User: ${profile.role||"working mum"}, ${profile.city||"Australia"}, body shape: ${profile.bodyShape||"not specified"}, height: ${profile.height||"not specified"}, clothing size: ${profile.clothingSize||"not specified"}, style vibe: ${profile.styleVibe||"classic"}, work dress code: ${profile.dresscode||"business casual"}, favourite colours: ${(profile.favColours||[]).join(", ")||"neutrals"}, clothing budget: ${profile.styleBudget||"$100-200/month"}, has ${(profile.kids||[]).length} kids.`:"";
+    const profileCtx=profile?`User: ${profile.role||"working mum"}, ${profile.city||"USA"}, body shape: ${profile.bodyShape||"not specified"}, height: ${profile.height||"not specified"}, clothing size: ${profile.clothingSize||"not specified"}, style vibe: ${profile.styleVibe||"classic"}, work dress code: ${profile.dresscode||"business casual"}, favourite colours: ${(profile.favColours||[]).join(", ")||"neutrals"}, clothing budget: ${profile.styleBudget||"$100-200/month"}, has ${(profile.kids||[]).length} kids.`:"";
     const moodAdj = appContext?.wellness?.isStruggling ? "She had a tough week — prioritise comfort and ease over formality." : appContext?.wellness?.isThriving ? "She is thriving — suggest something confident and expressive." : "";
     const sleepAdj = appContext?.wellness?.sleepDebt ? "She slept poorly — avoid anything uncomfortable or high-maintenance." : "";
     const calendarNote = appContext?.calendar?.eventsToday?.length > 0 ? `Today she has: ${appContext.calendar.eventsToday.map(e=>e.title).join(", ")}.` : "";
@@ -79,7 +79,7 @@ export function StyleScreen({profile,uid,appContext}){
   };
 
   const saveOutfit=(o)=>{
-    setSavedOutfits(p=>[{...o,savedAt:new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short"})},...p.filter(s=>s.name!==o.name)]);
+    setSavedOutfits(p=>[{...o,savedAt:new Date().toLocaleDateString("en-US",{day:"numeric",month:"short"})},...p.filter(s=>s.name!==o.name)]);
   };
 
   const saveItem=(item)=>{

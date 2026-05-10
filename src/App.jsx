@@ -70,6 +70,19 @@ const css = `
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes dot{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
   body{background:#FAF6EF;overflow-x:hidden;}
+  /* Mobile safe areas */
+  :root{
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* Minimum touch targets */
+  button{min-height:44px;min-width:44px;}
+  /* Prevent text size adjustment on orientation change */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  /* Smooth scrolling */
+  *{-webkit-overflow-scrolling:touch;}
+  /* Remove tap highlight */
+  *{-webkit-tap-highlight-color:transparent;}
   select,input,textarea{font-family:'DM Sans','Helvetica Neue',sans-serif;}
   .lift{transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease;}
   .lift:active{transform:scale(.96);box-shadow:0 1px 6px rgba(0,0,0,.1);}
@@ -272,7 +285,7 @@ export default function App() {
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} reason="limit"/>}
       {showSettings && <SettingsPanel onClose={()=>setShowSettings(false)} onSignOut={reset} user={user} profile={profile}/>}
       <OfflineBanner/>
-      <div key={tab} style={{padding:"16px 16px 90px",animation:"tabIn .25s ease both"}}>
+      <div key={tab} style={{padding:"16px 16px calc(90px + env(safe-area-inset-bottom, 0px))",animation:"tabIn .25s ease both"}}>
         {screens[tab]||screens.home}
       </div>
       <TabBar tab={tab} setTab={setTab} showMore={showMore} setShowMore={setShowMore} profile={profile} onSettings={()=>setShowSettings(true)}/>

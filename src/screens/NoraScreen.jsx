@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { showToast } from "../utils/tracking";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
@@ -108,7 +109,7 @@ export function NoraScreen({onTasks,profile,calEvents,onAddTask,uid}){
 
   const startVoice=()=>{
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){alert("Voice input not supported on this browser. Try Chrome.");return;}
+    if(!SR){showToast("Voice input not supported. Try Chrome.", "info");return;}
     if(listening){recogRef.current?.stop();setListening(false);return;}
     const r=new SR();
     r.continuous=false;r.interimResults=true;r.lang="en-US";

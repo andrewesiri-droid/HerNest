@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { showToast } from "../utils/tracking";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
@@ -110,7 +111,7 @@ export function TripsScreen({uid,profile}){
                 localStorage.setItem("hn_savings_goals",JSON.stringify(goals));
               }catch(e){}
               setShowSavingsPrompt(null);
-              alert(`✓ Savings goal added to your Budget! Track it in Budget → Coach.`);
+              showToast("Savings goal added to Budget 💛");
             }} style={{flex:2,background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,fontWeight:700,cursor:"pointer"}}>Yes, track it 💛</button>
             <button onClick={()=>setShowSavingsPrompt(null)} style={{flex:1,background:T.sand,border:`1px solid ${T.linen}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Not now</button>
           </div>
@@ -292,7 +293,7 @@ export function TripsScreen({uid,profile}){
                 </button>
               ))}
             </div>
-            <button onClick={()=>{const ls=[];ls.push(trip.dest+" "+trip.nights+" nights");(plan.days||[]).forEach(d=>ls.push("Day "+d.day+": "+d.title));(plan.budget||[]).forEach(b=>ls.push(b.cat+": "+b.amount));const txt=ls.join("\n");if(navigator.share){navigator.share({title:trip.dest,text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{});alert("Copied!");}}} style={{width:"100%",background:"#fff",border:`1.5px solid ${T.linen}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp,cursor:"pointer"}}>Share trip plan</button>
+            <button onClick={()=>{const ls=[];ls.push(trip.dest+" "+trip.nights+" nights");(plan.days||[]).forEach(d=>ls.push("Day "+d.day+": "+d.title));(plan.budget||[]).forEach(b=>ls.push(b.cat+": "+b.amount));const txt=ls.join("\n");if(navigator.share){navigator.share({title:trip.dest,text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{}); showToast("Copied to clipboard ✓");}}} style={{width:"100%",background:"#fff",border:`1.5px solid ${T.linen}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp,cursor:"pointer"}}>Share trip plan</button>
 
 
 

@@ -22,7 +22,7 @@ export function TabBar({ tab, setTab, showMore, setShowMore, profile, onSettings
   const moreTabs = [...MORE_TABS.map(t => t.id), "profile"];
 
   return (
-    <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(255,252,248,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderTop:"1px solid rgba(229,217,201,.8)",zIndex:100,boxShadow:"0 -4px 24px rgba(46,31,20,.06)"}}>
+    <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(255,252,248,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderTop:"1px solid rgba(229,217,201,.8)",zIndex:100,boxShadow:"0 -4px 24px rgba(46,31,20,.06)",paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
       {/* More drawer */}
       {showMore && (
         <div style={{background:"rgba(255,252,248,.98)",borderTop:`1px solid ${T.linen}`,padding:"12px 16px 24px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,maxHeight:"60vh",overflowY:"auto"}}>
@@ -39,7 +39,7 @@ export function TabBar({ tab, setTab, showMore, setShowMore, profile, onSettings
         </div>
       )}
       {/* Primary tabs */}
-      <div style={{display:"flex",padding:"8px 4px 16px"}}>
+      <div style={{display:"flex",padding:"8px 4px 12px"}}>
         {TABS.map(t => (
           <button key={t.id} onClick={()=>{setTab(t.id);setShowMore(false);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:14,transition:"all .2s",flex:1}}>
             <div style={{width:4,height:4,borderRadius:999,background:tab===t.id?T.gold:"transparent",marginBottom:1,transition:"all .2s"}}/>

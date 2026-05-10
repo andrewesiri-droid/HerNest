@@ -7,7 +7,7 @@ import { logEvent, EVENTS } from "../utils/analytics";
 import { Card, H2, Pill, AIBadge, Spinner } from "../components/shared";
 import { getTodaySleep } from "../utils/sleepInference";
 import { inferHabits } from "../utils/habitInference";
-import { TRACKING } from "../utils/tracking";
+import { TRACKING, showToast } from "../utils/tracking";
 const MOOD_LEVELS=[{value:1,label:"Struggling",emoji:"😞"},{value:2,label:"Low",emoji:"😕"},{value:3,label:"Okay",emoji:"😐"},{value:4,label:"Good",emoji:"🙂"},{value:5,label:"Thriving",emoji:"✨"}];
 const getWeekStart=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toDateString();};
 const hasCheckedInThisWeek=()=>{try{const s=JSON.parse(localStorage.getItem("hn_weekly_mood")||"null");return s?.weekStart===getWeekStart();}catch(e){return false;}};
@@ -205,7 +205,7 @@ function WeeklyScoreCard({ score, onGenerate, generating, checkedIn }) {
       <button onClick={() => {
         const txt = `My HerNest wellness score this week: ${score.score}/10\n"${score.headline}"\n\nWins: ${score.wins?.join(", ")}\n\nTracked with HerNest — her-nest.vercel.app`;
         if (navigator.share) { navigator.share({ text: txt }).catch(() => {}); }
-        else { navigator.clipboard.writeText(txt).catch(() => {}); alert("Copied!"); }
+        else { navigator.clipboard.writeText(txt).catch(() => {}); showToast("Copied to clipboard ✓"); }
       }} style={{ width: "100%", background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.2)", borderRadius: 10, padding: "8px", fontFamily: FB, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer" }}>Share my score 📤</button>
     </div>}/>
   );

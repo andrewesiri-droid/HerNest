@@ -4,7 +4,7 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { extractAutoTasks } from "../utils/inference/taskExtractor";
 import { claude } from "../utils/claude";
-import { TRACKING } from "../utils/tracking";
+import { TRACKING, showToast } from "../utils/tracking";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar, PageTitle, HeroCard } from "../components/shared";
 import { SchoolCalendar } from "./SchoolCalendar";
 import { CalendarScreen } from "./CalendarScreen";
@@ -276,7 +276,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
         {showShopping&&shoppingList.length>0&&<div style={{background:"#fff",borderRadius:14,padding:"14px",marginBottom:14,border:`1.5px solid ${T.sage}`}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <span style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp}}>🛒 Shopping List</span>
-            <button onClick={()=>{const txt=shoppingList.join("\n");if(navigator.share){navigator.share({title:"Shopping List",text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{});alert("Copied!");}}} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"4px 10px",fontFamily:FB,fontSize:10,fontWeight:700,color:T.gold,cursor:"pointer"}}>Share</button>
+            <button onClick={()=>{const txt=shoppingList.join("\n");if(navigator.share){navigator.share({title:"Shopping List",text:txt}).catch(()=>{});}else{navigator.clipboard.writeText(txt).catch(()=>{}); showToast("Copied to clipboard ✓");}}} style={{background:T.goldP,border:`1px solid ${T.gold}30`,borderRadius:8,padding:"4px 10px",fontFamily:FB,fontSize:10,fontWeight:700,color:T.gold,cursor:"pointer"}}>Share</button>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
             {shoppingList.map((item,i)=>(

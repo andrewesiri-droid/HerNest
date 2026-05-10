@@ -31,3 +31,17 @@ export const TRACKING = {
   waterLogged:      (count)    => showNoraTracking(`${count}/8 glasses — Nora is tracking 💧`),
   mealPlanned:      ()         => showNoraTracking(`Nora added meals to your weekly plan`),
 };
+
+// Add to tracking.ts or use directly
+export function showToast(message: string, type: "success" | "error" | "info" = "success", duration = 2500) {
+  if (typeof document === "undefined") return;
+  const existing = document.getElementById("hn-toast");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.id = "hn-toast";
+  const bg = type === "error" ? "#cc4444" : type === "info" ? "#5E9AB8" : "#2E1F14";
+  el.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:${bg};color:#fff;border-radius:20px;padding:10px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;z-index:9999;animation:fadeUp .3s ease both;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;max-width:90vw;text-align:center`;
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity .3s"; setTimeout(() => el.remove(), 300); }, duration);
+}

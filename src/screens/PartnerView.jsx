@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { showToast } from "../utils/tracking";
 import { T, FD, FB } from "../constants/theme";
 import { loadData } from "../utils/firebase";
 
@@ -131,7 +132,7 @@ export function PartnerView({ uid }) {
               <button key={i} onClick={()=>{
                 const txt=`${msg} — sent via HerNest`;
                 if(navigator.share){navigator.share({text:txt}).catch(()=>{});}
-                else{navigator.clipboard.writeText(txt).catch(()=>{});alert("Copied! Send via WhatsApp 💛");}
+                else{navigator.clipboard.writeText(txt).catch(()=>{}); showToast("Copied! Send via WhatsApp 💛");}
               }} style={{padding:"10px 8px",borderRadius:12,border:"1.5px solid #E5D9C9",background:"#FAF6EF",fontFamily:"'DM Sans','Helvetica Neue',sans-serif",fontSize:11,color:"#2E1F14",cursor:"pointer",textAlign:"left",lineHeight:1.4}}>{msg}</button>
             ))}
           </div>

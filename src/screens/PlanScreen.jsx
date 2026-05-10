@@ -69,6 +69,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
       if(data.shoppingList)setShoppingList(data.shoppingList);
     }catch(e){
       console.error("[MealPlan]",e?.message);
+      showToast("Meal planning failed: " + (e?.message||"unknown error"), "error");
     }
     setGeneratingMeals(false);
   };

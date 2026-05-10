@@ -20,14 +20,16 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
   });
   const [activeTab,setActiveTab]=useState("morning");
 
-  // Auto-refresh if cache is stale — small delay so cached content shows first
+
+  // Auto-generate: immediately if no data, delayed refresh if stale
   useEffect(()=>{
-    if(isStale&&!loading){
-      const t = setTimeout(()=>gen(), 800);
+    if(!data){
+      gen();
+    } else if(isStale){
+      const t=setTimeout(()=>gen(),1500);
       return ()=>clearTimeout(t);
     }
   },[]);
-  const [loading,setLoading]=useState(false);
   const [checkedPriorities,setCheckedPriorities]=useState([]);
   const [checkedReminders,setCheckedReminders]=useState([]);
   const [askInp,setAskInp]=useState("");
@@ -131,7 +133,6 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
     if(onAddTask)onAddTask({tasks:[{text,tag,priority:"high"}]});
   };
 
-  useEffect(()=>{gen();},[]);
   useEffect(()=>()=>{window.speechSynthesis?.cancel();},[]);
 
   const askNora=async()=>{

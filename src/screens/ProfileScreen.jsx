@@ -433,6 +433,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       }} style={{width:"100%",padding:"12px",borderRadius:16,border:"1px solid #ffcccc",cursor:"pointer",background:"#fff",color:"#cc4444",fontFamily:FB,fontSize:12,fontWeight:700,marginBottom:24}}>
         Delete my account & all data
       </button>
+      </div>}
     </div>
   );
 }

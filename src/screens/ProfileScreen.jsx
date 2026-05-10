@@ -13,17 +13,7 @@ import { NoraMemoryScreen } from "./NoraMemoryScreen";
 export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const [showPrivacy, setShowPrivacy] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("profile");
-  const [expanded, setExpanded] = React.useState({family:true, friends:false, priorities:true, events:false, style:false, health:false, goals:false});
-  const toggle = (k) => setExpanded(p=>({...p,[k]:!p[k]}));
-  const SectionToggle = ({id, title, sub}) => (
-    <div onClick={()=>toggle(id)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",marginBottom:expanded[id]?12:0}}>
-      <div>
-        <div style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp,fontWeight:400}}>{title}</div>
-        {sub&&<div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:2}}>{sub}</div>}
-      </div>
-      <span style={{fontFamily:FB,fontSize:18,color:T.taupe,transition:"transform .2s",display:"inline-block",transform:expanded[id]?"rotate(180deg)":"rotate(0deg)"}}>⌄</span>
-    </div>
-  );
+
   const [local, setLocal] = useState({...profile});
   const [saved, setSaved] = useState(false);
   const [kn, setKn] = useState("");
@@ -193,8 +183,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
 
       {/* Close Friends */}
       <Card ch={<div>
-        <SectionToggle id="friends" title="Close Friends" sub="Nora will remember their birthdays"/>
-        {expanded.friends && <div>
+        <H2 t="Close Friends" sub="Nora will remember their birthdays"/>
         {(local.friends||[]).map((f,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.blushP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
             <div style={{flex:1}}>
@@ -261,8 +250,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
 
       {/* Style Profile */}
       <Card ch={<div>
-        <SectionToggle id="style" title="Style Profile" sub="Helps Nora style you perfectly"/>
-        {expanded.style && <div>
+        <H2 t="Style Profile" sub="Helps Nora style you perfectly"/>
         <div style={{marginBottom:14}}>
           <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Body shape</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
@@ -310,12 +298,10 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
             {["Under $100","$100-200","$200-400","$400-600","$600+"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,styleBudget:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleBudget===s?T.gold:T.linen}`,background:local.styleBudget===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.styleBudget===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
-        </div>}
       </div>}/>
 
       <Card ch={<div>
-        <SectionToggle id="health" title="Health" sub="Helps Nora coach you better"/>
-        {expanded.health && <div>
+        <H2 t="Health" sub="Helps Nora coach you better"/>
         <div style={{marginBottom:12}}>
           <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Dietary preferences</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
@@ -333,7 +319,6 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           <div style={{display:"flex",gap:8}}>
             {["Morning person","Mid-day","Night owl"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,energyPattern:s}))} style={{flex:1,padding:"9px 6px",borderRadius:12,border:`1.5px solid ${local.energyPattern===s?T.gold:T.linen}`,background:local.energyPattern===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.energyPattern===s?T.esp:T.bark,cursor:"pointer",textAlign:"center"}}>{s}</button>))}
           </div>
-        </div>}
       </div>}/>
 
       {/* Goals */}

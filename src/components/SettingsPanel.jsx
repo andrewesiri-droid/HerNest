@@ -47,9 +47,13 @@ export function SettingsPanel({ onClose, onSignOut, user, profile }) {
       {/* Backdrop */}
       <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,.4)",backdropFilter:"blur(4px)"}}/>
 
-      {/* Panel */}
-      <div style={{position:"absolute",top:0,right:0,width:"min(340px,90vw)",height:"100%",background:T.cream,boxShadow:"-4px 0 32px rgba(0,0,0,.12)",overflowY:"auto",animation:"slideFromRight .25s ease both"}}>
-        <style>{`@keyframes slideFromRight{from{transform:translateX(100%)}to{transform:translateX(0)}}`}</style>
+      {/* Bottom Sheet */}
+      <div style={{position:"absolute",bottom:0,left:0,right:0,maxHeight:"85vh",background:T.cream,borderRadius:"24px 24px 0 0",overflowY:"auto",animation:"slideFromBottom .3s ease both",boxShadow:"0 -8px 40px rgba(0,0,0,.15)"}}>
+        <style>{`@keyframes slideFromBottom{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
+        {/* Pull handle */}
+        <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
+          <div style={{width:36,height:4,borderRadius:2,background:T.linen}}/>
+        </div>
 
         {/* Header */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"20px 20px 16px",borderBottom:`1px solid ${T.linen}`}}>

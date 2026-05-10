@@ -62,11 +62,14 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
     const energyNote=profile?.energyPattern==="morning"?" Big breakfast, lighter dinner — she has morning energy.":" Balanced meals throughout the day.";
     const prompt=`7-day meal plan. Diet: ${diet}. ${kids>0?`Has ${kids} kids.`:""}${energyNote} Quick practical meals. Short meal names only.`;
     try{
-      const raw=await claude(sys,prompt,[],"meal_planner");
-      const data=JSON.parse(raw.replace(/```json|```/g,"").trim());
+      const raw=await claude(sys,prompt,[],"meal_plan");
+      const text=typeof raw==="string"?raw:JSON.stringify(raw);
+      const data=JSON.parse(text.replace(/```json|```/g,"").trim());
       if(data.meals)setMeals(data.meals);
       if(data.shoppingList)setShoppingList(data.shoppingList);
-    }catch(e){ /* silent */ }
+    }catch(e){
+      console.error("[MealPlan]",e?.message);
+    }
     setGeneratingMeals(false);
   };
 

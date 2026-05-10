@@ -2,7 +2,7 @@
 // Single source of truth for all localStorage/sessionStorage keys.
 // Never use raw strings like "hn_tasks" anywhere else in the codebase.
 
-export const STORAGE_KEYS = {
+export const STORAGE_KEYS: Record<string, string> = {
   // Auth
   UID:              "hn_uid",
   GTOKEN:           "hn_gtoken",         // sessionStorage only
@@ -54,7 +54,7 @@ export const STORAGE_KEYS = {
 };
 
 // Helper — safe get with JSON parse
-export function getStored(key, fallback = null) {
+export function getStored<T = unknown>(key: string, fallback: T | null = null): T | null {
   try {
     const val = localStorage.getItem(key);
     if (val === null) return fallback;
@@ -65,7 +65,7 @@ export function getStored(key, fallback = null) {
 }
 
 // Helper — safe set with JSON stringify
-export function setStored(key, value) {
+export function setStored(key: string, value: unknown): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
@@ -74,7 +74,7 @@ export function setStored(key, value) {
 }
 
 // Helper — safe remove
-export function removeStored(key) {
+export function removeStored(key: string): void {
   try { localStorage.removeItem(key); } catch (e) {}
 }
 

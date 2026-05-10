@@ -3,8 +3,8 @@ import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { claude, claudeVision } from "../utils/claude";
 import { Card, H2, Pill, AIBadge, Tile, Spinner, ProgressBar, PageTitle, HeroCard } from "../components/shared";
-import { useBudget, CAT_META } from "../features/budget/useBudget.js";
-import { TRACKING } from "../utils/tracking.js";
+import { useBudget, CAT_META } from "../features/budget/useBudget";
+import { TRACKING } from "../utils/tracking";
 
 // ─── Overview Tab ─────────────────────────────────────────────────
 function OverviewTab({ categories, setCategories, totalSpent, totalBudget, saveMonthSnapshot, expenses, setExpenses }) {

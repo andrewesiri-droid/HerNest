@@ -4,7 +4,7 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { extractAutoTasks } from "../utils/inference/taskExtractor";
 import { claude } from "../utils/claude";
-import { TRACKING } from "../utils/tracking.js";
+import { TRACKING } from "../utils/tracking";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar, PageTitle, HeroCard } from "../components/shared";
 import { SchoolCalendar } from "./SchoolCalendar";
 import { CalendarScreen } from "./CalendarScreen";

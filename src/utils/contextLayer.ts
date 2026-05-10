@@ -3,7 +3,7 @@
 // Called once in App.jsx, passed to all screens
 
 import { loadData } from "./firebase";
-import { STORAGE_KEYS } from "./storage.js";
+import { STORAGE_KEYS } from "./storage";
 
 export async function buildContextLayer(uid, profile, calEvents = []) {
   if (!uid || !profile) return null;

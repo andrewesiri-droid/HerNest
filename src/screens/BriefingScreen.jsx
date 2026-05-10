@@ -336,11 +336,24 @@ export function SundayReset({ profile, calEvents, appContext }) {
 
     try {
       const raw = await claude(sys, ctx, [], "morning_briefing");
-      const parsed = JSON.parse(raw.replace(/```json|```/g,"").trim());
+      const text = typeof raw === "string" ? raw : "";
+      const cleaned = text.replace(/```json|```/g,"").trim();
+      const parsed = JSON.parse(cleaned);
       setData(parsed);
       try { localStorage.setItem("hn_sunday_reset", JSON.stringify({...parsed, date: new Date().toDateString()})); } catch(e) {}
     } catch(e) {
-      setData(null);
+      console.error("[HerNest] Sunday Reset failed:", e?.message);
+      // Fallback data so user sees something
+      setData({
+        headline: `${profile?.name ? profile.name + ", you" : "You"} have got this week handled.`,
+        weekFocus: "Presence",
+        familyPrep: ["Check the school calendar for the week ahead", "Prep lunches the night before to reduce morning stress", "Block 30 minutes for yourself — non-negotiable"],
+        selfCare: "Even 10 minutes of quiet before the house wakes up counts as self-care.",
+        groceryHint: "Batch cook one thing on Sunday — it makes the whole week easier.",
+        schoolAlert: "",
+        budgetIntent: "Spend intentionally this week — one treat that genuinely brings joy.",
+        affirmation: "You carry so much, so gracefully. This week, notice how much you actually handle.",
+      });
     }
     setLoading(false);
   };

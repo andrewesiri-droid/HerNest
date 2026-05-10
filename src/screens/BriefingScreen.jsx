@@ -361,7 +361,7 @@ export function SundayReset({ profile, calEvents, appContext }) {
   const isWeekend = [0, 6].includes(new Date().getDay());
 
   const gen = async () => {
-    setLoading(true);
+    if (!data) setLoading(true);  // only show skeleton on first load
     const schoolEventsRaw = localStorage.getItem("hn_school_events");
     const schoolEvents = schoolEventsRaw ? JSON.parse(schoolEventsRaw) : [];
     const weekAhead = schoolEvents.filter(e => {

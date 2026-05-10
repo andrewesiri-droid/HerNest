@@ -16,6 +16,15 @@ const adminDb  = getFirestore();
 const FREE_LIMIT = 10;
 
 export default async function handler(req, res) {
+  // Input validation
+  const { prompt, system, feature } = req.body || {};
+  if (prompt && prompt.length > 4000) {
+    return res.status(400).json({ error: "Message too long. Please keep messages under 4000 characters." });
+  }
+  const ALLOWED_FEATURES = ["nora_chat","morning_briefing","style_advice","budget_coach","wellness_coach","meal_plan","trip_plan","school_extract","receipt_scan","csv_import","gift_advisor","briefing_qa","sunday_reset","travel_brief","weekly_score","debrief"];
+  if (feature && !ALLOWED_FEATURES.includes(feature)) {
+    return res.status(400).json({ error: "Invalid feature." });
+  }
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   res.setHeader("X-Content-Type-Options", "nosniff");

@@ -37,12 +37,15 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
     if(!window.confirm("Delete your HerNest account and all data permanently? This cannot be undone."))return;
     if(!window.confirm("Are you sure? All your profile, tasks, budget, wellness and school data will be deleted."))return;
     try{
+      // Clear local storage first
       const keys=["hn_tasks","hn_expenses","hn_moods","hn_water","hn_sleep","hn_habits","hn_wishlist","hn_outfits","hn_school_events","hn_nora_msgs","hn_nora_memory","hn_nora_memory_v2","hn_weekly_score","hn_streak","hn_trips","hn_gtoken","hn_brief_hour","hn_brief_min"];
       keys.forEach(k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k);}catch(e){}});
+
+      // Delete Firestore data
       if(user?.uid){
         const {db:firestoreDb}=await import("../utils/firebase");
         const {doc,deleteDoc,collectionGroup,getDocs,query,where}=await import("firebase/firestore");
-        const cols=["profile","tasks","trips","budget","wellness","style","school","nora_memory"];
+        const cols=["profile","tasks","trips","budget","wellness","style","school","nora_memory","streak"];
         for(const col of cols){try{await deleteDoc(doc(firestoreDb,"users",user.uid,"data",col));}catch(e){}}
         try{await deleteDoc(doc(firestoreDb,"users",user.uid,"summary","latest"));}catch(e){}
         try{
@@ -51,11 +54,34 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           for(const d of snap.docs){try{await deleteDoc(d.ref);}catch(e){}}
         }catch(e){}
       }
+
+      // Delete Firebase Auth account — handle re-auth if needed
       try{
-        const {getAuth,deleteUser}=await import("firebase/auth");
-        const a=getAuth();
-        if(a.currentUser)await deleteUser(a.currentUser);
+        const {getAuth,deleteUser,GoogleAuthProvider,reauthenticateWithPopup}=await import("firebase/auth");
+        const auth=getAuth();
+        if(auth.currentUser){
+          try{
+            await deleteUser(auth.currentUser);
+          }catch(e){
+            if(e.code==="auth/requires-recent-login"){
+              // Re-authenticate via Google popup then retry
+              try{
+                const provider=new GoogleAuthProvider();
+                await reauthenticateWithPopup(auth.currentUser,provider);
+                await deleteUser(auth.currentUser);
+              }catch(reAuthErr){
+                console.error("Re-auth failed:",reAuthErr?.message);
+                alert("For security, please sign out and sign back in, then try deleting your account again.");
+                onSignOut();
+                return;
+              }
+            } else {
+              throw e;
+            }
+          }
+        }
       }catch(e){console.error("Auth delete:",e?.message);}
+
       alert("Your account and all data have been permanently deleted.");
       onSignOut();
     }catch(e){alert("Error deleting data. Please contact privacy@hernest.app");}
@@ -398,7 +424,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       {/* Actions moved to Settings panel (More → Settings) */}
 
       <button onClick={handleDeleteAccount} style={{width:"100%",padding:"12px",borderRadius:16,border:"1px solid #ffcccc",cursor:"pointer",background:"#fff",color:"#cc4444",fontFamily:FB,fontSize:12,fontWeight:700,marginBottom:24}}>
-        Delete my account &amp; all data
+        Delete my account & all data
       </button>
       </div>
     </div>

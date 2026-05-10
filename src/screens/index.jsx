@@ -13,7 +13,6 @@ import { BudgetScreen }   from "./BudgetScreen";
 import { StyleScreen }    from "./StyleScreen";
 import { CircleScreen }   from "./CircleScreen";
 import { WellnessScreen } from "./WellnessScreen";
-import { PartnerView }    from "./PartnerView";
 import { ProfileScreen }  from "./ProfileScreen";
 
 class ErrorBoundary extends React.Component {

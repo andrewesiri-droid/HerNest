@@ -20,9 +20,12 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
   });
   const [activeTab,setActiveTab]=useState("morning");
 
-  // Auto-refresh if cache is stale
+  // Auto-refresh if cache is stale — small delay so cached content shows first
   useEffect(()=>{
-    if(isStale&&!loading)gen();
+    if(isStale&&!loading){
+      const t = setTimeout(()=>gen(), 800);
+      return ()=>clearTimeout(t);
+    }
   },[]);
   const [loading,setLoading]=useState(false);
   const [checkedPriorities,setCheckedPriorities]=useState([]);
@@ -216,7 +219,7 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
           <AIBadge t="Morning Briefing"/>
-          {isStale&&!loading&&<span style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.4)",marginLeft:4}}>Updating…</span>}
+          {(isStale||loading)&&data&&<span style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.4)",marginLeft:4}}>Updating…</span>}
           <button onClick={shareBriefing} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:20,padding:"5px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"rgba(255,255,255,.7)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
             {shared?<><Ic.Check s={11} c={T.sage} w={2.5}/>Copied!</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><circle cx="6" cy="12" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><circle cx="18" cy="19" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="rgba(255,255,255,.7)" strokeWidth="1.8" strokeLinecap="round"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="rgba(255,255,255,.7)" strokeWidth="1.8" strokeLinecap="round"/></svg>Share</>}
           </button>

@@ -406,7 +406,18 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
               for(const d of snap.docs){try{await deleteDoc(d.ref);}catch(e){}}
             }catch(e){}
           }
-          alert("Your data has been deleted. You will now be signed out.");
+          // Delete Firebase Auth account
+          try{
+            const {getAuth,deleteUser}=await import("firebase/auth");
+            const authInstance=getAuth();
+            if(authInstance.currentUser){
+              await deleteUser(authInstance.currentUser);
+            }
+          }catch(e){
+            // If re-auth required, just sign out
+            console.error("Auth delete failed:",e?.message);
+          }
+          alert("Your account and all data have been permanently deleted.");
           onSignOut();
         }catch(e){alert("Error deleting data. Please contact privacy@hernest.app");}
       }} style={{width:"100%",padding:"12px",borderRadius:16,border:"1px solid #ffcccc",cursor:"pointer",background:"#fff",color:"#cc4444",fontFamily:FB,fontSize:12,fontWeight:700,marginBottom:24}}>

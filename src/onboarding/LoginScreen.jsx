@@ -17,7 +17,7 @@ export function LoginScreen({onLogin}){
     try{
       const result=await signInWithPopup(auth,googleProvider);
       const cred=GoogleAuthProvider.credentialFromResult(result);
-      if(cred?.accessToken){sessionStorage.setItem("hn_gtoken",cred.accessToken);localStorage.setItem("hn_gtoken",cred.accessToken);}
+      if(cred?.accessToken){sessionStorage.setItem("hn_gtoken",cred.accessToken);}
       const u=result.user;
       onLogin({uid:u.uid,email:u.email,name:u.displayName?.split(" ")[0]||"",isGoogle:true});
     }catch(e){setError("Google sign in failed. Please try again.");setLoading(false);}
@@ -50,6 +50,14 @@ export function LoginScreen({onLogin}){
         <p style={{fontFamily:FB,fontSize:13,color:T.bark,textAlign:"center",marginTop:20}}>
           {mode==="login"?"New to HerNest? ":"Already have an account? "}
           <span onClick={()=>setMode(mode==="login"?"signup":"login")} style={{color:T.gold,fontWeight:700,cursor:"pointer"}}>{mode==="login"?"Create account":"Sign in"}</span>
+        </p>
+        {/* Privacy consent — required for CCPA/GDPR */}
+        <p style={{fontFamily:FB,fontSize:11,color:T.taupe,textAlign:"center",marginTop:20,lineHeight:1.6,padding:"0 8px"}}>
+          By signing in you agree to our{" "}
+          <span onClick={()=>window.open("https://her-nest.vercel.app/privacy","_blank")} style={{color:T.gold,cursor:"pointer",textDecoration:"underline"}}>Privacy Policy</span>
+          {" "}and{" "}
+          <span onClick={()=>window.open("https://her-nest.vercel.app/terms","_blank")} style={{color:T.gold,cursor:"pointer",textDecoration:"underline"}}>Terms of Service</span>.
+          Your data is encrypted and never sold.
         </p>
       </div>
     </div>

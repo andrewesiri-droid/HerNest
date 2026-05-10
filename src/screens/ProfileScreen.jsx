@@ -71,8 +71,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             ))}
           </div>
         </div>
-      </div>}
-      />
+      </div>}/>
 
       {/* Family */}
       <Card ch={<div>
@@ -181,8 +180,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             <button onClick={()=>{if(!kn.trim())return;const m=document.getElementById("il-bday-m")?.value||"";const d=document.getElementById("il-bday-d")?.value||"";const bd=m&&d?`${m}/${d}`:"";upd("inlaws",[...(local.inlaws||[]),{name:kn,role:ka||"Mother-in-law",bday:bd}]);setKn("");setKa("");}} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
-      </div>}
-      />
+      </div>}/>
 
       {/* Close Friends */}
       <Card ch={<div>
@@ -221,8 +219,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             document.getElementById("fr-name").value="";
           }} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
         </div>
-      </div>}
-      />
+      </div>}/>
 
       {/* Priorities */}
       <Card ch={<div>
@@ -234,8 +231,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             </button>
           );})}
         </div>
-      </div>}
-      />
+      </div>}/>
 
       {/* Family Events */}
       <Card ch={<div>
@@ -251,8 +247,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           </div>
         ))}
         <EventAdder onAdd={ev=>upd("events",[...(local.events||[]),ev])}/>
-      </div>}
-      />
+      </div>}/>
 
       {/* Style Profile */}
       <Card ch={<div>
@@ -304,8 +299,8 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
             {["Under $100","$100-200","$200-400","$400-600","$600+"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,styleBudget:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleBudget===s?T.gold:T.linen}`,background:local.styleBudget===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.styleBudget===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
-      </div>}
-      />
+        </div>
+      </div>}/>
 
       <Card ch={<div>
         <H2 t="Health" sub="Helps Nora coach you better"/>
@@ -326,8 +321,8 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           <div style={{display:"flex",gap:8}}>
             {["Morning person","Mid-day","Night owl"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,energyPattern:s}))} style={{flex:1,padding:"9px 6px",borderRadius:12,border:`1.5px solid ${local.energyPattern===s?T.gold:T.linen}`,background:local.energyPattern===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.energyPattern===s?T.esp:T.bark,cursor:"pointer",textAlign:"center"}}>{s}</button>))}
           </div>
-      </div>}
-      />
+        </div>
+      </div>}/>
 
       {/* Goals */}
       <Card ch={<div>
@@ -343,8 +338,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             ))}
           </div>
         </div>
-      </div>}
-      />
+      </div>}/>
 
       {/* Save button */}
       <button onClick={save} style={{width:"100%",padding:"15px",borderRadius:16,border:"none",cursor:"pointer",background:saved?`linear-gradient(135deg,${T.sage},#4a7a5a)`:`linear-gradient(135deg,${T.esp},#4a2e18)`,color:"#fff",fontFamily:FB,fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:12,transition:"background .3s"}}>

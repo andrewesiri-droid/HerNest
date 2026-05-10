@@ -4,7 +4,7 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
 import { logEvent, EVENTS } from "../utils/analytics";
-import { Card, H2, Pill, AIBadge, Spinner } from "../components/shared";
+import { Card, H2, Pill, AIBadge, Spinner, PageTitle, HeroCard } from "../components/shared";
 import { getTodaySleep } from "../utils/sleepInference";
 import { inferHabits } from "../utils/habitInference";
 import { TRACKING, showToast } from "../utils/tracking";

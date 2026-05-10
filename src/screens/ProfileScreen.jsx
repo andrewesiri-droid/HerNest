@@ -9,8 +9,10 @@ import { EventAdder } from "./EventAdder";
 import { NotificationCard } from "./NotificationCard";
 
 import { PrivacyScreen } from "./PrivacyScreen";
+import { NoraMemoryScreen } from "./NoraMemoryScreen";
 export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const [showPrivacy, setShowPrivacy] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("profile");
   const [local, setLocal] = useState({...profile});
   const [saved, setSaved] = useState(false);
   const [kn, setKn] = useState("");
@@ -30,8 +32,17 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const CHALLENGES = ["Mental load","Work-life balance","Staying fit","Budget management","Finding me-time"];
   const toggleP = id => { const c=local.priorities||[]; setLocal(p=>({...p,priorities:c.includes(id)?c.filter(x=>x!==id):c.length<3?[...c,id]:c})); };
 
+  if(showPrivacy) return <PrivacyScreen onClose={()=>setShowPrivacy(false)}/>;
+
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
+      {/* Tabs */}
+      <div style={{display:"flex",gap:8,marginBottom:14}}>
+        <Pill ch="👩 Profile" active={activeTab==="profile"} on={()=>setActiveTab("profile")} color={T.gold}/>
+        <Pill ch="🧠 Nora's Memory" active={activeTab==="memory"} on={()=>setActiveTab("memory")} color={T.lav}/>
+      </div>
+      {activeTab==="memory" && <NoraMemoryScreen uid={user?.uid}/>}
+      {activeTab==="profile" && <div>
       {/* Hero */}
       <div style={{background:AIGRAD,borderRadius:22,padding:"24px 22px",marginBottom:16,position:"relative",overflow:"hidden",textAlign:"center"}}>
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.03)"}}/>
@@ -423,6 +434,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       }} style={{width:"100%",padding:"12px",borderRadius:16,border:"1px solid #ffcccc",cursor:"pointer",background:"#fff",color:"#cc4444",fontFamily:FB,fontSize:12,fontWeight:700,marginBottom:24}}>
         Delete my account & all data
       </button>
+      </div>}
     </div>
   );
 }

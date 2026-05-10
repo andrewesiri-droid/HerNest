@@ -80,11 +80,13 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const err = await response.json();
+      console.error("[HerNest API] Anthropic error:", JSON.stringify(err));
       return res.status(response.status).json({ error: err });
     }
     const data = await response.json();
     return res.status(200).json(data);
   } catch (err) {
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("[HerNest API] Caught error:", err?.message);
+    return res.status(500).json({ error: "Internal server error", detail: err?.message });
   }
 }

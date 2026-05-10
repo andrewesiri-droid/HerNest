@@ -44,6 +44,8 @@ export const STORAGE_KEYS = {
   SCHOOL_EVENTS:    "hn_school_events",
 
   // Notifications
+  BRIEF_CACHE:      "hn_brief_cache",
+  BRIEF_DATE:       "hn_brief_date",
   BRIEF_HOUR:       "hn_brief_hour",
   BRIEF_MIN:        "hn_brief_min",
 

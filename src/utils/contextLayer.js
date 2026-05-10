@@ -3,6 +3,7 @@
 // Called once in App.jsx, passed to all screens
 
 import { loadData } from "./firebase";
+import { STORAGE_KEYS } from "./storage.js";
 
 export async function buildContextLayer(uid, profile, calEvents = []) {
   if (!uid || !profile) return null;
@@ -69,7 +70,7 @@ export async function buildContextLayer(uid, profile, calEvents = []) {
   const weeklyMood = wellness?.weeklyMood || null;
   const sleepArr = wellness?.sleepArr || [];
   const lastSleep = sleepArr.filter(s=>s.date<=today).sort((a,b)=>b.date.localeCompare(a.date))[0]||null;
-  const waterToday = (() => { try { return parseInt(localStorage.getItem("hn_water")||"3"); } catch { return 3; } })();
+  const waterToday = (() => { try { return parseInt(localStorage.getItem(STORAGE_KEYS.WATER)||"3"); } catch { return 3; } })();
   const habits = wellness?.habits || {};
   const habitsDone = Object.values(habits).filter(h=>h.done).length;
 
@@ -146,6 +147,6 @@ export async function buildContextLayer(uid, profile, calEvents = []) {
     },
     memory: { facts, factCount: facts.length, dietaryFacts },
     soloParent: !!(profile?.soloParent || profile?.role === "Single Mum"),
-    briefing: { viewedToday: localStorage.getItem("hn_brief_date")===today },
+    briefing: { viewedToday: localStorage.getItem(STORAGE_KEYS.BRIEF_DATE||"hn_brief_date")===today },
   };
 }

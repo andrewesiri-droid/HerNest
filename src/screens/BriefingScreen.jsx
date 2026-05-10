@@ -138,10 +138,13 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
   );
 
   if(loading) return(
-    <div style={{textAlign:"center",padding:"50px 20px",animation:"fadeUp .4s ease both"}}>
-      <div style={{width:60,height:60,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px",animation:"breathe 2s ease-in-out infinite"}}><Ic.Sun s={28} c="#fff" w={1.4}/></div>
-      <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp}}>Nora is preparing your morning…</p>
-      <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"6px 0 0"}}>Personalised just for you</p>
+    <div style={{animation:"fadeUp .4s ease both"}}>
+      {tabs}
+      {activeTab==="sunday" && <SundayReset profile={profile} calEvents={calEvents} appContext={appContext}/>}
+      {activeTab==="morning" && <div style={{textAlign:"center",padding:"50px 20px"}}>
+        <div style={{width:60,height:60,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px",animation:"breathe 2s ease-in-out infinite"}}><Ic.Sun s={28} c="#fff" w={1.4}/></div>
+        <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp}}>Nora is preparing your morning…</p>
+        <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"6px 0 0"}}>Personalised just for you</p>
       </div>}
     </div>
   );

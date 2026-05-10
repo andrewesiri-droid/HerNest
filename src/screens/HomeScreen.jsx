@@ -210,6 +210,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
   const bg = getBg(appContext);
   const upcoming = summary.upcomingMerged||[];
   const PROMPTS = ["What should I focus on today?","I am feeling overwhelmed","Plan my week for me"];
+  const isNewUser = !summary.pendingTasks && !appContext && !calConnected;
 
   return(
     <div style={{animation:"fadeUp .45s ease both",background:bg,minHeight:"100vh",margin:"-16px -16px 0",padding:"16px 16px 80px",transition:"background .6s ease"}}>
@@ -275,6 +276,26 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
               <button key={val} onClick={()=>logMood(val)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"4px 8px"}}>
                 <span style={{fontSize:28}}>{em}</span>
               </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── NEW USER WELCOME ─────────────────────────────────── */}
+      {isNewUser&&(
+        <div style={{background:`linear-gradient(135deg,${T.goldP},#fff8e8)`,borderRadius:18,padding:"16px",marginBottom:14,border:`1.5px solid ${T.gold}30`}}>
+          <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",color:T.gold,marginBottom:8}}>Getting started</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {[
+              {em:"💬",text:"Tell Nora what's on your mind below"},
+              {em:"📅",text:"Connect your calendar for smart planning"},
+              {em:"💰",text:"Set up your budget in the Budget tab"},
+              {em:"☀️",text:"Check your morning briefing every day"},
+            ].map((h,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:18,flexShrink:0}}>{h.em}</span>
+                <span style={{fontFamily:FB,fontSize:12,color:T.bark}}>{h.text}</span>
+              </div>
             ))}
           </div>
         </div>

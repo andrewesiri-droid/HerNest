@@ -95,7 +95,7 @@ export default function App() {
   }, []);
 
   const [user, setUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  // authChecked — now derived from useAuth hook
   const [profile, setProfile] = useState({name:"",avatar:"👩",city:"",role:"",kids:[],partner:"",parents:[],inlaws:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:"",soloParent:false});
   const [aiTasks, setAiTasks] = useState([]);
   const { calEvents, calConnected, connectCalendar } = useCalendar();
@@ -142,7 +142,11 @@ export default function App() {
       setScreen(savedStep?`step${savedStep}`:"step1");
     }
   );
-  useEffect(()=>{ if(authReady){ setUser(authUser); if(!authUser) setScreen("login"); setAuthChecked(authReady); }}, [authUser,authReady]);
+  // Sync user from useAuth hook
+  useEffect(()=>{
+    if(authReady && authUser) setUser(authUser);
+    if(authReady && !authUser) { setUser(null); setScreen("login"); }
+  }, [authUser, authReady]);
 
   // Auto-save profile
   useEffect(()=>{
@@ -175,7 +179,7 @@ export default function App() {
   const partnerUid = urlParams.get("family");
   if(partnerUid) return <PartnerView uid={partnerUid}/>;
 
-  if(!authChecked) return(
+  if(!authReady) return(
     <div style={{minHeight:"100vh",background:AIGRAD,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center"}}>
         <div style={{fontFamily:FD,fontSize:42,fontWeight:600,color:"#fff",fontStyle:"italic",marginBottom:8}}>HerNest</div>

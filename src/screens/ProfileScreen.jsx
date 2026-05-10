@@ -33,6 +33,34 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const upd = (k,v) => { setLocal(p=>{const updated={...p,[k]:v};onSave(updated);return updated;}); };
   const addKid = () => { if(!kn.trim())return; setLocal(p=>({...p,kids:[...(p.kids||[]),{name:kn,age:ka}]})); setKn(""); setKa(""); };
   const removeKid = i => setLocal(p=>({...p,kids:(p.kids||[]).filter((_,idx)=>idx!==i)}));
+  const handleDeleteAccount = async () => {
+    if(!window.confirm("Delete your HerNest account and all data permanently? This cannot be undone."))return;
+    if(!window.confirm("Are you sure? All your profile, tasks, budget, wellness and school data will be deleted."))return;
+    try{
+      const keys=["hn_tasks","hn_expenses","hn_moods","hn_water","hn_sleep","hn_habits","hn_wishlist","hn_outfits","hn_school_events","hn_nora_msgs","hn_nora_memory","hn_nora_memory_v2","hn_weekly_score","hn_streak","hn_trips","hn_gtoken","hn_brief_hour","hn_brief_min"];
+      keys.forEach(k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k);}catch(e){}});
+      if(user?.uid){
+        const {db:firestoreDb}=await import("../utils/firebase");
+        const {doc,deleteDoc,collectionGroup,getDocs,query,where}=await import("firebase/firestore");
+        const cols=["profile","tasks","trips","budget","wellness","style","school","nora_memory"];
+        for(const col of cols){try{await deleteDoc(doc(firestoreDb,"users",user.uid,"data",col));}catch(e){}}
+        try{await deleteDoc(doc(firestoreDb,"users",user.uid,"summary","latest"));}catch(e){}
+        try{
+          const q=query(collectionGroup(firestoreDb,"messages"),where("uid","==",user.uid));
+          const snap=await getDocs(q);
+          for(const d of snap.docs){try{await deleteDoc(d.ref);}catch(e){}}
+        }catch(e){}
+      }
+      try{
+        const {getAuth,deleteUser}=await import("firebase/auth");
+        const a=getAuth();
+        if(a.currentUser)await deleteUser(a.currentUser);
+      }catch(e){console.error("Auth delete:",e?.message);}
+      alert("Your account and all data have been permanently deleted.");
+      onSignOut();
+    }catch(e){alert("Error deleting data. Please contact privacy@hernest.app");}
+  };
+
   const save = () => {
     onSave(local);
     setSaved(true);
@@ -367,45 +395,10 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       {/* Notifications */}
       <NotificationCard/>
 
-      {/* Share + Notifications + Privacy + Sign out */}
-      {/* Actions moved to Settings panel (More → Settings) */
+      {/* Actions moved to Settings panel (More → Settings) */}
 
-      <button onClick={async()=>{
-        if(!window.confirm("Delete your HerNest account and all data permanently? This cannot be undone."))return;
-        if(!window.confirm("Are you sure? All your profile, tasks, budget, wellness and school data will be deleted."))return;
-        try{
-          const keys=["hn_tasks","hn_expenses","hn_moods","hn_water","hn_sleep","hn_habits","hn_wishlist","hn_outfits","hn_school_events","hn_nora_msgs","hn_nora_memory","hn_nora_memory_v2","hn_weekly_score","hn_streak","hn_trips","hn_gtoken","hn_brief_hour","hn_brief_min"];
-          keys.forEach(k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k);}catch(e){}});
-          if(user?.uid){
-            const {db:firestoreDb}=await import("../utils/firebase");
-            const {doc,deleteDoc,collection,getDocs,collectionGroup,query,where,getDoc}=await import("firebase/firestore");
-            const collections=["profile","tasks","trips","budget","wellness","style","school","nora_memory"];
-            for(const col of collections){try{await deleteDoc(doc(firestoreDb,"users",user.uid,"data",col));}catch(e){}}
-            // Delete summary
-            try{await deleteDoc(doc(firestoreDb,"users",user.uid,"summary","latest"));}catch(e){}
-            // Delete Circle messages
-            try{
-              const q=query(collectionGroup(firestoreDb,"messages"),where("uid","==",user.uid));
-              const snap=await getDocs(q);
-              for(const d of snap.docs){try{await deleteDoc(d.ref);}catch(e){}}
-            }catch(e){}
-          }
-          // Delete Firebase Auth account
-          try{
-            const {getAuth,deleteUser}=await import("firebase/auth");
-            const authInstance=getAuth();
-            if(authInstance.currentUser){
-              await deleteUser(authInstance.currentUser);
-            }
-          }catch(e){
-            // If re-auth required, just sign out
-            console.error("Auth delete failed:",e?.message);
-          }
-          alert("Your account and all data have been permanently deleted.");
-          onSignOut();
-        }catch(e){alert("Error deleting data. Please contact privacy@hernest.app");}
-      }} style={{width:"100%",padding:"12px",borderRadius:16,border:"1px solid #ffcccc",cursor:"pointer",background:"#fff",color:"#cc4444",fontFamily:FB,fontSize:12,fontWeight:700,marginBottom:24}}>
-        Delete my account & all data
+      <button onClick={handleDeleteAccount} style={{width:"100%",padding:"12px",borderRadius:16,border:"1px solid #ffcccc",cursor:"pointer",background:"#fff",color:"#cc4444",fontFamily:FB,fontSize:12,fontWeight:700,marginBottom:24}}>
+        Delete my account &amp; all data
       </button>
       </div>
     </div>

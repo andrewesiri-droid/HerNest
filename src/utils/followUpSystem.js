@@ -3,7 +3,7 @@
 // Tracks nudges viewed but not acted on
 // Resurfaces gently at 4hrs and 24hrs
 
-import { saveData, loadData } from "./firebase.js";
+import { saveData, loadData } from "./firebase";
 
 const FOLLOWUP_KEY = "hn_followups";
 

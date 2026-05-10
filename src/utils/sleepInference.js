@@ -53,7 +53,7 @@ async function saveInferredSleep(sleepData){
   try{
     const uid=JSON.parse(localStorage.getItem("hn_uid")||"null");
     if(!uid)return;
-    const {saveData}=await import("./firebase.js");
+    const {saveData}=await import("./firebase");
     const sleepArr=JSON.parse(localStorage.getItem("hn_sleep_arr")||"[]");
     const filtered=sleepArr.filter(s=>s.date!==sleepData.date);
     const updated=[...filtered,sleepData];

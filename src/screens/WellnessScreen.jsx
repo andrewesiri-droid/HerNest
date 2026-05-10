@@ -265,9 +265,18 @@ export function WellnessScreen({ profile, uid }) {
     }).catch(() => {});
   }, [uid]);
 
-  // Infer habits when data changes
+  // Infer habits when data changes — preserve manually marked habits
   useEffect(() => {
-    setHabits(inferHabits([], steps, sleep, weeklyMood));
+    setHabits(prev => {
+      const inferred = inferHabits([], steps, sleep, weeklyMood);
+      const merged = {};
+      Object.entries(inferred).forEach(([id, h]) => {
+        // Keep manual marks — don't overwrite with inferred
+        const wasManuallyDone = prev[id]?.done && prev[id]?.source === "manual";
+        merged[id] = wasManuallyDone ? { ...h, done: true, source: "manual" } : h;
+      });
+      return merged;
+    });
   }, [sleep, weeklyMood, steps]);
 
   // Save water

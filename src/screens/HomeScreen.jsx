@@ -7,6 +7,7 @@ import { getPendingFollowUp, closeFollowUp } from "../utils/followUpSystem";
 import { isQuietMode, setQuietMode, clearQuietMode } from "../utils/quietMode";
 import { buildEmotionalContext } from "../utils/emotionalContext";
 import { PsychicNudge } from "../components/PsychicNudge";
+import { ConciergeCard } from "../components/ConciergCard.jsx";
 import { claude } from "../utils/claude";
 import { Card, AIBadge, Tile, Spinner, Tag } from "../components/shared";
 
@@ -229,6 +230,9 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
       {psychicNudge&&(
         <PsychicNudge nudge={psychicNudge} go={go} uid={uid} profile={profile} onDismiss={()=>setPsychicNudge(null)}/>
       )}
+
+      {/* ── NORA CONCIERGE ──────────────────────────────────── */}
+      <ConciergeCard profile={profile} appContext={appContext} go={go}/>
 
       {/* Follow-up card */}
       {followUp&&!quietMode&&(

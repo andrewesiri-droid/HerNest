@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import type { UserProfile, MemoryFact } from "../types";
 import { getFirestore, doc, setDoc, getDoc, writeBatch, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -53,7 +54,7 @@ function deriveSummaryFields(key, data) {
   return u;
 }
 
-export const saveData = async (uid, key, data) => {
+export const saveData = async (uid: string, key: string, data: Record<string, unknown>): Promise<void> => {
   if (!uid) return;
   try {
     const summaryFields = deriveSummaryFields(key, data);
@@ -65,19 +66,19 @@ export const saveData = async (uid, key, data) => {
   } catch(e) { console.error("[HerNest] saveData failed:", key, e?.message); }
 };
 
-export const loadData = async (uid, key) => {
+export const loadData = async (uid: string, key: string): Promise<Record<string, unknown> | null> => {
   if (!uid) return null;
   try { const snap = await getDoc(doc(db,"users",uid,"data",key)); return snap.exists() ? snap.data() : null; }
   catch(e) { console.error("[HerNest] loadData failed:", key, e?.message); return null; }
 };
 
-export const updateSummary = async (uid, updates) => {
+export const updateSummary = async (uid: string, updates: Record<string, unknown>): Promise<void> => {
   if (!uid) return;
   try { await setDoc(doc(db,"users",uid,"summary","latest"), {...updates, lastUpdated:new Date().toISOString()}, {merge:true}); }
   catch(e) { console.error("[HerNest] updateSummary failed:", e?.message); }
 };
 
-export const loadSummary = async (uid) => {
+export const loadSummary = async (uid: string): Promise<Record<string, unknown> | null> => {
   if (!uid) return null;
   try { const snap = await getDoc(doc(db,"users",uid,"summary","latest")); return snap.exists() ? snap.data() : null; }
   catch(e) { console.error("[HerNest] loadSummary failed:", e?.message); return null; }

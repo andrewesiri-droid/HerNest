@@ -33,6 +33,7 @@ class ErrorBoundary extends React.Component {
 }
 
 const wrap = (screen, key) => <ErrorBoundary key={key}>{screen}</ErrorBoundary>;
+// Screens are wrapped in ErrorBoundary — React.memo applied at component level
 
 export function getScreens({ setTab, aiTasks, profile, streak, calConnected, connectCalendar, calEvents, appContext, onTasks, uid, onSaveProfile, onSignOut, user }) {
   return {

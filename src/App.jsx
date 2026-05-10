@@ -62,8 +62,7 @@ googleProvider.addScope("https://www.googleapis.com/auth/calendar.readonly");
 
 // ─── CSS ───────────────────────────────────────────────────────────
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;700&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
   @keyframes tabIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes slideRight{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}

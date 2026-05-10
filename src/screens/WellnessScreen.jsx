@@ -354,11 +354,14 @@ export function WellnessScreen({ profile, uid }) {
   return (
     <div style={{ animation: "fadeUp .45s ease both" }}>
       {/* Header */}
-      <div style={{ background: AIGRAD, borderRadius: 22, padding: "20px", marginBottom: 14 }}>
-        <AIBadge t="Thrive" />
-        <h2 style={{ fontFamily: FD, fontStyle: "italic", fontSize: 24, color: "#fff", margin: "10px 0 4px", fontWeight: 400 }}>Your wellness</h2>
-        <p style={{ fontFamily: FB, fontSize: 12, color: "rgba(255,255,255,.4)", margin: 0 }}>Auto-tracked · one tap check-in · no forms</p>
-      </div>
+      <PageTitle eyebrow="WELLNESS · TODAY" title="Tending to you"/>
+      <HeroCard
+        eyebrow="YOUR WEEK"
+        title={weekScore?.score ? `${weekScore.score}/10 this week` : "How are you really?"}
+        subtitle={weekScore?.summary || "Track your habits and sleep — Nora coaches you."}
+        metric={weekScore?.score ? String(weekScore.score) : null}
+        metricLabel={weekScore?.score ? "Score" : null}
+      />
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>

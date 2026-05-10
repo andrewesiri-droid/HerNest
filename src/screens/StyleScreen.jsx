@@ -3,7 +3,7 @@ import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
-import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar, PageTitle, HeroCard } from "../components/shared";
 
 export function StyleScreen({profile,uid,appContext}){
   const [prompt,setPrompt]=useState("");
@@ -90,12 +90,12 @@ export function StyleScreen({profile,uid,appContext}){
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
       {/* Header */}
-      <div style={{background:`linear-gradient(135deg,#2d1428,#4a1a3a)`,borderRadius:22,padding:"20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(242,212,202,.06)"}}/>
-        <AIBadge t="Style Stylist"/>
-        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"10px 0 4px",fontWeight:400}}>Your Style, Elevated</h2>
-        <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.45)",margin:0}}>Nora styles you for every moment of your life</p>
-      </div>
+      <PageTitle eyebrow={`STYLE · ${new Date().toLocaleDateString("en-US",{weekday:"long"}).toUpperCase()}`} title="Your Style, Elevated"/>
+      <HeroCard
+        eyebrow="STYLE STYLIST"
+        title="Dressed for every moment"
+        subtitle="Tell Nora the occasion — she'll put together the perfect look."
+      />
 
       {/* Tabs */}
       <div style={{display:"flex",gap:6,marginBottom:14}}>

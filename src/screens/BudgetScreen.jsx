@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { claude, claudeVision } from "../utils/claude";
-import { Card, H2, Pill, AIBadge, Tile, Spinner, ProgressBar } from "../components/shared";
+import { Card, H2, Pill, AIBadge, Tile, Spinner, ProgressBar, PageTitle, HeroCard } from "../components/shared";
 import { useBudget, CAT_META } from "../features/budget/useBudget.js";
 import { TRACKING } from "../utils/tracking.js";
 
@@ -244,22 +244,18 @@ export function BudgetScreen({ uid, appContext }) {
 
   return (
     <div style={{animation:"fadeUp .45s ease both"}}>
-      <div style={{background:"linear-gradient(135deg,#1a1400,#3a2e00)",borderRadius:22,padding:"20px",marginBottom:14}}>
-        <AIBadge t="Budget Coach"/>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:10}}>
-          <div>
-            <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"0 0 4px",fontWeight:400}}>Financial Pulse</h2>
-            <p style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,.4)",margin:0}}>{new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"})} {totalSpent<totalBudget*0.8?"· 🎉 On track!":totalSpent<totalBudget?"· ✓ Looking good":""}</p>
-          </div>
-          <div style={{textAlign:"right"}}>
-            <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:T.gold}}>${totalSpent.toLocaleString()}</div>
-            <div style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)"}}>of ${totalBudget.toLocaleString()}</div>
-          </div>
+      <PageTitle eyebrow={new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"}).toUpperCase()+" · MONTH TO DATE"} title={totalSpent<totalBudget*0.5?"Steady this month":totalSpent<totalBudget*0.8?"On track":"Watch your pace"}/>
+      <HeroCard
+        eyebrow="REMAINING"
+        title={`$${(totalBudget-totalSpent).toLocaleString()} left for the month`}
+        subtitle={totalSpent<totalBudget*0.8?"On pace. Keep it up.":totalSpent<totalBudget?"Getting close — three planned expenses remain.":"Over budget this month."}
+        metric={`$${(totalBudget-totalSpent).toLocaleString()}`}
+        metricLabel={`of $${totalBudget.toLocaleString()}`}
+      >
+        <div style={{height:6,borderRadius:999,background:"rgba(252,250,245,.12)",overflow:"hidden"}}>
+          <div style={{height:"100%",width:`${Math.min((totalSpent/totalBudget)*100,100)}%`,background:`linear-gradient(90deg,${T.gold},${T.goldSoft||"#E8D9B5"})`,transition:"width .5s"}}/>
         </div>
-        <div style={{marginTop:14,background:"rgba(255,255,255,.12)",borderRadius:10,height:6}}>
-          <div style={{background:`linear-gradient(90deg,${T.sage},${T.gold})`,height:"100%",borderRadius:10,width:`${Math.min((totalSpent/totalBudget)*100,100)}%`,transition:"width .5s"}}/>
-        </div>
-      </div>
+      </HeroCard>
 
       <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:14}}>
         {["overview","expenses","coach"].map(t=><Pill key={t} ch={t.charAt(0).toUpperCase()+t.slice(1)} active={activeTab===t} on={()=>setActiveTab(t)} color={T.gold}/>)}

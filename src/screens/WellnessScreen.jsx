@@ -7,7 +7,29 @@ import { logEvent, EVENTS } from "../utils/analytics";
 import { Card, H2, Pill, AIBadge, Spinner } from "../components/shared";
 import { getTodaySleep } from "../utils/sleepInference";
 import { inferHabits } from "../utils/habitInference";
-import { MOOD_LEVELS, getWeekStart, hasCheckedInThisWeek, getWeeklyMood, submitWeeklyCheckIn } from "../utils/weeklyCheckIn";
+// Inline functions previously from weeklyCheckIn.js
+const MOOD_LEVELS = [
+  {value:1,label:"Struggling",emoji:"😞"},
+  {value:2,label:"Low",emoji:"😕"},
+  {value:3,label:"Okay",emoji:"😐"},
+  {value:4,label:"Good",emoji:"🙂"},
+  {value:5,label:"Thriving",emoji:"✨"},
+];
+const getWeekStart = () => {
+  const d = new Date(); d.setDate(d.getDate() - d.getDay());
+  return d.toDateString();
+};
+const hasCheckedInThisWeek = () => {
+  try { const s = JSON.parse(localStorage.getItem("hn_weekly_mood")||"null"); return s?.weekStart === getWeekStart(); } catch(e) { return false; }
+};
+const getWeeklyMood = () => {
+  try { return JSON.parse(localStorage.getItem("hn_weekly_mood")||"null"); } catch(e) { return null; }
+};
+const submitWeeklyCheckIn = async (value, uid, saveData) => {
+  const mood = { weekStart: getWeekStart(), value, label: MOOD_LEVELS.find(m=>m.value===value)?.label };
+  try { localStorage.setItem("hn_weekly_mood", JSON.stringify(mood)); } catch(e) {}
+  if (uid) await saveData(uid, "wellness", { weeklyMood: mood }).catch(()=>{});
+};
 
 // ─── Nora Insight Generator ────────────────────────────────────────
 function generateInsight(sleep, weeklyMood, steps, habits, profile) {

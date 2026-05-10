@@ -131,15 +131,7 @@ export default function App() {
     setTab("home");setAiTasks([]);setUser(null);setScreen("login");
   };
 
-  const handleLogin = (userData) => {
-    if(userData.name) setProfile(p=>({...p,name:userData.name}));
-    setScreen("step1");
-    if(userData.uid){
-      loadData(userData.uid,"profile").then(saved=>{
-        if(saved&&saved.name){setProfile(saved);setScreen("app");}
-      }).catch(()=>{});
-    }
-  };
+  // handleLogin — managed by useAuth hook
 
   // Auth — managed by useAuth hook
   const { user: authUser, authChecked: authReady } = useAuth(
@@ -218,7 +210,7 @@ export default function App() {
     );
   }
 
-  if(screen==="login") return <><style>{css}</style><LoginScreen onLogin={handleLogin} auth={auth} googleProvider={googleProvider}/></>;
+  if(screen==="login") return <><style>{css}</style><LoginScreen onLogin={()=>{}} auth={auth} googleProvider={googleProvider}/></>;
   if(screen==="intro") return <><style>{css}</style><NoraIntro profile={profile} onEnter={()=>{logEvent(EVENTS.ONBOARDING_COMPLETED,{name:profile.name,role:profile.role});
               requestPushPermission().catch(()=>{});localStorage.removeItem("hn_ob_step");setScreen("app");}}/></>;
 

@@ -41,9 +41,10 @@ export function TabBar({ tab, setTab, showMore, setShowMore, profile, onSettings
       {/* Primary tabs */}
       <div style={{display:"flex",padding:"8px 4px 16px"}}>
         {TABS.map(t => (
-          <button key={t.id} onClick={()=>{setTab(t.id);setShowMore(false);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:14,transition:"all .2s",opacity:tab===t.id?1:.45,transform:tab===t.id?"scale(1.05)":"scale(1)",flex:1}}>
-            <t.IC s={22} c={tab===t.id?(t.ai?T.gold:T.esp):T.taupe} w={tab===t.id?2:1.5}/>
-            <span style={{fontFamily:FB,fontSize:9,fontWeight:tab===t.id?700:400,color:tab===t.id?(t.ai?T.gold:T.esp):T.taupe,letterSpacing:.6}}>{t.lb}</span>
+          <button key={t.id} onClick={()=>{setTab(t.id);setShowMore(false);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:14,transition:"all .2s",flex:1}}>
+            <div style={{width:4,height:4,borderRadius:999,background:tab===t.id?T.gold:"transparent",marginBottom:1,transition:"all .2s"}}/>
+            <t.IC s={22} c={tab===t.id?T.esp:T.stone2} w={tab===t.id?2:1.5}/>
+            <span style={{fontFamily:FB,fontSize:9,fontWeight:tab===t.id?700:500,color:tab===t.id?T.esp:T.stone2,letterSpacing:.6}}>{t.lb}</span>
           </button>
         ))}
         {/* More button */}

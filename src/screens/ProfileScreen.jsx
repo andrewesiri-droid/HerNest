@@ -52,32 +52,21 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         }catch(e){}
       }
 
-      // Delete Firebase Auth account — handle re-auth if needed
+      // Delete Firebase Auth account
       try{
-        const {getAuth,deleteUser,GoogleAuthProvider,reauthenticateWithPopup}=await import("firebase/auth");
+        const {getAuth,deleteUser}=await import("firebase/auth");
         const auth=getAuth();
         if(auth.currentUser){
-          try{
-            await deleteUser(auth.currentUser);
-          }catch(e){
-            if(e.code==="auth/requires-recent-login"){
-              // Re-authenticate via Google popup then retry
-              try{
-                const provider=new GoogleAuthProvider();
-                await reauthenticateWithPopup(auth.currentUser,provider);
-                await deleteUser(auth.currentUser);
-              }catch(reAuthErr){
-                console.error("Re-auth failed:",reAuthErr?.message);
-                alert("For security, please sign out and sign back in, then try deleting your account again.");
-                onSignOut();
-                return;
-              }
-            } else {
-              throw e;
-            }
-          }
+          await deleteUser(auth.currentUser);
         }
-      }catch(e){console.error("Auth delete:",e?.message);}
+      }catch(e){
+        if(e?.code==="auth/requires-recent-login"){
+          alert("For security, please sign out and sign back in, then try deleting your account again.");
+          onSignOut();
+          return;
+        }
+        console.error("Auth delete:",e?.message);
+      }
 
       alert("Your account and all data have been permanently deleted.");
       onSignOut();

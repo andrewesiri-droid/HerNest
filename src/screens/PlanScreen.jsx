@@ -310,6 +310,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
           </div>
         }/>
       </div>
+      </div>}
     </div>
   );
 }

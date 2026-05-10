@@ -33,7 +33,7 @@ import { Ic } from "./constants/icons.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // ─── Screens ───────────────────────────────────────────────────────
-import { getScreens } from "./screens/index.js";
+import { getScreens } from "./screens/index.jsx";
 import { OfflineBanner } from "./screens/OfflineBanner";
 import { PartnerView } from "./screens/PartnerView";
 import { TabBar } from "./components/TabBar.jsx";

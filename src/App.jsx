@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
 import { initSession, logEvent, EVENTS, identifyUser, resetUser, trackPage } from "./utils/analytics";
 import { requestPushPermission } from "./utils/proactiveNotifications";
 
 
 import { useStreak } from "./hooks/useStreak";
+import { useAuth } from "./hooks/useAuth";
 import { useCalendar } from "./hooks/useCalendar";
 import { useAppContext } from "./hooks/useAppContext";
 
@@ -32,20 +33,10 @@ import { Ic } from "./constants/icons.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // ─── Screens ───────────────────────────────────────────────────────
-import { HomeScreen } from "./screens/HomeScreen";
-import { NoraScreen } from "./screens/NoraScreen";
-import { BriefingScreen } from "./screens/BriefingScreen";
-import { PlanScreen } from "./screens/PlanScreen";
-import { CalendarScreen } from "./screens/CalendarScreen";
-import { TripsScreen } from "./screens/TripsScreen";
-import { BudgetScreen } from "./screens/BudgetScreen";
-import { StyleScreen } from "./screens/StyleScreen";
-import { CircleScreen } from "./screens/CircleScreen";
-import { WellnessScreen } from "./screens/WellnessScreen";
-import { PartnerView } from "./screens/PartnerView";
-import { ProfileScreen } from "./screens/ProfileScreen";
+import { getScreens } from "./screens/index.js";
 import { OfflineBanner } from "./screens/OfflineBanner";
-import { NotificationCard } from "./screens/NotificationCard";
+import { PartnerView } from "./screens/PartnerView";
+import { TabBar } from "./components/TabBar.jsx";
 
 // ─── Onboarding ────────────────────────────────────────────────────
 import { SplashScreen } from "./onboarding/SplashScreen";
@@ -56,35 +47,16 @@ import { Step3 } from "./onboarding/Step3";
 import { NoraIntro } from "./onboarding/NoraIntro";
 
 // ─── Firebase ──────────────────────────────────────────────────────
-import { db, auth, app } from "./utils/firebase";
+import { auth, app } from "./utils/firebase";
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope("https://www.googleapis.com/auth/calendar.readonly");
 
-const saveData = async (uid, key, data) => {
-  if (!uid) return;
-  try { await setDoc(doc(db,"users",uid,"data",key), data, {merge:true}); } catch(e) {  }
-};
-const loadData = async (uid, key) => {
-  if (!uid) return null;
-  try { const snap = await getDoc(doc(db,"users",uid,"data",key)); return snap.exists()?snap.data():null; } catch(e) { return null; }
-};
+// saveData/loadData — imported from utils/firebase.js
 
 // fetchGCalEvents — moved to src/hooks/useCalendar.js
 
 // ─── Tab Bar ───────────────────────────────────────────────────────
-const TABS=[
-  {id:"home",    lb:"Home",   IC:Ic.Home},
-  {id:"nora",    lb:"Nora",   IC:Ic.Star, ai:true},
-  {id:"plan",    lb:"Plan",   IC:Ic.Plan},
-  {id:"budget",  lb:"Budget", IC:Ic.Budget},
-  {id:"wellness",lb:"Thrive", IC:Ic.Leaf},
-];
-const MORE_TABS=[
-  {id:"style",   lb:"Style",    IC:Ic.Hanger},
-  {id:"trips",   lb:"Trips",    IC:Ic.Compass},
-  {id:"circle",  lb:"Circle",   IC:Ic.People},
-  {id:"brief",   lb:"Briefing", IC:Ic.Star},
-];
+// TABS and MORE_TABS moved to components/TabBar.jsx
 
 // ─── CSS ───────────────────────────────────────────────────────────
 const css = `
@@ -104,27 +76,8 @@ const css = `
   @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 `;
 
-// ─── ERROR BOUNDARY ────────────────────────────────────────────────
-class ErrorBoundaryClass extends React.Component {
-  constructor(props){super(props);this.state={hasError:false};}
-  static getDerivedStateFromError(){return{hasError:true};}
-  componentDidCatch(error,info){console.error("Screen error:",error,info);}
-  render(){
-    if(this.state.hasError){
-      return(
-        <div style={{padding:"24px 20px",textAlign:"center",background:"#FAF6EF",borderRadius:20,margin:"12px 0"}}>
-          <div style={{fontSize:36,marginBottom:12}}>✦</div>
-          <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp,margin:"0 0 8px"}}>Something went quiet</p>
-          <p style={{fontFamily:FB,fontSize:13,color:T.taupe,margin:"0 0 16px"}}>Tap below to try again.</p>
-          <button onClick={()=>this.setState({hasError:false})} style={{background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"10px 20px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer"}}>Try again</button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
-const wrap = (screen, key) => <ErrorBoundaryClass key={key}>{screen}</ErrorBoundaryClass>;
+const wrap = (screen, key) => <ErrorBoundary key={key}>{screen}</ErrorBoundary>;
 
 // ─── MAIN APP ──────────────────────────────────────────────────────
 export default function App() {
@@ -188,36 +141,16 @@ export default function App() {
     }
   };
 
-  // Auth state
-  useEffect(()=>{
-    getRedirectResult(auth).then(result=>{
-      if(result?.user){
-        const cred=GoogleAuthProvider.credentialFromResult(result);
-        if(cred?.accessToken){sessionStorage.setItem("hn_gtoken",cred.accessToken);localStorage.setItem("hn_gtoken",cred.accessToken);}
-      }
-    }).catch(()=>{});
-
-    const timeout=setTimeout(()=>setAuthChecked(true),5000);
-    const unsub=onAuthStateChanged(auth,(u)=>{
-      clearTimeout(timeout);
-      setUser(u||null);
-      if(u){try{localStorage.setItem("hn_uid",JSON.stringify(u.uid));}catch(e){} identifyUser(u.uid,{email:u.email,name:u.displayName});}
-      if(u){
-        loadData(u.uid,"profile").then(saved=>{
-          if(saved&&saved.name){setProfile(saved);setScreen("app");}
-          else{
-            if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
-            const savedStep=localStorage.getItem("hn_ob_step");
-            setScreen(savedStep?`step${savedStep}`:"step1");
-          }
-        }).catch(()=>{setScreen("step1");});
-      } else {
-        setScreen("login");
-      }
-      setAuthChecked(true);
-    });
-    return()=>{unsub();clearTimeout(timeout);};
-  },[]);
+  // Auth — managed by useAuth hook
+  const { user: authUser, authChecked: authReady } = useAuth(
+    (savedProfile) => { setProfile(savedProfile); setScreen("app"); },
+    (firstName) => {
+      if(firstName) setProfile(p=>({...p,name:firstName}));
+      const savedStep=localStorage.getItem("hn_ob_step");
+      setScreen(savedStep?`step${savedStep}`:"step1");
+    }
+  );
+  useEffect(()=>{ if(authReady){ setUser(authUser); if(!authUser) setScreen("login"); setAuthChecked(authReady); }}, [authUser,authReady]);
 
   // Auto-save profile
   useEffect(()=>{
@@ -290,18 +223,11 @@ export default function App() {
               requestPushPermission().catch(()=>{});localStorage.removeItem("hn_ob_step");setScreen("app");}}/></>;
 
   // Main app
-  const screens={
-    home:    wrap(<HomeScreen go={setTab} aiTasks={aiTasks} profile={profile} streak={streak} calConnected={calConnected} connectCalendar={connectCalendar} calEvents={calEvents} appContext={appContext}/>, "home"),
-    nora:    wrap(<NoraScreen onTasks={handleAI} profile={profile} calEvents={calEvents} onAddTask={handleAI} uid={user?.uid}/>, "nora"),
-    brief:   wrap(<BriefingScreen profile={profile} appContext={appContext}/>, "brief"),
-    plan:    wrap(<PlanScreen aiTasks={aiTasks} profile={profile} uid={user?.uid} calEvents={calEvents}/>, "plan"),
-    trips:   wrap(<TripsScreen uid={user?.uid} profile={profile}/>, "trips"),
-    budget:  wrap(<BudgetScreen uid={user?.uid} appContext={appContext}/>, "budget"),
-    style:   wrap(<StyleScreen profile={profile} uid={user?.uid} appContext={appContext}/>, "style"),
-    circle:  wrap(<CircleScreen profile={profile} uid={user?.uid} appContext={appContext}/>, "circle"),
-    wellness:wrap(<WellnessScreen profile={profile} uid={user?.uid}/>, "wellness"),
-    profile: wrap(<ProfileScreen profile={profile} onChange={upd} onSave={handleSaveProfile} onSignOut={reset} user={user}/>, "profile"),
-  };
+  const screens = getScreens({
+    setTab, aiTasks, profile, streak, calConnected, connectCalendar,
+    calEvents, appContext, onTasks: handleAI, uid: user?.uid,
+    onSaveProfile: handleSaveProfile, onSignOut: reset, user,
+  });
 
   return(
     <div style={{maxWidth:430,margin:"0 auto",minHeight:"100vh",background:T.cream,position:"relative"}}>
@@ -320,41 +246,7 @@ export default function App() {
       <div style={{padding:"16px 16px 90px"}}>
         {screens[tab]||screens.home}
       </div>
-      {/* Tab Bar */}
-      <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(255,252,248,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderTop:"1px solid rgba(229,217,201,.8)",zIndex:100,boxShadow:"0 -4px 24px rgba(46,31,20,.06)"}}>
-        {/* More drawer */}
-        {showMore&&<div style={{background:"rgba(255,252,248,.98)",borderTop:`1px solid ${T.linen}`,padding:"12px 16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-          {MORE_TABS.map(t=>(
-            <button key={t.id} onClick={()=>{setTab(t.id);setShowMore(false);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:14,background:tab===t.id?T.sand:"#fff",border:`1px solid ${tab===t.id?T.gold:T.linen}`,cursor:"pointer"}}>
-              <t.IC s={18} c={tab===t.id?T.esp:T.taupe} w={tab===t.id?2:1.5}/>
-              <span style={{fontFamily:FB,fontSize:12,fontWeight:tab===t.id?700:400,color:tab===t.id?T.esp:T.bark}}>{t.lb}</span>
-            </button>
-          ))}
-          <button onClick={()=>{setTab("profile");setShowMore(false);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:14,background:tab==="profile"?T.sand:"#fff",border:`1px solid ${tab==="profile"?T.gold:T.linen}`,cursor:"pointer"}}>
-            <div style={{width:18,height:18,borderRadius:"50%",background:tab==="profile"?T.gold:T.linen,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>{profile.avatar||"👩"}</div>
-            <span style={{fontFamily:FB,fontSize:12,fontWeight:tab==="profile"?700:400,color:tab==="profile"?T.esp:T.bark}}>Profile</span>
-          </button>
-        </div>}
-        {/* Primary tabs */}
-        <div style={{display:"flex",padding:"8px 4px 16px"}}>
-          {TABS.map(t=>(
-            <button key={t.id} onClick={()=>{setTab(t.id);setShowMore(false);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:14,transition:"all .2s",opacity:tab===t.id?1:.45,transform:tab===t.id?"scale(1.05)":"scale(1)",flex:1}}>
-              <t.IC s={22} c={tab===t.id?(t.ai?T.gold:T.esp):T.taupe} w={tab===t.id?2:1.5}/>
-              <span style={{fontFamily:FB,fontSize:9,fontWeight:tab===t.id?700:400,color:tab===t.id?(t.ai?T.gold:T.esp):T.taupe,letterSpacing:.6}}>{t.lb}</span>
-            </button>
-          ))}
-          {/* More button */}
-          <button onClick={()=>setShowMore(p=>!p)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:14,flex:1,opacity:[...MORE_TABS.map(t=>t.id),"profile"].includes(tab)||showMore?1:.45}}>
-            <div style={{width:22,height:22,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3}}>
-              {[...MORE_TABS.map(t=>t.id),"profile"].includes(tab)&&!showMore
-                ? <div style={{width:22,height:22,borderRadius:"50%",background:T.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>{profile.avatar||"👩"}</div>
-                : <>{[0,1,2].map(i=><div key={i} style={{width:16,height:2,borderRadius:2,background:showMore?T.esp:T.taupe}}/>)}</>
-              }
-            </div>
-            <span style={{fontFamily:FB,fontSize:9,fontWeight:showMore||[...MORE_TABS.map(t=>t.id),"profile"].includes(tab)?700:400,color:showMore||[...MORE_TABS.map(t=>t.id),"profile"].includes(tab)?T.esp:T.taupe,letterSpacing:.6}}>{[...MORE_TABS.map(t=>t.id),"profile"].includes(tab)&&!showMore?"Me":"More"}</span>
-          </button>
-        </div>
-      </div>
+      <TabBar tab={tab} setTab={setTab} showMore={showMore} setShowMore={setShowMore} profile={profile}/>
     </div>
   );
 }

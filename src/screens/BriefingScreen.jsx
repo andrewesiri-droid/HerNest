@@ -281,7 +281,6 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
         <Ic.Refresh s={15} c={T.bark} w={1.8}/> Refresh briefing
       </button>
     </div>
-    </div>
   );
 }
 

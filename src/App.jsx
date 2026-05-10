@@ -36,7 +36,7 @@ import { getScreens } from "./screens/index.jsx";
 import { OfflineBanner } from "./screens/OfflineBanner";
 import { PartnerView } from "./screens/PartnerView";
 import { TabBar } from "./components/TabBar.jsx";
-import { SettingsButton, SettingsPanel } from "./components/SettingsPanel.jsx";
+import { SettingsPanel } from "./components/SettingsPanel.jsx";
 import { UpgradeModal } from "./components/UpgradeModal.jsx";
 
 // ─── Onboarding ────────────────────────────────────────────────────
@@ -278,12 +278,11 @@ export default function App() {
     </div>}
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} reason="limit"/>}
       {showSettings && <SettingsPanel onClose={()=>setShowSettings(false)} onSignOut={reset} user={user} profile={profile}/>}
-      {screen==="app" && <SettingsButton onClick={()=>setShowSettings(true)}/>}
       <OfflineBanner/>
       <div key={tab} style={{padding:"16px 16px 90px",animation:"tabIn .25s ease both"}}>
         {screens[tab]||screens.home}
       </div>
-      <TabBar tab={tab} setTab={setTab} showMore={showMore} setShowMore={setShowMore} profile={profile}/>
+      <TabBar tab={tab} setTab={setTab} showMore={showMore} setShowMore={setShowMore} profile={profile} onSettings={()=>setShowSettings(true)}/>
     </div>
   );
 }

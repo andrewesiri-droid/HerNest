@@ -11,13 +11,14 @@ const TABS = [
 ];
 
 const MORE_TABS = [
-  {id:"style",   lb:"Style",   IC:Ic.Hanger},
-  {id:"trips",   lb:"Trips",   IC:Ic.Compass},
-  {id:"circle",  lb:"Circle",  IC:Ic.People},
-  {id:"wellness",lb:"Thrive",  IC:Ic.Leaf},
+  {id:"style",    lb:"Style",    IC:Ic.Hanger},
+  {id:"trips",    lb:"Trips",    IC:Ic.Compass},
+  {id:"circle",   lb:"Circle",   IC:Ic.People},
+  {id:"wellness", lb:"Thrive",   IC:Ic.Leaf},
+  {id:"settings", lb:"Settings", IC:Ic.Settings},
 ];
 
-export function TabBar({ tab, setTab, showMore, setShowMore, profile }) {
+export function TabBar({ tab, setTab, showMore, setShowMore, profile, onSettings }) {
   const moreTabs = [...MORE_TABS.map(t => t.id), "profile"];
 
   return (
@@ -26,7 +27,7 @@ export function TabBar({ tab, setTab, showMore, setShowMore, profile }) {
       {showMore && (
         <div style={{background:"rgba(255,252,248,.98)",borderTop:`1px solid ${T.linen}`,padding:"12px 16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
           {MORE_TABS.map(t => (
-            <button key={t.id} onClick={()=>{setTab(t.id);setShowMore(false);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:14,background:tab===t.id?T.sand:"#fff",border:`1px solid ${tab===t.id?T.gold:T.linen}`,cursor:"pointer"}}>
+            <button key={t.id} onClick={()=>{if(t.id==="settings"&&onSettings){onSettings();setShowMore(false);}else{setTab(t.id);setShowMore(false);}}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:14,background:tab===t.id?T.sand:"#fff",border:`1px solid ${tab===t.id?T.gold:T.linen}`,cursor:"pointer"}}>
               <t.IC s={18} c={tab===t.id?T.esp:T.taupe} w={tab===t.id?2:1.5}/>
               <span style={{fontFamily:FB,fontSize:12,fontWeight:tab===t.id?700:400,color:tab===t.id?T.esp:T.bark}}>{t.lb}</span>
             </button>

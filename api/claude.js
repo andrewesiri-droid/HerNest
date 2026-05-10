@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     console.error("[HerNest] Usage check failed:", e?.message);
   }
 
-  const { system, prompt, messages, max_tokens = 1000, model } = req.body;
+  const { messages, max_tokens = 1000, model } = req.body;
   if (max_tokens > 2000) return res.status(400).json({ error: "max_tokens exceeds limit" });
   if (!prompt && !messages) return res.status(400).json({ error: "Missing prompt or messages" });
 

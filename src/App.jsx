@@ -75,8 +75,7 @@ const css = `
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
-  /* Minimum touch targets */
-  button{min-height:44px;min-width:44px;}
+  /* Touch targets handled per-component with explicit padding */
   /* Prevent text size adjustment on orientation change */
   html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
   /* Smooth scrolling */

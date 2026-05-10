@@ -268,7 +268,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
           <H2 t="Meal Planner" sub="Tap any meal to edit"/>
           <div style={{display:"flex",gap:6}}>
             {shoppingList.length>0&&<button onClick={()=>setShowShopping(!showShopping)} style={{background:T.sageP,border:`1px solid ${T.sage}30`,borderRadius:10,padding:"6px 10px",fontFamily:FB,fontSize:11,fontWeight:700,color:T.sage,cursor:"pointer"}}>🛒 List</button>}
-            <button onClick={generateMealPlan} disabled={generatingMeals} style={{background:`linear-gradient(135deg,${T.esp},#4a2e18)`,border:"none",borderRadius:10,padding:"6px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer",opacity:generatingMeals?.7:1}}>
+            <button onClick={generateMealPlan} disabled={generatingMeals} style={{background:`linear-gradient(135deg,${T.esp},#4a2e18)`,border:"none",borderRadius:10,padding:"6px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"#fff",cursor:"pointer",opacity:generatingMeals?0.7:1}}>
               {generatingMeals?"Planning...":"✨ Plan week"}
             </button>
           </div>

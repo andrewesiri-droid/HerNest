@@ -209,11 +209,9 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
         {["All","Family","Work","Me","Home","Travel"].map(t=><Pill key={t} ch={t} active={filter===t} on={()=>setFilter(t)}/>)}
       </div>
 
-      </div>
       {planTab==="calendar" && <CalendarScreen profile={profile} calEvents={calEvents} uid={uid}/>}
       {planTab==="school" && <Card ch={<SchoolCalendar profile={profile} uid={uid}/>}/>}
 
-      <div style={{display:planTab==="tasks"?"block":"none"}}>
       {/* Calendar events for today */}
       {(()=>{
         const today=new Date().toDateString();

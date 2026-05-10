@@ -136,7 +136,23 @@ function ExpensesTab({ categories, expenses, setExpenses, setCategories, ensureC
         </div>
       )}
       <H2 t="Recent Expenses"/>
-      {expenses.length===0 && <div style={{textAlign:"center",padding:"28px 20px",background:T.sand,borderRadius:16,marginBottom:12}}><div style={{fontSize:36,marginBottom:10}}>💳</div><p style={{fontFamily:FD,fontStyle:"italic",fontSize:16,color:T.esp,margin:"0 0 6px"}}>No expenses logged yet</p><button onClick={()=>setShowAdd(true)} style={{background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"10px 20px",fontFamily:FB,fontSize:12,fontWeight:700,cursor:"pointer"}}>+ Log First Expense</button></div>}
+      {expenses.length===0 && (
+        <div style={{background:T.sand,borderRadius:16,padding:"20px",marginBottom:12}}>
+          <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.taupe,marginBottom:12}}>Quick add</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+            {["☕ Coffee","🛒 Groceries","⛽ Petrol","🍕 Lunch","👗 Shopping","💊 Pharmacy"].map((item,i)=>(
+              <button key={i} onClick={()=>{
+                const cat=i<=1?"Groceries":i===2?"Transport":i===3?"Dining":i===4?"Shopping":"Health";
+                setNewExp({cat,amount:"",note:item.split(" ")[1]});
+                setShowAdd(true);
+              }} style={{background:"#fff",border:`1px solid ${T.linen}`,borderRadius:12,padding:"10px 8px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer",textAlign:"center"}}>
+                {item}
+              </button>
+            ))}
+          </div>
+          <button onClick={()=>setShowAdd(true)} style={{width:"100%",background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"11px",fontFamily:FB,fontSize:13,fontWeight:700,cursor:"pointer"}}>+ Log an expense</button>
+        </div>
+      )}
       {expenses.map((e) => (
         <div key={e.id} style={{display:"flex",alignItems:"center",gap:12,background:"#fff",borderRadius:14,padding:"12px 14px",marginBottom:8,border:`1px solid ${T.linen}`}}>
           <Tile ic={categories.find(c=>c.lb===e.cat)?.IC||Ic.Budget} c={categories.find(c=>c.lb===e.cat)?.c||T.bark} bg={(categories.find(c=>c.lb===e.cat)?.c||T.bark)+"18"} s={16} ts={34} r={10}/>

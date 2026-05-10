@@ -12,6 +12,17 @@ import { PrivacyScreen } from "./PrivacyScreen";
 import { NoraMemoryScreen } from "./NoraMemoryScreen";
 export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const [showPrivacy, setShowPrivacy] = React.useState(false);
+  const [openSections, setOpenSections] = React.useState({friends:false,style:false,health:false,goals:false});
+  const toggleSection = (k) => setOpenSections(p=>({...p,[k]:!p[k]}));
+  const CollapseHeader = ({id,title,sub}) => (
+    <div onClick={()=>toggleSection(id)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",paddingBottom:openSections[id]?12:0}}>
+      <div>
+        <div style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp}}>{title}</div>
+        {sub&&<div style={{fontFamily:FB,fontSize:11,color:T.taupe,marginTop:2}}>{sub}</div>}
+      </div>
+      <span style={{color:T.taupe,fontSize:16,transition:"transform .2s",display:"inline-block",transform:openSections[id]?"rotate(180deg)":"rotate(0deg)"}}>⌄</span>
+    </div>
+  );
   const [activeTab, setActiveTab] = React.useState("profile");
 
   const [local, setLocal] = useState({...profile});
@@ -184,7 +195,8 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
 
       {/* Close Friends */}
       <Card ch={<div>
-        <H2 t="Close Friends" sub="Nora will remember their birthdays"/>
+        <CollapseHeader id="friends" title="Close Friends" sub="Nora will remember their birthdays"/>
+        <div style={{display:openSections.friends?"block":"none"}}>
         {(local.friends||[]).map((f,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:T.blushP,borderRadius:12,padding:"10px 14px",marginBottom:8}}>
             <div style={{flex:1}}>
@@ -219,6 +231,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             document.getElementById("fr-name").value="";
           }} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
         </div>
+        </div>
       </div>}/>
 
       {/* Priorities */}
@@ -251,7 +264,8 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
 
       {/* Style Profile */}
       <Card ch={<div>
-        <H2 t="Style Profile" sub="Helps Nora style you perfectly"/>
+        <CollapseHeader id="style" title="Style Profile" sub="Helps Nora style you perfectly"/>
+        <div style={{display:openSections.style?"block":"none"}}>
         <div style={{marginBottom:14}}>
           <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Body shape</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
@@ -300,10 +314,12 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             {["Under $100","$100-200","$200-400","$400-600","$600+"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,styleBudget:s}))} style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${local.styleBudget===s?T.gold:T.linen}`,background:local.styleBudget===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.styleBudget===s?T.esp:T.bark,cursor:"pointer"}}>{s}</button>))}
           </div>
         </div>
+        </div>
       </div>}/>
 
       <Card ch={<div>
-        <H2 t="Health" sub="Helps Nora coach you better"/>
+        <CollapseHeader id="health" title="Health" sub="Helps Nora coach you better"/>
+        <div style={{display:openSections.health?"block":"none"}}>
         <div style={{marginBottom:12}}>
           <label style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,display:"block",marginBottom:8}}>Dietary preferences</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
@@ -321,6 +337,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           <div style={{display:"flex",gap:8}}>
             {["Morning person","Mid-day","Night owl"].map(s=>(<button key={s} onClick={()=>setLocal(p=>({...p,energyPattern:s}))} style={{flex:1,padding:"9px 6px",borderRadius:12,border:`1.5px solid ${local.energyPattern===s?T.gold:T.linen}`,background:local.energyPattern===s?T.goldP:"#fff",fontFamily:FB,fontSize:11,color:local.energyPattern===s?T.esp:T.bark,cursor:"pointer",textAlign:"center"}}>{s}</button>))}
           </div>
+        </div>
         </div>
       </div>}/>
 

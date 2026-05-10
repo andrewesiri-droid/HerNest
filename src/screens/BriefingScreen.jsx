@@ -179,10 +179,25 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
       {tabs}
       {activeTab==="sunday" && <SundayReset profile={profile} calEvents={calEvents} appContext={appContext}/>}
       {activeTab==="travel" && <TravelBrief trip={upcomingTrip} daysUntil={daysUntilTrip} profile={profile}/>}
-      {activeTab==="morning" && <div style={{textAlign:"center",padding:"50px 20px"}}>
-        <div style={{width:60,height:60,borderRadius:"50%",background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px",animation:"breathe 2s ease-in-out infinite"}}><Ic.Sun s={28} c="#fff" w={1.4}/></div>
-        <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:T.esp}}>Nora is preparing your morning…</p>
-        <p style={{fontFamily:FB,fontSize:12,color:T.taupe,margin:"6px 0 0"}}>Personalised just for you</p>
+      {activeTab==="morning" && <div>
+        {/* Skeleton screen */}
+        <div style={{borderRadius:22,overflow:"hidden",marginBottom:14}}>
+          <div style={{background:`linear-gradient(135deg,${T.esp},#3a2010)`,padding:"24px 22px"}}>
+            <div style={{width:120,height:14,borderRadius:8,background:"rgba(255,255,255,.15)",marginBottom:12}}/>
+            <div style={{width:"70%",height:22,borderRadius:8,background:"rgba(255,255,255,.12)",marginBottom:8}}/>
+            <div style={{width:"50%",height:14,borderRadius:8,background:"rgba(255,255,255,.08)"}}/>
+          </div>
+        </div>
+        {[1,2,3].map(i=>(
+          <div key={i} style={{background:"#fff",borderRadius:16,padding:"16px",marginBottom:10,border:`1px solid ${T.linen}`}}>
+            <div style={{width:"40%",height:10,borderRadius:6,background:T.linen,marginBottom:10}}/>
+            <div style={{width:"90%",height:14,borderRadius:6,background:T.sand,marginBottom:6}}/>
+            <div style={{width:"70%",height:14,borderRadius:6,background:T.sand}}/>
+          </div>
+        ))}
+        <div style={{textAlign:"center",marginTop:8}}>
+          <div style={{fontFamily:FD,fontStyle:"italic",fontSize:13,color:T.taupe,animation:"breathe 2s ease-in-out infinite"}}>Nora is preparing your morning… ✦</div>
+        </div>
       </div>}
     </div>
   );

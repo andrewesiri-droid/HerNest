@@ -231,6 +231,28 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
         <PsychicNudge nudge={psychicNudge} go={go} uid={uid} profile={profile} onDismiss={()=>setPsychicNudge(null)}/>
       )}
 
+      {/* ── NEW USER VALUE PROP ─────────────────────────────── */}
+      {!summary.pendingTasks&&!calConnected&&!appContext&&profile?.name&&(
+        <div style={{background:`linear-gradient(135deg,${T.esp},#3a2010)`,borderRadius:20,padding:"20px",marginBottom:14}}>
+          <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",color:"rgba(255,255,255,.45)",marginBottom:10}}>Welcome to HerNest</div>
+          <p style={{fontFamily:FD,fontStyle:"italic",fontSize:18,color:"#fff",margin:"0 0 14px",lineHeight:1.6}}>Hi {profile.name} — Nora is your AI chief of staff. The more you share, the more she helps.</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {[
+              {em:"💬",text:"Tell Nora what's on your mind",tab:"nora"},
+              {em:"☀️",text:"Read your morning briefing",tab:"brief"},
+              {em:"📅",text:"Connect your calendar",tab:"plan"},
+              {em:"💰",text:"Set up your budget",tab:"budget"},
+            ].map(({em,text,tab})=>(
+              <div key={tab} onClick={()=>go(tab)} style={{display:"flex",alignItems:"center",gap:12,cursor:"pointer",padding:"8px 12px",borderRadius:12,background:"rgba(255,255,255,.06)"}}>
+                <span style={{fontSize:20,flexShrink:0}}>{em}</span>
+                <span style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.8)"}}>{text}</span>
+                <span style={{marginLeft:"auto",color:"rgba(255,255,255,.3)",fontSize:16}}>›</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── NORA CONCIERGE ──────────────────────────────────── */}
       <ConciergeCard profile={profile} appContext={appContext} go={go}/>
 

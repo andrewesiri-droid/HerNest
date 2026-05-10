@@ -87,7 +87,10 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
 
     const calCtx=todayEvents.length?`CALENDAR EVENTS TODAY: ${todayEvents.map(e=>{const t=e.allDay?"All day":new Date(e.start).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});return `${t} - ${e.title}${e.location?` at ${e.location}`:""}`;}).join(", ")}. Include these in priorities.`:"";
     const familyCtx=`Partner: ${profile?.partner||"none"}, kids: ${profile?.kids?.map(k=>`${k.name} (${k.age||"?"})`).join(",")||"none"}, parents: ${profile?.parents?.map(p=>p.name).join(",")||"none"}, in-laws: ${profile?.inlaws?.map(p=>p.name).join(",")||"none"}`;
-    const weather=await fetchWeather();
+    const weather=await Promise.race([
+      fetchWeather(),
+      new Promise(resolve=>setTimeout(()=>resolve(null),3000))
+    ]);
     const weatherCtx=weather?`Current weather: ${weather.desc} (${weather.type}). Mention this naturally in the weatherNote field.`:"";
     const sys=`You are Nora inside HerNest. SELF-CORRECTION: Only reference information the user has actually provided. Never invent calendar events, birthdays or facts not in the context. Return ONLY valid JSON no markdown:
 {"greeting":"","date":"","weatherNote":"","weatherType":"sunny|cloudy|rainy","priorities":[{"text":"","tag":"Work|Family|Me|Home"}],"reminders":["","",""],"budgetNote":"","tripNote":"","affirmation":"","energyTip":"","focusWord":""}

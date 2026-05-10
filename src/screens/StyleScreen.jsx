@@ -106,6 +106,15 @@ export function StyleScreen({profile,uid,appContext}){
 
       {/* STYLIST TAB */}
       {activeTab==="stylist"&&<div>
+        {(profile?.styleVibe||profile?.bodyShape||profile?.dresscode)&&(
+          <div style={{background:"#f0ebff",borderRadius:14,padding:"10px 14px",marginBottom:14,border:"1px solid #d4c5f9",display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:18}}>✨</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:"#7c5cbf",marginBottom:2}}>Nora knows your style</div>
+              <div style={{fontFamily:FB,fontSize:12,color:T.bark}}>{[profile?.styleVibe,profile?.dresscode,profile?.bodyShape].filter(Boolean).join(" · ")}</div>
+            </div>
+          </div>
+        )}
         {/* Occasion quick picks */}
         <div style={{marginBottom:14}}>
           <div style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:T.bark,marginBottom:10}}>What's the occasion?</div>

@@ -94,6 +94,27 @@ export function TripsScreen({uid,profile}){
   // ── LIST VIEW ──────────────────────────────────────────────────
   if(activeTrip===null) return(
     <div style={{animation:"fadeUp .45s ease both"}}>
+      {/* Savings goal prompt */}
+      {showSavingsPrompt&&(
+        <div style={{background:"#fff",borderRadius:18,padding:"20px",marginBottom:14,border:`1.5px solid ${T.gold}`,boxShadow:"0 4px 20px rgba(0,0,0,.08)"}}>
+          <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:T.esp,marginBottom:6}}>💰 Set up a savings goal?</div>
+          <p style={{fontFamily:FB,fontSize:12,color:T.bark,margin:"0 0 14px",lineHeight:1.6}}>
+            Your {showSavingsPrompt.dest} trip costs ${showSavingsPrompt.budget.toLocaleString()}. Want Nora to track your savings in Budget?
+          </p>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>{
+              try{
+                const goals=JSON.parse(localStorage.getItem("hn_savings_goals")||"[]");
+                goals.push({name:`${showSavingsPrompt.dest} Trip`,target:showSavingsPrompt.budget,saved:0,id:Date.now()});
+                localStorage.setItem("hn_savings_goals",JSON.stringify(goals));
+              }catch(e){}
+              setShowSavingsPrompt(null);
+              alert(`✓ Savings goal added to your Budget! Track it in Budget → Coach.`);
+            }} style={{flex:2,background:T.esp,color:"#fff",border:"none",borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,fontWeight:700,cursor:"pointer"}}>Yes, track it 💛</button>
+            <button onClick={()=>setShowSavingsPrompt(null)} style={{flex:1,background:T.sand,border:`1px solid ${T.linen}`,borderRadius:12,padding:"10px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer"}}>Not now</button>
+          </div>
+        </div>
+      )}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
         <div>
           <div style={{display:"flex",alignItems:"center",gap:8}}><Ic.Plane s={20} c={T.esp} w={1.5}/><h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:T.esp,margin:0,fontWeight:400}}>My Trips</h2></div>

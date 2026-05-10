@@ -227,6 +227,7 @@ export function WellnessScreen({ profile, uid }) {
   const [sleep, setSleep] = useState(() => getTodaySleep());
   const [water, setWater] = useState(() => { try { return parseInt(localStorage.getItem("hn_water") || "3"); } catch (e) { return 3; } });
   const [habits, setHabits] = useState({});
+  const [celebrated, setCelebrated] = useState(false);
   const [weeklyMood, setWeeklyMood] = useState(() => getWeeklyMood());
   const [checkedIn, setCheckedIn] = useState(() => hasCheckedInThisWeek());
   const [weeklyScore, setWeeklyScore] = useState(() => { try { return JSON.parse(localStorage.getItem("hn_weekly_score") || "null"); } catch (e) { return null; } });
@@ -303,6 +304,13 @@ export function WellnessScreen({ profile, uid }) {
 
   // Mark habit done
   const handleMarkHabit = (id) => {
+    // Check if this completes all habits
+    const updated = {...habits, [id]: {...habits[id], done: true}};
+    const allDone = Object.values(updated).every(h => h.done);
+    if (allDone && !celebrated) {
+      setCelebrated(true);
+      setTimeout(() => setCelebrated(false), 4000);
+    }
     setHabits(p => {
       const updated = { ...p, [id]: { ...p[id], done: true, source: "manual" } };
       if (uid) saveData(uid, "wellness", { habits: updated }).catch(() => {});

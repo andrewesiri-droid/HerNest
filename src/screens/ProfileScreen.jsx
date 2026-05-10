@@ -34,6 +34,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const toggleP = id => { const c=local.priorities||[]; setLocal(p=>({...p,priorities:c.includes(id)?c.filter(x=>x!==id):c.length<3?[...c,id]:c})); };
 
   if(showPrivacy) return <PrivacyScreen onClose={()=>setShowPrivacy(false)}/>;
+  const showProfile = activeTab === "profile";
 
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
@@ -43,7 +44,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         <Pill ch="🧠 Nora's Memory" active={activeTab==="memory"} on={()=>setActiveTab("memory")} color={T.lav}/>
       </div>
       {activeTab==="memory" && <NoraMemoryScreen uid={user?.uid}/>}
-      <div style={{display:activeTab==="profile"?"block":"none"}}>
+      <div style={{display:showProfile?"block":"none"}}>
       {/* Hero */}
       <div style={{background:AIGRAD,borderRadius:22,padding:"24px 22px",marginBottom:16,position:"relative",overflow:"hidden",textAlign:"center"}}>
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.03)"}}/>

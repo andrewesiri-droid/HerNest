@@ -280,6 +280,7 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
       <button onClick={gen} style={{width:"100%",background:"none",border:`1.5px solid ${T.linen}`,borderRadius:13,padding:"11px",fontFamily:FB,fontSize:12,color:T.bark,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
         <Ic.Refresh s={15} c={T.bark} w={1.8}/> Refresh briefing
       </button>
+      </div>}
     </div>
   );
 }

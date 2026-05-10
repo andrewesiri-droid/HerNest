@@ -51,7 +51,7 @@ export const STORAGE_KEYS = {
 
   // Usage
   DAILY_USAGE:      "hn_daily_usage",
-} as const;
+};
 
 // Helper — safe get with JSON parse
 export function getStored(key, fallback = null) {

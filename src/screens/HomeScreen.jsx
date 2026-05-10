@@ -330,20 +330,75 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
         )}
       </div>
 
-      {/* ── ZONE 4: QUICK GLANCES ────────────────────────────── */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
-        <QuickGlance icon="💧" value={water} label="WATER" sub={`${8-water} to go`} color={T.sky} onClick={()=>setWater(w=>Math.min(8,w+1))}/>
-        <QuickGlance icon="🔥" value={streak} label="STREAK" sub="days" color={T.gold}/>
-        <QuickGlance icon="✓" value={summary.pendingTasks||0} label="TASKS" sub="pending" color={T.sage} onClick={()=>go("plan")}/>
-      </div>
-
-      {/* ── ZONE 5: UPCOMING ─────────────────────────────────── */}
-      {upcoming.length>0&&(
-        <div style={{background:"#fff",borderRadius:18,padding:"14px 16px",marginBottom:14,border:`1px solid ${T.linen}`,boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
-          <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",color:T.taupe,marginBottom:8}}>Coming up</div>
-          {upcoming.map((item,i)=><UpcomingRow key={i} item={item} go={go}/>)}
+      {/* ── ZONE 4-5: FAMILY COMMAND CENTER ─────────────────── */}
+      <div style={{background:"#fff",borderRadius:22,padding:"16px",marginBottom:14,border:`1px solid ${T.linen}`,boxShadow:"0 4px 20px rgba(30,20,10,.06)"}}>
+        {/* Header */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <span style={{fontFamily:FB,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",color:T.taupe}}>Family Command Center</span>
+          <span style={{fontFamily:FD,fontSize:12,color:T.gold,cursor:"pointer"}} onClick={()=>go("plan")}>View all →</span>
         </div>
-      )}
+
+        {/* Stats row */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
+          <div onClick={()=>setWater(w=>Math.min(8,w+1))} style={{background:T.skyP,borderRadius:14,padding:"12px 8px",textAlign:"center",cursor:"pointer"}}>
+            <div style={{fontSize:20,marginBottom:2}}>💧</div>
+            <div style={{fontFamily:FD,fontSize:20,fontWeight:700,color:T.sky}}>{water}</div>
+            <div style={{fontFamily:FB,fontSize:9,color:T.sky,fontWeight:700,letterSpacing:.5}}>WATER</div>
+            <div style={{fontFamily:FB,fontSize:9,color:T.taupe}}>{8-water} to go</div>
+          </div>
+          <div style={{background:T.goldP,borderRadius:14,padding:"12px 8px",textAlign:"center"}}>
+            <div style={{fontSize:20,marginBottom:2}}>🔥</div>
+            <div style={{fontFamily:FD,fontSize:20,fontWeight:700,color:T.gold}}>{streak}</div>
+            <div style={{fontFamily:FB,fontSize:9,color:T.gold,fontWeight:700,letterSpacing:.5}}>STREAK</div>
+            <div style={{fontFamily:FB,fontSize:9,color:T.taupe}}>days</div>
+          </div>
+          <div onClick={()=>go("plan")} style={{background:T.sageP,borderRadius:14,padding:"12px 8px",textAlign:"center",cursor:"pointer"}}>
+            <div style={{fontSize:20,marginBottom:2}}>✓</div>
+            <div style={{fontFamily:FD,fontSize:20,fontWeight:700,color:T.sage}}}>{summary.pendingTasks||0}</div>
+            <div style={{fontFamily:FB,fontSize:9,color:T.sage,fontWeight:700,letterSpacing:.5}}>TASKS</div>
+            <div style={{fontFamily:FB,fontSize:9,color:T.taupe}}>pending</div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        {upcoming.length>0&&<div style={{height:1,background:T.linen,marginBottom:12}}/>}
+
+        {/* Upcoming events */}
+        {upcoming.length>0&&(
+          <div>
+            <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",color:T.taupe,marginBottom:8}}>Coming up</div>
+            {upcoming.map((item,i)=><UpcomingRow key={i} item={item} go={go}/>)}
+          </div>
+        )}
+
+        {/* School events this week */}
+        {(()=>{
+          const schoolEvents=JSON.parse(localStorage.getItem("hn_school_events")||"[]");
+          const thisWeek=schoolEvents.filter(e=>{
+            const diff=(new Date(e.date)-new Date())/(1000*60*60*24);
+            return diff>=0&&diff<=7&&(e.requiresAction||e.priority==="critical");
+          }).slice(0,2);
+          if(!thisWeek.length)return null;
+          return(
+            <div>
+              <div style={{height:1,background:T.linen,margin:"12px 0 10px"}}/>
+              <div style={{fontFamily:FB,fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",color:T.sky,marginBottom:8}}>🎒 School this week</div>
+              {thisWeek.map((e,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<thisWeek.length-1?`1px solid ${T.linen}`:"none"}}>
+                  <div style={{width:28,height:28,borderRadius:8,background:T.skyP,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>📚</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:FB,fontSize:13,fontWeight:600,color:T.esp,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+                    {e.child&&<div style={{fontFamily:FB,fontSize:10,color:T.taupe}}>{e.child}</div>}
+                  </div>
+                  <div style={{fontFamily:FB,fontSize:11,fontWeight:700,color:T.sky,flexShrink:0}}>
+                    {(()=>{const d=Math.round((new Date(e.date)-new Date())/86400000);return d===0?"Today":d===1?"Tomorrow":`${d}d`;})()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+      </div>
 
       {/* ── ZONE 6: BIRTHDAY ALERTS (today/tomorrow only) ────── */}
       {[...(profile?.kids||[]),...(profile?.parents||[]),...(profile?.inlaws||[]),...(profile?.friends||[])].filter(p=>{

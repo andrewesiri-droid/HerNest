@@ -36,6 +36,7 @@ import { getScreens } from "./screens/index.jsx";
 import { OfflineBanner } from "./screens/OfflineBanner";
 import { PartnerView } from "./screens/PartnerView";
 import { TabBar } from "./components/TabBar.jsx";
+import { SettingsButton, SettingsPanel } from "./components/SettingsPanel.jsx";
 import { UpgradeModal } from "./components/UpgradeModal.jsx";
 
 // ─── Onboarding ────────────────────────────────────────────────────
@@ -92,6 +93,7 @@ export default function App() {
   const [screen, setScreen] = useState("loading");
   const [tab, setTabState] = useState("home");
   const [showMore, setShowMore] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const setTab = (t) => { setTabState(t); navigate("/" + t, { replace: true }); trackPage(t); };
   // Sync tab from URL on load
@@ -275,6 +277,8 @@ export default function App() {
       <button onClick={()=>setShowInstall(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,lineHeight:1}}>×</button>
     </div>}
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} reason="limit"/>}
+      {showSettings && <SettingsPanel onClose={()=>setShowSettings(false)} onSignOut={reset} user={user} profile={profile}/>}
+      {screen==="app" && <SettingsButton onClick={()=>setShowSettings(true)}/>}
       <OfflineBanner/>
       <div key={tab} style={{padding:"16px 16px 90px",animation:"tabIn .25s ease both"}}>
         {screens[tab]||screens.home}

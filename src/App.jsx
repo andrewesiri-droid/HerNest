@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "firebase/auth";
 import { T, FD, FB, AIGRAD } from "./constants/theme";
 import { initSession, logEvent, EVENTS, identifyUser, resetUser, trackPage } from "./utils/analytics";
 import { requestPushPermission } from "./utils/proactiveNotifications";
 
 
 import { useStreak } from "./hooks/useStreak";
-import { useAuth } from "./hooks/useAuth";
 import { useCalendar } from "./hooks/useCalendar";
 import { useAppContext } from "./hooks/useAppContext";
 
@@ -95,7 +94,7 @@ export default function App() {
   }, []);
 
   const [user, setUser] = useState(null);
-  // authChecked — now derived from useAuth hook
+  const [authChecked, setAuthChecked] = useState(false);
   const [profile, setProfile] = useState({name:"",avatar:"👩",city:"",role:"",kids:[],partner:"",parents:[],inlaws:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:"",soloParent:false});
   const [aiTasks, setAiTasks] = useState([]);
   const { calEvents, calConnected, connectCalendar } = useCalendar();
@@ -131,22 +130,44 @@ export default function App() {
     setTab("home");setAiTasks([]);setUser(null);setScreen("login");
   };
 
-  // handleLogin — managed by useAuth hook
-
-  // Auth — managed by useAuth hook
-  const { user: authUser, authChecked: authReady } = useAuth(
-    (savedProfile) => { setProfile(savedProfile); setScreen("app"); },
-    (firstName) => {
-      if(firstName) setProfile(p=>({...p,name:firstName}));
-      const savedStep=localStorage.getItem("hn_ob_step");
-      setScreen(savedStep?`step${savedStep}`:"step1");
+  const handleLogin = (userData) => {
+    if(userData.name) setProfile(p=>({...p,name:userData.name}));
+    setScreen("step1");
+    if(userData.uid){
+      loadData(userData.uid,"profile").then(saved=>{
+        if(saved&&saved.name){setProfile(saved);setScreen("app");}
+      }).catch(()=>{});
     }
-  );
-  // Sync user from useAuth hook
+  };
+
+  // Auth state
   useEffect(()=>{
-    if(authReady && authUser) setUser(authUser);
-    if(authReady && !authUser) { setUser(null); setScreen("login"); }
-  }, [authUser, authReady]);
+    getRedirectResult(auth).then(result=>{
+      if(result?.user){
+        const cred=GoogleAuthProvider.credentialFromResult(result);
+        if(cred?.accessToken){sessionStorage.setItem("hn_gtoken",cred.accessToken);}
+      }
+    }).catch(()=>{});
+    const timeout=setTimeout(()=>setAuthChecked(true),5000);
+    const unsub=onAuthStateChanged(auth,(u)=>{
+      clearTimeout(timeout);
+      setUser(u||null);
+      if(u){
+        try{localStorage.setItem("hn_uid",JSON.stringify(u.uid));}catch(e){}
+        identifyUser(u.uid,{email:u.email,name:u.displayName});
+        loadData(u.uid,"profile").then(saved=>{
+          if(saved&&saved.name){setProfile(saved);setScreen("app");}
+          else{
+            if(u.displayName)setProfile(p=>({...p,name:u.displayName.split(" ")[0]}));
+            const savedStep=localStorage.getItem("hn_ob_step");
+            setScreen(savedStep?`step${savedStep}`:"step1");
+          }
+        }).catch(()=>{setScreen("step1");});
+      } else { setScreen("login"); }
+      setAuthChecked(true);
+    });
+    return()=>{unsub();clearTimeout(timeout);};
+  },[]);
 
   // Auto-save profile
   useEffect(()=>{
@@ -179,7 +200,7 @@ export default function App() {
   const partnerUid = urlParams.get("family");
   if(partnerUid) return <PartnerView uid={partnerUid}/>;
 
-  if(!authReady) return(
+  if(!authChecked) return(
     <div style={{minHeight:"100vh",background:AIGRAD,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center"}}>
         <div style={{fontFamily:FD,fontSize:42,fontWeight:600,color:"#fff",fontStyle:"italic",marginBottom:8}}>HerNest</div>
@@ -214,7 +235,7 @@ export default function App() {
     );
   }
 
-  if(screen==="login") return <><style>{css}</style><LoginScreen onLogin={()=>{}} auth={auth} googleProvider={googleProvider}/></>;
+  if(screen==="login") return <><style>{css}</style><LoginScreen onLogin={handleLogin} auth={auth} googleProvider={googleProvider}/></>;
   if(screen==="intro") return <><style>{css}</style><NoraIntro profile={profile} onEnter={()=>{logEvent(EVENTS.ONBOARDING_COMPLETED,{name:profile.name,role:profile.role});
               requestPushPermission().catch(()=>{});localStorage.removeItem("hn_ob_step");setScreen("app");}}/></>;
 

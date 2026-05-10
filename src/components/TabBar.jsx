@@ -25,7 +25,7 @@ export function TabBar({ tab, setTab, showMore, setShowMore, profile, onSettings
     <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(255,252,248,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderTop:"1px solid rgba(229,217,201,.8)",zIndex:100,boxShadow:"0 -4px 24px rgba(46,31,20,.06)"}}>
       {/* More drawer */}
       {showMore && (
-        <div style={{background:"rgba(255,252,248,.98)",borderTop:`1px solid ${T.linen}`,padding:"12px 16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div style={{background:"rgba(255,252,248,.98)",borderTop:`1px solid ${T.linen}`,padding:"12px 16px 24px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,maxHeight:"60vh",overflowY:"auto"}}>
           {MORE_TABS.map(t => (
             <button key={t.id} onClick={()=>{if(t.id==="settings"&&onSettings){onSettings();setShowMore(false);}else{setTab(t.id);setShowMore(false);}}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:14,background:tab===t.id?T.sand:"#fff",border:`1px solid ${tab===t.id?T.gold:T.linen}`,cursor:"pointer"}}>
               <t.IC s={18} c={tab===t.id?T.esp:T.taupe} w={tab===t.id?2:1.5}/>

@@ -48,14 +48,15 @@ export function TabBar({ tab, setTab, showMore, setShowMore, profile, onSettings
           </button>
         ))}
         {/* More button */}
-        <button onClick={()=>setShowMore(p=>!p)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:14,flex:1,opacity:moreTabs.includes(tab)||showMore?1:.45}}>
+        <button onClick={()=>setShowMore(p=>!p)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:14,flex:1}}>
+          <div style={{width:4,height:4,borderRadius:999,background:showMore||moreTabs.includes(tab)?T.gold:"transparent",marginBottom:1,transition:"all .2s"}}/>
           <div style={{width:22,height:22,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3}}>
             {moreTabs.includes(tab)&&!showMore
               ? <div style={{width:22,height:22,borderRadius:"50%",background:T.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>{profile?.avatar||"👩"}</div>
-              : <>{[0,1,2].map(i=><div key={i} style={{width:16,height:2,borderRadius:2,background:showMore?T.esp:T.taupe}}/>)}</>
+              : <>{[0,1,2].map(i=><div key={i} style={{width:16,height:2,borderRadius:2,background:showMore?T.esp:T.stone2}}/>)}</>
             }
           </div>
-          <span style={{fontFamily:FB,fontSize:9,fontWeight:showMore||moreTabs.includes(tab)?700:400,color:showMore||moreTabs.includes(tab)?T.esp:T.taupe,letterSpacing:.6}}>{moreTabs.includes(tab)&&!showMore?"Me":"More"}</span>
+          <span style={{fontFamily:FB,fontSize:9,fontWeight:showMore||moreTabs.includes(tab)?700:500,color:showMore||moreTabs.includes(tab)?T.esp:T.stone2,letterSpacing:.6}}>{moreTabs.includes(tab)&&!showMore?"Me":"More"}</span>
         </button>
       </div>
     </div>

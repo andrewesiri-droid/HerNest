@@ -65,8 +65,10 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
     }
   }
 
+  const [loading, setLoading] = useState(false);
   const gen=async()=>{
-    setLoading(true);setCheckedPriorities([]);setCheckedReminders([]);setAskResp(null);
+    if(!data) setLoading(true);
+    setCheckedPriorities([]);setCheckedReminders([]);setAskResp(null);
     const bdayCtx=upcomingBdays.length?`IMPORTANT — upcoming birthdays: ${upcomingBdays.map(b=>`${b.name} in ${b.days} day${b.days===1?"":"s"}`).join(", ")}. Include a reminder about this.`:"";
     const schoolEventsRaw=localStorage.getItem("hn_school_events");
     const schoolEventsAll=schoolEventsRaw?JSON.parse(schoolEventsRaw):[];
@@ -356,7 +358,6 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
 // ─── Sunday Reset Component ───────────────────────────────────────
 export function SundayReset({ profile, calEvents, appContext }) {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const isWeekend = [0, 6].includes(new Date().getDay());
 
@@ -520,7 +521,6 @@ export function SundayReset({ profile, calEvents, appContext }) {
 // ─── Travel Brief Component ───────────────────────────────────────
 export function TravelBrief({ trip, daysUntil, profile }) {
   const [brief, setBrief] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     try {

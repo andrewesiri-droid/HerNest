@@ -334,7 +334,7 @@ Min 3 tasks. Make tasks specific and actionable. The insight should feel like it
       </div>
       {showBriefing&&<div style={{marginBottom:12}}><BriefingScreen profile={profile} onAddTask={onAddTask} calEvents={calEvents}/></div>}
 
-      <div style={{background:AIGRAD,borderRadius:22,padding:"18px 20px",marginBottom:12,flexShrink:0}}>
+      <div style={{background:`linear-gradient(135deg,${T.esp} 0%,#3D2E22 100%)`,borderRadius:22,padding:"18px 20px",marginBottom:12,flexShrink:0,boxShadow:"0 24px 48px -24px rgba(42,31,24,.35)"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div style={{width:46,height:46,borderRadius:"50%",flexShrink:0,background:`linear-gradient(135deg,${T.gold},#8B6914)`,display:"flex",alignItems:"center",justifyContent:"center",animation:"breathe 3s ease-in-out infinite",boxShadow:`0 0 20px rgba(196,154,60,.4)`}}><Ic.Star s={22} c="#fff" w={1.3}/></div>
           <div style={{flex:1}}><h2 style={{fontFamily:FD,fontSize:20,fontWeight:600,color:"#fff",margin:0,fontStyle:"italic"}}>Nora AI</h2><p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",margin:0,letterSpacing:1.5,textTransform:"uppercase"}}>Mental Load Manager</p></div>

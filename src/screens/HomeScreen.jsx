@@ -9,7 +9,7 @@ import { buildEmotionalContext } from "../utils/emotionalContext";
 import { PsychicNudge } from "../components/PsychicNudge";
 import { ConciergeCard } from "../components/ConciergCard.jsx";
 import { claude } from "../utils/claude";
-import { Card, AIBadge, Tile, Spinner, Tag } from "../components/shared";
+import { Card, AIBadge, Tile, Spinner, Tag, NoraCallout } from "../components/shared";
 
 // ─── Greeting Generator ───────────────────────────────────────────
 function buildGreeting(firstName, appContext) {
@@ -218,12 +218,13 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
 
       {/* ── ZONE 1: GREETING ─────────────────────────────────── */}
       <div style={{marginBottom:20,paddingTop:4}}>
-        <p style={{fontFamily:FB,fontSize:10,color:T.taupe,letterSpacing:2,textTransform:"uppercase",margin:"0 0 6px"}}>
+        <div style={{fontFamily:FB,fontWeight:600,fontSize:10.5,letterSpacing:"0.16em",textTransform:"uppercase",color:T.stone||T.taupe,marginBottom:8}}>
           {new Date().toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long"})}
-        </p>
-        <h1 style={{fontFamily:FD,fontStyle:"italic",fontSize:28,color:T.esp,margin:"0 0 2px",fontWeight:300,lineHeight:1.2}}>{greeting.line1}</h1>
-        <h1 style={{fontFamily:FD,fontSize:28,color:greeting.color,margin:0,fontWeight:700,fontStyle:"normal",lineHeight:1.2}}>{greeting.line2}</h1>
-        {greeting.sub&&<p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"8px 0 0",lineHeight:1.5}}>{greeting.sub}</p>}
+        </div>
+        <div style={{fontFamily:FD,fontStyle:"italic",fontWeight:500,fontSize:32,lineHeight:1.1,color:T.esp}}>
+          {greeting.line1}<br/>{greeting.line2}
+        </div>
+        {greeting.sub&&<p style={{fontFamily:FB,fontSize:13,color:T.bark,margin:"10px 0 0",lineHeight:1.5}}>{greeting.sub}</p>}
       </div>
 
       {/* ── ZONE 2: THE ONE THING ────────────────────────────── */}

@@ -71,7 +71,7 @@ export default async function handler(req, res) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model:    model || "claude-haiku-4-5",
+        model:    model || "claude-haiku-4-5-20251001",
         max_tokens,
         system:   system || undefined,
         messages: messages || [{ role: "user", content: prompt }],
@@ -79,9 +79,10 @@ export default async function handler(req, res) {
     });
 
     if (!response.ok) {
-      const err = await response.json();
-      console.error("[HerNest API] Anthropic error:", JSON.stringify(err));
-      return res.status(response.status).json({ error: err });
+      let err = {};
+      try { err = await response.json(); } catch(e) {}
+      console.error("[HerNest API] Anthropic error:", response.status, JSON.stringify(err));
+      return res.status(response.status).json({ error: err, status: response.status, model: req.body?.model });
     }
     const data = await response.json();
     return res.status(200).json(data);

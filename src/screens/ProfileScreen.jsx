@@ -1,3 +1,4 @@
+import { EMAILS } from "../config/constants";
 import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
@@ -11,6 +12,8 @@ import { EventAdder } from "./EventAdder";
 import { NoraMemoryScreen } from "./NoraMemoryScreen";
 export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const [openSections, setOpenSections] = React.useState({friends:false,style:false,health:false,goals:false});
+  const [editingKid, setEditingKid] = React.useState(null); // index of kid being edited
+  const [editingKidName, setEditingKidName] = React.useState("");
   const toggleSection = (k) => setOpenSections(p=>({...p,[k]:!p[k]}));
   const CollapseHeader = ({id,title,sub}) => (
     <div onClick={()=>toggleSection(id)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",paddingBottom:openSections[id]?12:0}}>
@@ -61,16 +64,16 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         }
       }catch(e){
         if(e?.code==="auth/requires-recent-login"){
-          alert("For security, please sign out and sign back in, then try deleting your account again.");
+          if(typeof window!=="undefined"){const t=document.createElement("div");t.textContent="For security, please sign out and sign back in first.";t.style.cssText="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#cc4444;color:#fff;padding:10px 18px;border-radius:12px;font-family:DM Sans,sans-serif;font-size:13px;z-index:9999";document.body.appendChild(t);setTimeout(()=>t.remove(),4000);}
           onSignOut();
           return;
         }
         console.error("Auth delete:",e?.message);
       }
 
-      alert("Your account and all data have been permanently deleted.");
+      if(typeof window!=="undefined"){const t=document.createElement("div");t.textContent="Account deleted. Goodbye 💛";t.style.cssText="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#2E1F14;color:#fff;padding:10px 18px;border-radius:12px;font-family:DM Sans,sans-serif;font-size:13px;z-index:9999";document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
       onSignOut();
-    }catch(e){alert("Error deleting data. Please contact privacy@hernest.app");}
+    }catch(e){if(typeof window!=="undefined"){const t=document.createElement("div");t.textContent="Error deleting data. Please contact privacy@hernest.app";t.style.cssText="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#cc4444;color:#fff;padding:10px 18px;border-radius:12px;font-family:DM Sans,sans-serif;font-size:13px;z-index:9999";document.body.appendChild(t);setTimeout(()=>t.remove(),5000);}}
   };
 
   const save = () => {
@@ -143,7 +146,10 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
                   <GiftButton name={k.name} age={k.age} relation="child"/>
                 </div>}
                 </div>
-                <button onClick={()=>{const n=prompt("Edit name:",k.name);if(n&&n.trim())setLocal(p=>({...p,kids:p.kids.map((c,ci)=>ci===i?{...c,name:n.trim()}:c)}));}} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Edit s={14} c={T.bark} w={1.5}/></button>
+                {editingKid===i
+                  ? <input autoFocus value={editingKidName} onChange={e=>setEditingKidName(e.target.value)} onBlur={()=>{if(editingKidName.trim())setLocal(p=>({...p,kids:p.kids.map((c,ci)=>ci===i?{...c,name:editingKidName.trim()}:c)}));setEditingKid(null);}} onKeyDown={e=>{if(e.key==="Enter"){if(editingKidName.trim())setLocal(p=>({...p,kids:p.kids.map((c,ci)=>ci===i?{...c,name:editingKidName.trim()}:c)}));setEditingKid(null);}if(e.key==="Escape")setEditingKid(null);}} style={{fontFamily:FB,fontSize:13,padding:"2px 6px",borderRadius:6,border:`1.5px solid ${T.gold}`,width:80,color:T.esp}}/>
+                  : <button onClick={()=>{setEditingKid(i);setEditingKidName(k.name);}} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Edit s={14} c={T.bark} w={1.5}/></button>
+                }
                 <button onClick={()=>removeKid(i)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Ic.Close s={14} c={T.bark} w={2}/></button>
               </div>
             </div>

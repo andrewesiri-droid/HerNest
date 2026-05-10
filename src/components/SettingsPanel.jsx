@@ -1,3 +1,4 @@
+import { EMAILS } from "../config/constants";
 import React, { useState } from "react";
 import { T, FD, FB } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";

@@ -94,15 +94,7 @@ export function CircleScreen({profile,uid,appContext}){
         <div style={{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"8px 12px",border:"1px solid rgba(255,255,255,.12)"}}>
           <p style={{fontFamily:FB,fontSize:11,color:"rgba(252,250,245,.6)",margin:0}}>✨ AI-powered practice companions, not real users.</p>
         </div>
-        <div style={{display:"flex",gap:16}}>
-          {[[myCircle.length,`of 8`,"Members"],[myCircle.filter(m=>m.status==="online").length,"online","Active now"],["5⭐","","Vibe"]].map(([v,sub,lb],i)=>(
-            <div key={i} style={{textAlign:"center"}}>
-              <div style={{fontFamily:FD,fontSize:20,fontWeight:700,color:"#fff"}}>{v}<span style={{fontSize:12,color:"rgba(255,255,255,.4)",marginLeft:2}}>{sub}</span></div>
-              <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase"}}>{lb}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      </HeroCard>
 
       {/* Tabs */}
       <div style={{display:"flex",gap:6,marginBottom:14}}>

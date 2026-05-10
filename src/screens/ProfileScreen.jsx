@@ -10,7 +10,6 @@ import { EventAdder } from "./EventAdder";
 
 import { NoraMemoryScreen } from "./NoraMemoryScreen";
 export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
-  const [showPrivacy, setShowPrivacy] = React.useState(false);
   const [openSections, setOpenSections] = React.useState({friends:false,style:false,health:false,goals:false});
   const toggleSection = (k) => setOpenSections(p=>({...p,[k]:!p[k]}));
   const CollapseHeader = ({id,title,sub}) => (
@@ -98,7 +97,6 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const CHALLENGES = ["Mental load","Work-life balance","Staying fit","Budget management","Finding me-time"];
   const toggleP = id => { const c=local.priorities||[]; setLocal(p=>({...p,priorities:c.includes(id)?c.filter(x=>x!==id):c.length<3?[...c,id]:c})); };
 
-  if(showPrivacy) return <PrivacyScreen onClose={()=>setShowPrivacy(false)}/>;
   const showProfile = activeTab === "profile";
 
   return(

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData, db } from "../utils/firebase";
-import { suggestCommunity } from "../utils/inference/communityInference";
+const suggestCommunity = () => [];
 import { claude } from "../utils/claude";
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar, PageTitle, HeroCard } from "../components/shared";

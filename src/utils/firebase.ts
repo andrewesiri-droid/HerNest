@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import type { UserProfile, MemoryFact } from "../types";
+import type { UserProfile, MemoryFact } from "../types.ts";
 import { getFirestore, doc, setDoc, getDoc, writeBatch, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 

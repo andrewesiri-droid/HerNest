@@ -7,9 +7,7 @@ import { claude } from "../utils/claude";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 import { GiftButton } from "./GiftButton";
 import { EventAdder } from "./EventAdder";
-import { NotificationCard } from "./NotificationCard";
 
-import { PrivacyScreen } from "./PrivacyScreen";
 import { NoraMemoryScreen } from "./NoraMemoryScreen";
 export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
   const [openSections, setOpenSections] = React.useState({friends:false,style:false,health:false,goals:false});

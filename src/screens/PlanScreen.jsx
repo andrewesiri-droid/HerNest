@@ -209,10 +209,11 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
         {["All","Family","Work","Me","Home","Travel"].map(t=><Pill key={t} ch={t} active={filter===t} on={()=>setFilter(t)}/>)}
       </div>
 
+      </div>
       {planTab==="calendar" && <CalendarScreen profile={profile} calEvents={calEvents} uid={uid}/>}
       {planTab==="school" && <Card ch={<SchoolCalendar profile={profile} uid={uid}/>}/>}
-      {planTab==="tasks" && <div>
 
+      <div style={{display:planTab==="tasks"?"block":"none"}}>
       {/* Calendar events for today */}
       {(()=>{
         const today=new Date().toDateString();
@@ -263,7 +264,6 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
         );
       })}
 
-      </div>}
       {planTab==="meals" && <div>{/* Meal Planner */}
       <div style={{marginTop:20}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
@@ -311,7 +311,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
             ))}
           </div>
         }/>
-      </div>}
+      </div>
     </div>
   );
 }

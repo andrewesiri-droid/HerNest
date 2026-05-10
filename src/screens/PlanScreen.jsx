@@ -5,7 +5,7 @@ import { saveData, loadData } from "../utils/firebase";
 import { extractAutoTasks } from "../utils/inference/taskExtractor";
 import { claude } from "../utils/claude";
 import { TRACKING } from "../utils/tracking.js";
-import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar, PageTitle, HeroCard } from "../components/shared";
 import { SchoolCalendar } from "./SchoolCalendar";
 import { CalendarScreen } from "./CalendarScreen";
 
@@ -125,22 +125,18 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
         <Pill ch="🍽️ Meals" active={planTab==="meals"} on={()=>setPlanTab("meals")} color={T.sage}/>
       </div>
       {/* Header */}
-      <div style={{background:AIGRAD,borderRadius:22,padding:"20px 20px 18px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-20,right:-20,width:100,height:100,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-          <div>
-            <p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.4)",letterSpacing:2,textTransform:"uppercase",margin:0}}>Command Centre</p>
-            <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:24,color:"#fff",margin:"4px 0 2px",fontWeight:400}}>Today's Plan</h2>
-          </div>
-          <div style={{textAlign:"center",background:"rgba(255,255,255,.1)",borderRadius:14,padding:"10px 14px"}}>
-            <div style={{fontFamily:FD,fontSize:28,fontWeight:700,color:T.gold}}>{donePct}%</div>
-            <div style={{fontFamily:FB,fontSize:9,color:"rgba(255,255,255,.4)",letterSpacing:1,textTransform:"uppercase"}}>done</div>
-          </div>
+      <PageTitle eyebrow={new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}).toUpperCase()} title="Today's Plan"/>
+      <HeroCard
+        eyebrow="COMMAND CENTRE"
+        title={donePct===100?"All done — you crushed it":donePct>50?"More than halfway there":"Three things, in this order"}
+        subtitle={donePct===100?"Take a moment to celebrate.":"Focus on what matters most today."}
+        metric={`${donePct}%`}
+        metricLabel="Done"
+      >
+        <div style={{height:6,borderRadius:999,background:"rgba(252,250,245,.12)",overflow:"hidden"}}>
+          <div style={{height:"100%",width:`${donePct}%`,background:`linear-gradient(90deg,${T.gold},${T.sage})`,transition:"width .5s"}}/>
         </div>
-        <div style={{marginTop:14,background:"rgba(255,255,255,.08)",borderRadius:10,height:6}}>
-          <div style={{background:`linear-gradient(90deg,${T.gold},${T.sage})`,height:"100%",borderRadius:10,width:`${donePct}%`,transition:"width .5s"}}/>
-        </div>
-      </div>
+      </HeroCard>
 
       {/* Day selector */}
       <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto"}}>

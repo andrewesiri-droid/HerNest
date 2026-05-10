@@ -4,7 +4,7 @@ import { Ic } from "../constants/icons.jsx";
 import { saveData, loadData } from "../utils/firebase";
 import { claude } from "../utils/claude";
 import { logEvent, EVENTS } from "../utils/analytics";
-import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar, PageTitle } from "../components/shared";
 
 export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
   const [data,setData]=useState(()=>{
@@ -215,9 +215,10 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
       {activeTab==="sunday" && <SundayReset profile={profile} calEvents={calEvents} appContext={appContext}/>}
       {activeTab==="travel" && <TravelBrief trip={upcomingTrip} daysUntil={daysUntilTrip} profile={profile}/>}
       {activeTab==="morning" && <div>
+      <PageTitle eyebrow={new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}).toUpperCase()} title="Your morning briefing"/>
       {/* Hero */}
-      <div style={{background:AIGRAD,borderRadius:24,padding:"24px 22px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
+      <div style={{background:`linear-gradient(135deg,${T.esp} 0%,#3D2E22 100%)`,borderRadius:24,padding:"24px 22px",marginBottom:14,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-40,right:-40,width:180,height:180,borderRadius:"50%",background:"radial-gradient(circle,rgba(201,169,97,.12) 0%,transparent 70%)"}}/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
           <AIBadge t="Morning Briefing"/>
           {(isStale||loading)&&data&&<span style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.4)",marginLeft:4}}>Updating…</span>}

@@ -5,7 +5,7 @@ import { saveData, loadData, db } from "../utils/firebase";
 import { suggestCommunity } from "../utils/inference/communityInference";
 import { claude } from "../utils/claude";
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
-import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
+import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar, PageTitle, HeroCard } from "../components/shared";
 
 export function CircleScreen({profile,uid,appContext}){
   const [activeTab,setActiveTab]=useState("myCircle");
@@ -83,13 +83,16 @@ export function CircleScreen({profile,uid,appContext}){
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
       {/* Header */}
-      <div style={{background:"linear-gradient(135deg,#0e1428,#1a2a4e)",borderRadius:22,padding:"22px 20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",background:"rgba(100,160,255,.05)"}}/>
-        <AIBadge t="AI Practice Circle"/>
-        <h2 style={{fontFamily:FD,fontStyle:"italic",fontSize:26,color:"#fff",margin:"10px 0 6px",fontWeight:400}}>The Circle</h2>
-        <p style={{fontFamily:FB,fontSize:13,color:"rgba(255,255,255,.45)",margin:"0 0 10px"}}>Practice conversations with AI companions 💛</p>
-        <div style={{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"8px 12px",border:"1px solid rgba(255,255,255,.15)",marginBottom:4}}>
-          <p style={{fontFamily:FB,fontSize:11,color:"rgba(255,255,255,.6)",margin:0}}>✨ These are AI-powered practice companions, not real users. Real community coming soon.</p>
+      <PageTitle eyebrow="YOUR CIRCLE" title="The people who matter"/>
+      <HeroCard
+        eyebrow="THIS WEEK"
+        title="Practice conversations, build confidence"
+        subtitle="AI companions to talk to. Real community coming soon."
+        metric={String(myCircle.length)}
+        metricLabel="Members"
+      >
+        <div style={{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"8px 12px",border:"1px solid rgba(255,255,255,.12)"}}>
+          <p style={{fontFamily:FB,fontSize:11,color:"rgba(252,250,245,.6)",margin:0}}>✨ AI-powered practice companions, not real users.</p>
         </div>
         <div style={{display:"flex",gap:16}}>
           {[[myCircle.length,`of 8`,"Members"],[myCircle.filter(m=>m.status==="online").length,"online","Active now"],["5⭐","","Vibe"]].map(([v,sub,lb],i)=>(

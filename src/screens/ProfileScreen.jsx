@@ -140,7 +140,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             <option value="">Day</option>
             {Array.from({length:31},(_,i)=><option key={i+1} value={String(i+1).padStart(2,"0")}>{i+1}</option>)}
           </select>
-            <button onClick={()=>{if(!kn.trim())return;const m=document.getElementById("par-bday-m")?.value||"";const d=document.getElementById("par-bday-d")?.value||"";const bd=m&&d?`${m}/${d}`:"";upd("parents",[...(local.parents||[]),{name:kn,role:ka||"Mum",bday:bd}]);setKn("");setKa("");}} style={{background:T.gold,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+            <button onClick={()=>{if(!kn.trim())return;const m=document.getElementById("par-bday-m")?.value||"";const d=document.getElementById("par-bday-d")?.value||"";const bd=m&&d?`${m}/${d}`:"";upd("parents",[...(local.parents||[]),{name:kn,role:ka||"Mum",bday:bd}]);setKn("");setKa("");}} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
 
@@ -175,7 +175,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             <option value="">Day</option>
             {Array.from({length:31},(_,i)=><option key={i+1} value={String(i+1).padStart(2,"0")}>{i+1}</option>)}
           </select>
-            <button onClick={()=>{if(!kn.trim())return;const m=document.getElementById("il-bday-m")?.value||"";const d=document.getElementById("il-bday-d")?.value||"";const bd=m&&d?`${m}/${d}`:"";upd("inlaws",[...(local.inlaws||[]),{name:kn,role:ka||"Mother-in-law",bday:bd}]);setKn("");setKa("");}} style={{background:T.lav,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+            <button onClick={()=>{if(!kn.trim())return;const m=document.getElementById("il-bday-m")?.value||"";const d=document.getElementById("il-bday-d")?.value||"";const bd=m&&d?`${m}/${d}`:"";upd("inlaws",[...(local.inlaws||[]),{name:kn,role:ka||"Mother-in-law",bday:bd}]);setKn("");setKa("");}} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
           </div>
         </div>
       </div>}/>
@@ -215,7 +215,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
             const bd=m&&d?`${m}/${d}`:"";
             upd("friends",[...(local.friends||[]),{name,bday:bd}]);
             document.getElementById("fr-name").value="";
-          }} style={{background:T.blush,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
+          }} style={{background:T.esp,border:"none",borderRadius:12,padding:"0 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic.Plus s={18} c="#fff" w={2}/></button>
         </div>
       </div>}/>
 

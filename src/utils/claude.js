@@ -75,6 +75,8 @@ export const claude = async (sys, prompt, hist = [], feature = "nora_chat") => {
 
     if (res.status === 429) {
       const data = await res.json();
+      // Dispatch event so any screen can show the upgrade modal
+      window.dispatchEvent(new CustomEvent("hn_limit_reached", { detail: data }));
       return { error: true, code: "daily_limit_reached", message: data.message };
     }
     if (!res.ok) return { error: true, code: `http_${res.status}` };

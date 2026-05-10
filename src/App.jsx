@@ -36,6 +36,7 @@ import { getScreens } from "./screens/index.jsx";
 import { OfflineBanner } from "./screens/OfflineBanner";
 import { PartnerView } from "./screens/PartnerView";
 import { TabBar } from "./components/TabBar.jsx";
+import { UpgradeModal } from "./components/UpgradeModal.jsx";
 
 // ─── Onboarding ────────────────────────────────────────────────────
 import { SplashScreen } from "./onboarding/SplashScreen";
@@ -85,6 +86,7 @@ export default function App() {
   const [screen, setScreen] = useState("loading");
   const [tab, setTabState] = useState("home");
   const [showMore, setShowMore] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const setTab = (t) => { setTabState(t); navigate("/" + t, { replace: true }); trackPage(t); };
   // Sync tab from URL on load
   useEffect(() => {
@@ -107,6 +109,13 @@ export default function App() {
     const handler = () => setShowInstall(true);
     window.addEventListener("hn_show_install", handler);
     return () => window.removeEventListener("hn_show_install", handler);
+  }, []);
+
+  // Show upgrade modal when AI limit is hit
+  useEffect(() => {
+    const handler = () => setShowUpgrade(true);
+    window.addEventListener("hn_limit_reached", handler);
+    return () => window.removeEventListener("hn_limit_reached", handler);
   }, []);
 
   const upd = (k,v) => setProfile(p=>({...p,[k]:v}));
@@ -259,6 +268,7 @@ export default function App() {
       <button onClick={()=>{if(typeof deferredPrompt!=="undefined"&&deferredPrompt){deferredPrompt.prompt();}setShowInstall(false);logEvent(EVENTS.FEATURE_FIRST_USE,{feature:"pwa_install"});}} style={{background:T.gold,border:"none",borderRadius:10,padding:"8px 14px",fontFamily:FB,fontSize:12,fontWeight:700,color:T.esp,cursor:"pointer"}}>Add</button>
       <button onClick={()=>setShowInstall(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,lineHeight:1}}>×</button>
     </div>}
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} reason="limit"/>}
       <OfflineBanner/>
       <div style={{padding:"16px 16px 90px"}}>
         {screens[tab]||screens.home}

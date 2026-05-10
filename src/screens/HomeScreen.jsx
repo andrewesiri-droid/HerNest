@@ -354,7 +354,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
           </div>
           <div onClick={()=>go("plan")} style={{background:T.sageP,borderRadius:14,padding:"12px 8px",textAlign:"center",cursor:"pointer"}}>
             <div style={{fontSize:20,marginBottom:2}}>✓</div>
-            <div style={{fontFamily:FD,fontSize:20,fontWeight:700,color:T.sage}}}>{summary.pendingTasks||0}</div>
+            <div style={{fontFamily:FD,fontSize:20,fontWeight:700,color:T.sage}}>{summary.pendingTasks||0}</div>
             <div style={{fontFamily:FB,fontSize:9,color:T.sage,fontWeight:700,letterSpacing:.5}}>TASKS</div>
             <div style={{fontFamily:FB,fontSize:9,color:T.taupe}}>pending</div>
           </div>

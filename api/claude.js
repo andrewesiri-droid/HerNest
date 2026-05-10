@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   if (prompt && prompt.length > 4000) {
     return res.status(400).json({ error: "Message too long. Please keep messages under 4000 characters." });
   }
-  const ALLOWED_FEATURES = ["nora_chat","morning_briefing","style_advice","budget_coach","wellness_coach","meal_plan","trip_plan","school_extract","receipt_scan","csv_import","gift_advisor","briefing_qa","sunday_reset","travel_brief","weekly_score","debrief"];
+  const ALLOWED_FEATURES = ["nora_chat","morning_briefing","style_advice","style_stylist","budget_coach","wellness_coach","meal_plan","meal_planner","trip_plan","trip_planner","school_extract","school_calendar","school_photo","receipt_scan","receipt_scanner","csv_import","gift_advisor","briefing_qa","briefing_ask","sunday_reset","travel_brief","weekly_score","wellness_score","debrief","circle_match"];
   if (feature && !ALLOWED_FEATURES.includes(feature)) {
     return res.status(400).json({ error: "Invalid feature." });
   }

@@ -403,9 +403,8 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
           const keys=["hn_tasks","hn_expenses","hn_moods","hn_water","hn_sleep","hn_habits","hn_wishlist","hn_outfits","hn_school_events","hn_nora_msgs","hn_nora_memory","hn_nora_memory_v2","hn_weekly_score","hn_streak","hn_trips","hn_gtoken","hn_brief_hour","hn_brief_min"];
           keys.forEach(k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k);}catch(e){}});
           if(user?.uid){
-            const {db}=await import("../utils/firebase");
-            const {doc,deleteDoc,collection,getDocs,collectionGroup,query,where,getDoc}=await import("firebase/firestore");
             const {db:firestoreDb}=await import("../utils/firebase");
+            const {doc,deleteDoc,collection,getDocs,collectionGroup,query,where,getDoc}=await import("firebase/firestore");
             const collections=["profile","tasks","trips","budget","wellness","style","school","nora_memory"];
             for(const col of collections){try{await deleteDoc(doc(firestoreDb,"users",user.uid,"data",col));}catch(e){}}
             // Delete summary

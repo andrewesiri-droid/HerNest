@@ -13,7 +13,7 @@ if (!getApps().length) {
 }
 
 const adminDb  = getFirestore();
-const FREE_LIMIT = 10;
+const FREE_LIMIT = 100;
 
 export default async function handler(req, res) {
   // Input validation

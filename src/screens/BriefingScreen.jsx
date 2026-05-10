@@ -52,7 +52,9 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
     const schoolEventsAll=schoolEventsRaw?JSON.parse(schoolEventsRaw):[];
     const todayStr2=new Date().toISOString().split("T")[0];
     const thisWeekSchool=schoolEventsAll.filter(e=>{const diff=(new Date(e.date)-new Date())/(1000*60*60*24);return diff>=0&&diff<=7;});
-    const schoolCtx=thisWeekSchool.length?`SCHOOL EVENTS THIS WEEK: ${thisWeekSchool.map(e=>`${e.title} on ${e.date}${e.child?` (${e.child})`:""}`).join(", ")}. Mention any that require action.`:"";
+    const urgentSchool=thisWeekSchool.filter(e=>e.requiresAction||e.priority==="critical");
+    const regularSchool=thisWeekSchool.filter(e=>!e.requiresAction&&e.priority!=="critical");
+    const schoolCtx=thisWeekSchool.length?`SCHOOL EVENTS THIS WEEK: ${urgentSchool.length?`URGENT (requires action): ${urgentSchool.map(e=>`${e.title} on ${e.date}${e.child?` for ${e.child}`:""}${e.prep?` — prep: ${e.prep}`:""}`).join(", ")}. `:""} ${regularSchool.length?`Also: ${regularSchool.map(e=>`${e.title} on ${e.date}`).join(", ")}.`:""} Include urgent school items in priorities.`:"";
 
     const nowB=new Date();const todayStrB=nowB.getFullYear()+"-"+String(nowB.getMonth()+1).padStart(2,"0")+"-"+String(nowB.getDate()).padStart(2,"0");
     const todayEvents=(calEvents||[]).filter(e=>{if(!e.start)return false;if(e.allDay)return e.start.startsWith(todayStrB);return new Date(e.start).toDateString()===nowB.toDateString();});

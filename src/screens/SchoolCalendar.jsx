@@ -24,7 +24,24 @@ export function SchoolCalendar({profile,uid}){
   const saveEvents=(events)=>{
     setSchoolEvents(events);
     try{localStorage.setItem("hn_school_events",JSON.stringify(events));}catch(e){ /* silent */ }
-    if(uid)saveData(uid,"school",{events}).catch(()=>{});
+    if(uid){
+      saveData(uid,"school",{events}).catch(()=>{});
+      // Also write to calendar so events appear in CalendarScreen and Briefing
+      const calendarEvents = events.map(e=>({
+        id: `school_${e.title}_${e.date}`,
+        title: e.title,
+        start: e.date,
+        end: e.date,
+        allDay: true,
+        source: "school",
+        child: e.child,
+        priority: e.priority,
+        requiresAction: e.requiresAction,
+        prep: e.prep,
+        type: e.type,
+      }));
+      saveData(uid,"calendar_school",{events:calendarEvents}).catch(()=>{});
+    }
   };
 
   useEffect(()=>{

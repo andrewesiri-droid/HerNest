@@ -409,6 +409,21 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
           <Ic.Arrow s={14} c="rgba(255,255,255,.6)" w={1.5}/>
         </div>
       )}
+      {/* School newsletter quick upload */}
+      {(profile?.kids||[]).length>0&&(()=>{
+        const schoolEvents=JSON.parse(localStorage.getItem("hn_school_events")||"[]");
+        const hasEvents=schoolEvents.length>0;
+        return(
+          <div onClick={()=>go("plan")} style={{background:"linear-gradient(135deg,#1a3a6e,#1a5a9e)",borderRadius:14,padding:"11px 14px",marginBottom:8,cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:18}}>🎒</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:FB,fontSize:12,fontWeight:700,color:"#fff"}}>{hasEvents?`${schoolEvents.length} school events tracked`:"Add school calendar"}</div>
+              <div style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.7)"}}>{hasEvents?"Nora will flag important dates in your briefing":"Upload newsletter → Nora adds it to your calendar"}</div>
+            </div>
+            <Ic.Arrow s={14} c="rgba(255,255,255,.6)" w={1.5}/>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -62,6 +62,12 @@ googleProvider.addScope("https://www.googleapis.com/auth/calendar.readonly");
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+  @keyframes tabIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes slideRight{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes breathe{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.06);opacity:1}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes dot{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
   body{background:#FAF6EF;overflow-x:hidden;}
   select,input,textarea{font-family:'DM Sans','Helvetica Neue',sans-serif;}
   .lift{transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease;}
@@ -270,7 +276,7 @@ export default function App() {
     </div>}
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} reason="limit"/>}
       <OfflineBanner/>
-      <div style={{padding:"16px 16px 90px"}}>
+      <div key={tab} style={{padding:"16px 16px 90px",animation:"tabIn .25s ease both"}}>
         {screens[tab]||screens.home}
       </div>
       <TabBar tab={tab} setTab={setTab} showMore={showMore} setShowMore={setShowMore} profile={profile}/>

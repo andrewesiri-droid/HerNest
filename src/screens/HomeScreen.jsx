@@ -366,7 +366,7 @@ export function HomeScreen({go,aiTasks,profile,streak=1,calConnected,connectCale
 
         {/* Stats row */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
-          <div onClick={()=>setWater(w=>Math.min(8,w+1))} style={{background:T.skyP,borderRadius:14,padding:"12px 8px",textAlign:"center",cursor:"pointer"}}>
+          <div onClick={()=>setWater(w=>Math.min(8,w+1))} style={{background:T.skyP,borderRadius:14,padding:"12px 8px",textAlign:"center",cursor:"pointer",transition:"all .2s"}}>
             <div style={{fontSize:20,marginBottom:2}}>💧</div>
             <div style={{fontFamily:FD,fontSize:20,fontWeight:700,color:T.sky}}>{water}</div>
             <div style={{fontFamily:FB,fontSize:9,color:T.sky,fontWeight:700,letterSpacing:.5}}>WATER</div>

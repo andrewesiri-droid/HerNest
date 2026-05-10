@@ -283,6 +283,7 @@ export function WellnessScreen({ profile, uid }) {
   // Save water
   const handleWater = (n) => {
     const val = Math.max(0, Math.min(8, n));
+    if(val > water) TRACKING.waterLogged(val);
     setWater(val);
     try { localStorage.setItem("hn_water", String(val)); } catch (e) {}
     if (uid) saveData(uid, "wellness", { water: val, moods: [3, 3, 3, 3, 3, 3, 3], sleep: sleep?.hours || 0 }).catch(() => {});
@@ -304,6 +305,7 @@ export function WellnessScreen({ profile, uid }) {
 
   // Mark habit done
   const handleMarkHabit = (id) => {
+    TRACKING.habitDone(habits[id]?.label||id);
     // Check if this completes all habits
     const updated = {...habits, [id]: {...habits[id], done: true}};
     const allDone = Object.values(updated).every(h => h.done);

@@ -4,6 +4,7 @@ import { Ic } from "../constants/icons.jsx";
 import { claude, claudeVision } from "../utils/claude";
 import { Card, H2, Pill, AIBadge, Tile, Spinner, ProgressBar } from "../components/shared";
 import { useBudget, CAT_META } from "../features/budget/useBudget.js";
+import { TRACKING } from "../utils/tracking.js";
 
 // ─── Overview Tab ─────────────────────────────────────────────────
 function OverviewTab({ categories, setCategories, totalSpent, totalBudget, saveMonthSnapshot, expenses, setExpenses }) {
@@ -58,6 +59,7 @@ function ExpensesTab({ categories, expenses, setExpenses, setCategories, ensureC
     const amt = parseFloat(newExp.amount);
     setExpenses(p => [{id:Date.now(),cat:newExp.cat,amount:amt,note:newExp.note,date:"Just now"}, ...p]);
     setCategories(p => p.map(c => c.lb===newExp.cat?{...c,spent:c.spent+amt}:c));
+    TRACKING.expenseLogged(newExp.cat, amt);
     setNewExp({cat:"Groceries",amount:"",note:""});
     setShowAdd(false);
   };

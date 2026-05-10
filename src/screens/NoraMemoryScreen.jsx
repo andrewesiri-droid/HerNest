@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { T, FD, FB, AIGRAD } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
-import { saveData } from "../utils/firebase";
+import { saveData, loadData } from "../utils/firebase";
 import { Card, H2, AIBadge, Tag } from "../components/shared";
 
 const FACT_TYPE_META = {
@@ -22,13 +22,33 @@ export function NoraMemoryScreen({ uid }) {
   const [showAdd, setShowAdd] = useState(false);
   const [filter, setFilter] = useState("all");
 
-  // Load memory
+  // Load memory — Firestore first, localStorage fallback
   useEffect(() => {
-    try {
-      const s = localStorage.getItem("hn_nora_memory_v2");
-      if (s) setMemory(JSON.parse(s));
-    } catch (e) {}
-  }, []);
+    if (uid) {
+      loadData(uid, "nora_memory").then(d => {
+        if (d?.facts?.length) {
+          setMemory(d.facts);
+          try { localStorage.setItem("hn_nora_memory_v2", JSON.stringify(d.facts)); } catch(e) {}
+        } else {
+          // fallback to localStorage if Firestore empty
+          try {
+            const s = localStorage.getItem("hn_nora_memory_v2");
+            if (s) setMemory(JSON.parse(s));
+          } catch (e) {}
+        }
+      }).catch(() => {
+        try {
+          const s = localStorage.getItem("hn_nora_memory_v2");
+          if (s) setMemory(JSON.parse(s));
+        } catch (e) {}
+      });
+    } else {
+      try {
+        const s = localStorage.getItem("hn_nora_memory_v2");
+        if (s) setMemory(JSON.parse(s));
+      } catch (e) {}
+    }
+  }, [uid]);
 
   const saveMemory = (updated) => {
     setMemory(updated);

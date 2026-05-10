@@ -400,7 +400,8 @@ export function SundayReset({ profile, calEvents, appContext }) {
       const cleaned = text.replace(/```json|```/g,"").trim();
       const parsed = JSON.parse(cleaned);
       setData(parsed);
-      try { localStorage.setItem("hn_sunday_reset", JSON.stringify({...parsed, date: new Date().toDateString()})); } catch(e) {}
+      const weekKey = "hn_sunday_reset_" + new Date().toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"});
+      try { localStorage.setItem("hn_sunday_reset", JSON.stringify({...parsed, date: new Date().toDateString(), weekKey})); } catch(e) {}
     } catch(e) {
       console.error("[HerNest] Sunday Reset failed:", e?.message);
       // Fallback data so user sees something
@@ -418,11 +419,15 @@ export function SundayReset({ profile, calEvents, appContext }) {
     setLoading(false);
   };
 
-  // Load cached reset
+  // Load cached reset — only use if from within last 7 days
   useEffect(() => {
     try {
       const cached = JSON.parse(localStorage.getItem("hn_sunday_reset")||"null");
-      if (cached) setData(cached);
+      if (cached?.date) {
+        const age = (Date.now() - new Date(cached.date).getTime()) / (1000*60*60*24);
+        if (age < 7) setData(cached);
+        else localStorage.removeItem("hn_sunday_reset");
+      }
     } catch(e) {}
   }, []);
 

@@ -43,7 +43,7 @@ export function useBudget(uid) {
 
   // Load from Firestore — source of truth
   useEffect(() => {
-    if (!uid) { setBudgetLoading(false); return; }
+    if (!uid) { setBudgetLoading(false); setHasLoaded(true); return; }
     loadData(uid, "budget").then(d => {
       if (d?.expenses)   setExpenses(d.expenses);
       if (d?.categories) setCategories(d.categories.map(c => ({...c, IC:Ic[c.ICname]||Ic.Bag})));
@@ -51,11 +51,15 @@ export function useBudget(uid) {
       if (d?.savingsGoal) setSavingsGoal(d.savingsGoal);
       try { if (d?.expenses)   localStorage.setItem("hn_expenses",   JSON.stringify(d.expenses)); }   catch (e) {}
       try { if (d?.categories) localStorage.setItem("hn_budget_cats", JSON.stringify(d.categories)); } catch (e) {}
-    }).catch(() => {}).finally(() => setBudgetLoading(false));
+    }).catch(() => {}).finally(() => { setBudgetLoading(false); setHasLoaded(true); });
   }, [uid]);
 
-  // Save to Firestore on change
+  // hasLoaded flag — prevents saving defaults before Firestore data arrives
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  // Save to Firestore on change — only after first load completes
   useEffect(() => {
+    if (!hasLoaded) return;
     try { localStorage.setItem("hn_expenses",   JSON.stringify(expenses)); }   catch (e) {}
     try { localStorage.setItem("hn_budget_cats", JSON.stringify(categories.map(c => ({lb:c.lb,spent:c.spent,budget:c.budget,c:c.c})))); } catch (e) {}
     if (uid) saveData(uid, "budget", {
@@ -63,7 +67,7 @@ export function useBudget(uid) {
       categories: categories.map(c => ({...c, ICname:Object.keys(Ic).find(k=>Ic[k]===c.IC)||"Bag"})),
       savingsGoal,
     }).catch(() => {});
-  }, [expenses, categories, savingsGoal, uid]);
+  }, [expenses, categories, savingsGoal]);
 
   const totalBudget = categories.reduce((a, c) => a + c.budget, 0);
   const totalSpent  = categories.reduce((a, c) => a + c.spent,  0);

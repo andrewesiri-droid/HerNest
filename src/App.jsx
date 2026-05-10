@@ -108,7 +108,7 @@ export default function App() {
   const [profile, setProfile] = useState({name:"",avatar:"👩",city:"",role:"",kids:[],partner:"",parents:[],inlaws:[],priorities:[],tripGoal:"",fitnessGoal:"",savingsGoal:"",challenge:"",soloParent:false});
   const [aiTasks, setAiTasks] = useState([]);
   const { calEvents, calConnected, connectCalendar } = useCalendar();
-  const streak = useStreak(screen);
+  const streak = useStreak(screen, uid);
   const appContext = useAppContext(user?.uid, profile?.name, calEvents);
 
   // Context — managed by useAppContext hook

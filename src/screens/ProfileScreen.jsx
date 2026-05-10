@@ -43,7 +43,7 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
         <Pill ch="🧠 Nora's Memory" active={activeTab==="memory"} on={()=>setActiveTab("memory")} color={T.lav}/>
       </div>
       {activeTab==="memory" && <NoraMemoryScreen uid={user?.uid}/>}
-      {activeTab==="profile" && <div>
+      <div style={{display:activeTab==="profile"?"block":"none"}}>
       {/* Hero */}
       <div style={{background:AIGRAD,borderRadius:22,padding:"24px 22px",marginBottom:16,position:"relative",overflow:"hidden",textAlign:"center"}}>
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.03)"}}/>

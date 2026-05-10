@@ -46,7 +46,7 @@ import { Step3 } from "./onboarding/Step3";
 import { NoraIntro } from "./onboarding/NoraIntro";
 
 // ─── Firebase ──────────────────────────────────────────────────────
-import { auth, app } from "./utils/firebase";
+import { auth, app, saveData, loadData } from "./utils/firebase";
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope("https://www.googleapis.com/auth/calendar.readonly");
 

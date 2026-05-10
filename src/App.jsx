@@ -7,6 +7,7 @@ import { requestPushPermission } from "./utils/proactiveNotifications";
 
 
 import { useStreak } from "./hooks/useStreak";
+import { useAppSetup } from "./hooks/useAppSetup";
 import { useCalendar } from "./hooks/useCalendar";
 import { useAppContext } from "./hooks/useAppContext";
 
@@ -112,19 +113,13 @@ export default function App() {
   const appContext = useAppContext(user?.uid, profile?.name, calEvents);
 
   // Context — managed by useAppContext hook
-  const [showInstall, setShowInstall] = useState(false);
-  useEffect(()=>{
-    const handler = () => setShowInstall(true);
-    window.addEventListener("hn_show_install", handler);
-    return () => window.removeEventListener("hn_show_install", handler);
-  }, []);
-
   // Show upgrade modal when AI limit is hit
   useEffect(() => {
     const handler = () => setShowUpgrade(true);
     window.addEventListener("hn_limit_reached", handler);
     return () => window.removeEventListener("hn_limit_reached", handler);
   }, []);
+  const [showInstall, setShowInstall] = useState(false);
 
   const upd = (k,v) => setProfile(p=>({...p,[k]:v}));
 
@@ -192,7 +187,6 @@ export default function App() {
   },[profile,user]);
 
   // Analytics — init session
-  useEffect(()=>{ initSession(); },[]);
 
   // Push notifications — request permission and schedule briefing
   useEffect(()=>{

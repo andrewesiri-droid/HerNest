@@ -3,18 +3,18 @@ import { T, FB } from "../constants/theme";
 import { Ic } from "../constants/icons.jsx";
 
 const TABS = [
-  {id:"home",    lb:"Home",   IC:Ic.Home},
-  {id:"nora",    lb:"Nora",   IC:Ic.Star, ai:true},
-  {id:"plan",    lb:"Plan",   IC:Ic.Plan},
-  {id:"budget",  lb:"Budget", IC:Ic.Budget},
-  {id:"wellness",lb:"Thrive", IC:Ic.Leaf},
+  {id:"home",    lb:"Home",    IC:Ic.Home},
+  {id:"nora",    lb:"Nora",    IC:Ic.Star, ai:true},
+  {id:"plan",    lb:"Plan",    IC:Ic.Plan},
+  {id:"budget",  lb:"Budget",  IC:Ic.Budget},
+  {id:"brief",   lb:"Briefing",IC:Ic.Sun},
 ];
 
 const MORE_TABS = [
-  {id:"style",  lb:"Style",    IC:Ic.Hanger},
-  {id:"trips",  lb:"Trips",    IC:Ic.Compass},
-  {id:"circle", lb:"Circle",   IC:Ic.People},
-  {id:"brief",  lb:"Briefing", IC:Ic.Star},
+  {id:"style",   lb:"Style",   IC:Ic.Hanger},
+  {id:"trips",   lb:"Trips",   IC:Ic.Compass},
+  {id:"circle",  lb:"Circle",  IC:Ic.People},
+  {id:"wellness",lb:"Thrive",  IC:Ic.Leaf},
 ];
 
 export function TabBar({ tab, setTab, showMore, setShowMore, profile }) {

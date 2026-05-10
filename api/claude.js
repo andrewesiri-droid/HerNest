@@ -21,6 +21,9 @@ export default async function handler(req, res) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Access-Control-Allow-Origin", "https://her-nest.vercel.app");
+  res.setHeader("Access-Control-Allow-Methods", "POST");
+  if (req.method === "OPTIONS") return res.status(200).end();
 
   const idToken = req.headers["authorization"]?.split("Bearer ")[1];
   if (!idToken) return res.status(401).json({ error: "Unauthorized" });

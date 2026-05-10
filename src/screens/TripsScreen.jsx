@@ -12,6 +12,7 @@ export function TripsScreen({uid,profile}){
   const [trips,setTrips]=useState([]);
   const [activeTrip,setActiveTrip]=useState(null); // null = list view
   const [showNewTrip,setShowNewTrip]=useState(false);
+  const [showSavingsPrompt,setShowSavingsPrompt]=useState(null);
   const [editMode,setEditMode]=useState(false);
   const [planning,setPlanning]=useState(false);
   const [planData,setPlanData]=useState({});

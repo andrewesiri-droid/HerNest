@@ -7,6 +7,7 @@ import { logEvent, EVENTS } from "../utils/analytics";
 import { Card, H2, Pill, AIBadge, Spinner } from "../components/shared";
 import { getTodaySleep } from "../utils/sleepInference";
 import { inferHabits } from "../utils/habitInference";
+import { TRACKING } from "../utils/tracking";
 const MOOD_LEVELS=[{value:1,label:"Struggling",emoji:"😞"},{value:2,label:"Low",emoji:"😕"},{value:3,label:"Okay",emoji:"😐"},{value:4,label:"Good",emoji:"🙂"},{value:5,label:"Thriving",emoji:"✨"}];
 const getWeekStart=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toDateString();};
 const hasCheckedInThisWeek=()=>{try{const s=JSON.parse(localStorage.getItem("hn_weekly_mood")||"null");return s?.weekStart===getWeekStart();}catch(e){return false;}};

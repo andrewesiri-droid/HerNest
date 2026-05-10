@@ -415,7 +415,6 @@ export function ProfileScreen({profile, onChange, onSave, onSignOut, user}){
       </button>
 
       {/* Notifications */}
-      <NotificationCard/>
 
       {/* Actions moved to Settings panel (More → Settings) */}
 

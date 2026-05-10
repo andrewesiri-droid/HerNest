@@ -7,8 +7,23 @@ import { logEvent, EVENTS } from "../utils/analytics";
 import { Card, H2, Pill, Tag, AIBadge, Tile, Spinner, Dots, FInput, ProgressBar } from "../components/shared";
 
 export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
-  const [data,setData]=useState(null);
+  const [data,setData]=useState(()=>{
+    try{
+      const cached=JSON.parse(localStorage.getItem("hn_brief_cache")||"null");
+      if(cached)return cached;
+    }catch(e){}
+    return null;
+  });
+  const [isStale,setIsStale]=useState(()=>{
+    try{ return localStorage.getItem("hn_brief_date")!==new Date().toDateString(); }
+    catch(e){ return true; }
+  });
   const [activeTab,setActiveTab]=useState("morning");
+
+  // Auto-refresh if cache is stale
+  useEffect(()=>{
+    if(isStale&&!loading)gen();
+  },[]);
   const [loading,setLoading]=useState(false);
   const [checkedPriorities,setCheckedPriorities]=useState([]);
   const [checkedReminders,setCheckedReminders]=useState([]);
@@ -79,6 +94,7 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
       const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());
       setData(parsed);
       logEvent(EVENTS.BRIEFING_VIEWED,{focusWord:parsed.focusWord});
+      setIsStale(false);
       const today=new Date().toDateString();
       try{localStorage.setItem("hn_brief_cache",JSON.stringify(parsed));localStorage.setItem("hn_brief_date",today);}catch(e){}
     }
@@ -157,7 +173,8 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
     </div>
   );
 
-  if(loading) return(
+  // Show spinner only if loading AND no cached data
+  if(loading&&!data) return(
     <div style={{animation:"fadeUp .4s ease both"}}>
       {tabs}
       {activeTab==="sunday" && <SundayReset profile={profile} calEvents={calEvents} appContext={appContext}/>}
@@ -184,6 +201,7 @@ export function BriefingScreen({profile,onAddTask,calEvents,appContext}){
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
           <AIBadge t="Morning Briefing"/>
+          {isStale&&!loading&&<span style={{fontFamily:FB,fontSize:10,color:"rgba(255,255,255,.4)",marginLeft:4}}>Updating…</span>}
           <button onClick={shareBriefing} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.15)",borderRadius:20,padding:"5px 12px",fontFamily:FB,fontSize:11,fontWeight:700,color:"rgba(255,255,255,.7)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
             {shared?<><Ic.Check s={11} c={T.sage} w={2.5}/>Copied!</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><circle cx="6" cy="12" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><circle cx="18" cy="19" r="3" stroke="rgba(255,255,255,.7)" strokeWidth="1.8"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="rgba(255,255,255,.7)" strokeWidth="1.8" strokeLinecap="round"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="rgba(255,255,255,.7)" strokeWidth="1.8" strokeLinecap="round"/></svg>Share</>}
           </button>

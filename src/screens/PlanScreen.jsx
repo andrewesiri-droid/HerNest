@@ -45,6 +45,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
   const [filter,setFilter]=useState("All");
   const [showAdd,setShowAdd]=useState(false);
   const [selRecur,setSelRecur]=useState("none");
+  const [planTab, setPlanTab] = useState("tasks");
   const [meals,setMeals]=useState({Mon:{b:"",l:"",d:""},Tue:{b:"",l:"",d:""},Wed:{b:"",l:"",d:""},Thu:{b:"",l:"",d:""},Fri:{b:"",l:"",d:""},Sat:{b:"",l:"",d:""},Sun:{b:"",l:"",d:""}});
   const [editMeal,setEditMeal]=useState(null);
   const [mealDay,setMealDay]=useState("Mon");
@@ -115,6 +116,13 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
 
   return(
     <div style={{animation:"fadeUp .45s ease both"}}>
+      {/* ── PLAN TABS ─────────────────────────────────────────── */}
+      <div style={{display:"flex",gap:8,marginBottom:14,overflowX:"auto",paddingBottom:2}}>
+        <Pill ch="✓ Tasks" active={planTab==="tasks"} on={()=>setPlanTab("tasks")} color={T.esp}/>
+        <Pill ch="📅 Calendar" active={planTab==="calendar"} on={()=>setPlanTab("calendar")} color={T.sky}/>
+        <Pill ch="🎒 School" active={planTab==="school"} on={()=>setPlanTab("school")} color="#1a5a9e"/>
+        <Pill ch="🍽️ Meals" active={planTab==="meals"} on={()=>setPlanTab("meals")} color={T.sage}/>
+      </div>
       {/* Header */}
       <div style={{background:AIGRAD,borderRadius:22,padding:"20px 20px 18px",marginBottom:14,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-20,right:-20,width:100,height:100,borderRadius:"50%",background:"rgba(255,255,255,.04)"}}/>
@@ -202,11 +210,9 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
       </div>
 
       {/* Tasks */}
-      {/* HerNest Unified Calendar */}
-      <CalendarScreen profile={profile} calEvents={calEvents} uid={uid}/>
-
-      {/* School Calendar */}
-      <Card ch={<SchoolCalendar profile={profile} uid={uid}/>}/>
+      </div>}
+      {planTab==="calendar" && <CalendarScreen profile={profile} calEvents={calEvents} uid={uid}/>}
+      {planTab==="school" && <Card ch={<SchoolCalendar profile={profile} uid={uid}/>}/>}
 
       {/* Calendar events for today */}
       {(()=>{
@@ -258,7 +264,7 @@ export function PlanScreen({aiTasks,profile,uid,calEvents}){
         );
       })}
 
-      {/* Meal Planner */}
+      {planTab==="meals" && <div>{/* Meal Planner */}
       <div style={{marginTop:20}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <H2 t="Meal Planner" sub="Tap any meal to edit"/>

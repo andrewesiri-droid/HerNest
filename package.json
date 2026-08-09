@@ -16,7 +16,7 @@
     "posthog-js": "^1.372.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.15.0",
+    "react-router-dom": "^7.18.2",
     "stripe": "^22.1.1"
   },
   "devDependencies": {
